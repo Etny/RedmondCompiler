@@ -1,17 +1,14 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing.Nodes
 {
     class OperatorNode : SyntaxNode
     {
 
-        public OperatorNode(Token t) : base(t) { }
+        public OperatorNode(Token t, CompilationContext context) : base(t, context) { }
 
-        public override void Parse(TokenStream input, IStringStream output)
+        public override void Parse(IStringStream Output)
         {
             if (Token.Type != TokenType.Operator)
                 Error($"\'{Token.Text}\' is not an operator");
@@ -19,19 +16,19 @@ namespace Redmond.Parsing.Nodes
             switch (Token.Text)
             {
                 case "+":
-                    output *= "add";
+                    Output *= "add";
                     return;
 
                 case "-":
-                    output *= "sub";
+                    Output *= "sub";
                     return;
 
                 case "*":
-                    output *= "mul";
+                    Output *= "mul";
                     return;
 
                 case "/":
-                    output *= "div";
+                    Output *= "div";
                     return;
             }
 

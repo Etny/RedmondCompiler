@@ -1,8 +1,6 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing.Nodes
 {
@@ -10,12 +8,20 @@ namespace Redmond.Parsing.Nodes
     {
         public readonly Token Token;
 
-        public SyntaxNode(Token t)
+        protected readonly CompilationContext Context;
+        protected TokenStream Input { get => Context.Input; }
+        protected IStringStream Output { get => Context.Output; set { } }
+
+        public SyntaxNode(Token t, CompilationContext context)
         {
             Token = t;
+            Context = context;
         }
 
-        public abstract void Parse(TokenStream input, IStringStream output);
+        public void Parse()
+            => Parse(Context.Output);
+
+        public abstract void Parse(IStringStream Output);
 
         protected void Error(String msg)
             => throw new Exception(msg);

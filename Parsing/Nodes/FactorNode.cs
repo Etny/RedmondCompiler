@@ -1,29 +1,26 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing.Nodes
 {
     class FactorNode : SyntaxNode
     {
 
-        public FactorNode(Token t) : base(t) { }
+        public FactorNode(Token t, CompilationContext context) : base(t, context) { }
 
-        public override void Parse(TokenStream input, IStringStream output)
+        public override void Parse(IStringStream Output)
         {
             switch (Token.Type)
             {
                 case TokenType.NumLiteral:
-                    output *= "push " + Token.NumValue;
+                    Output *= "push " + Token.NumValue;
                     return;
 
                 case TokenType.Punctuation:
-                    if(Token.Text == "(")
+                    if (Token.Text == "(")
                     {
-                        new ExpressionNode(input.EatToken()).Parse(input, output);
-                        input.Match(")");
+                        new ExpressionNode(Input.EatToken(), Context).Parse();
+                        Input.Match(")");
                     }
 
                     return;

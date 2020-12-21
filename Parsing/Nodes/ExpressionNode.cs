@@ -1,29 +1,26 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing.Nodes
 {
     class ExpressionNode : SyntaxNode
     {
-        public ExpressionNode(Token t) : base(t) { }
+        public ExpressionNode(Token t, CompilationContext context) : base(t, context) { }
 
-        public override void Parse(TokenStream input, IStringStream output)
+        public override void Parse(IStringStream Output)
         {
-            output.AddIndentation();
+            Output.AddIndentation();
 
-            new TermNode(Token).Parse(input, output);
+            new TermNode(Token, Context).Parse();
 
-            while (input.NextToken.Type == TokenType.Operator)
+            while (Input.NextToken.Type == TokenType.Operator)
             {
-                var op = new OperatorNode(input.EatToken());
-                new TermNode(input.EatToken()).Parse(input, output);
-                op.Parse(input, output);
+                var op = new OperatorNode(Input.EatToken(), Context);
+                new TermNode(Input.EatToken(), Context).Parse();
+                op.Parse();
             }
 
-            output.ReduceIndentation();
+            Output.ReduceIndentation();
         }
 
     }

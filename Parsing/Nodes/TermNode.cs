@@ -1,24 +1,21 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing.Nodes
 {
     class TermNode : SyntaxNode
     {
-        public TermNode(Token t) : base(t) { }
+        public TermNode(Token t, CompilationContext context) : base(t, context) { }
 
-        public override void Parse(TokenStream input, IStringStream output)
+        public override void Parse(IStringStream Output)
         {
-            new FactorNode(Token).Parse(input, output);
+            new FactorNode(Token, Context).Parse();
 
-            while(input.NextToken.Type == TokenType.Operator && "*/".Contains(input.NextToken.Text))
+            while (Input.NextToken.Type == TokenType.Operator && "*/".Contains(Input.NextToken.Text))
             {
-                var op = new OperatorNode(input.EatToken());
-                new FactorNode(input.EatToken()).Parse(input, output);
-                op.Parse(input, output);
+                var op = new OperatorNode(Input.EatToken(), Context);
+                new FactorNode(Input.EatToken(), Context).Parse();
+                op.Parse();
             }
 
             //Error($"\'{Token.Text}\' is not a Term");

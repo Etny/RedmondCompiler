@@ -1,27 +1,27 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
+using Redmond.Parsing.Nodes;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Redmond.Parsing
 {
-    internal partial class Compiler
+    internal class Compiler
     {
-        private TokenStream Input;
-        private IStringStream Output;
+        private readonly TokenStream _input;
+        private readonly IStringStream _output;
 
-        private Token NextToken { get => Input.NextToken; }
+        private readonly CompilationContext _context;
 
-        public Compiler(TokenStream input, IStringStream output)
+        public Compiler(TokenStream input, IStringStream output, CompilationContext context)
         {
-            Input = input;
-            Output = output;
+            _input = input;
+            _output = output;
+            _context = context;
         }
 
         public void StartCompilation()
         {
-            ParseExpression();
+            new ExpressionNode(_input.EatToken(), _context).Parse();
         }
 
         private void Error(String msg)
