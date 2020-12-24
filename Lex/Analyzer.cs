@@ -28,7 +28,7 @@ namespace Redmond.Lex
             Token t = Token.Unknown;
 
             if (_digits.Contains(c))
-                t = new Token(ReadWhile(c => _digits.Contains(c)), TokenType.NumLiteral);
+                t = new Token(_input.ReadWhile(ref _index, c => _digits.Contains(c)), TokenType.NumLiteral);
             else if (_ops.Contains(c))
                 t = new Token(c, TokenType.Operator);
             else if (_punct.Contains(c))
@@ -37,16 +37,6 @@ namespace Redmond.Lex
             _index++;
 
             return t;
-        }
-
-        private string ReadWhile(Predicate<char> pred)
-        {
-            string read = _input[_index] + "";
-
-            while (_index+1 < _input.Length && pred(_input[_index+1]))
-                read += _input[++_index];
-
-            return read;
         }
 
 

@@ -1,7 +1,10 @@
 ﻿
 using Redmond.Lex;
+using Redmond.Lex.LexCompiler;
+using Redmond.Lex.LexCompiler.RegexTree;
 using Redmond.Output;
 using Redmond.Parsing;
+using System;
 
 namespace Redmond
 {
@@ -14,7 +17,8 @@ namespace Redmond
 
         static void Main(string[] args)
         {
-            new CompilationContext(Input, Output).Start();
+            //new CompilationContext(Input, Output).Start();
+            DFACompiler.CompileDFA("(a|b)*+a+b+b+#", "ab");
         }
     }
 }

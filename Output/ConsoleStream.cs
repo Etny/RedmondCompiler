@@ -4,7 +4,7 @@ namespace Redmond.Output
 {
     class ConsoleStream : IStringStream
     {
-        private int _indent = -1;
+        private int _indent = 0;
 
         public void AddIndentation(int indent = 1)
             => _indent += indent;
@@ -14,7 +14,7 @@ namespace Redmond.Output
             => _indent -= indent;
 
         private string GetIndentation()
-            => new string('\t', _indent);
+            => new string('\t', _indent < 0 ? 0 : _indent);
 
         public void Write(string s = "")
             => Console.Write(GetIndentation() + s);
