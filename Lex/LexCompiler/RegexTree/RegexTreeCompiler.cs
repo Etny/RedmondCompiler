@@ -27,9 +27,28 @@ namespace Redmond.Lex.LexCompiler.RegexTree
                 else
                 {
                     node = new OperatorNode(c == '|' ? OperatorNode.RegexTreeOperator.Or : OperatorNode.RegexTreeOperator.Concat);
-                    string sub = source.ReadWhile(++index, c => c != ')' && !_ops.Contains(c));
-                    node.AddChild(CompileRegexTree(sub, ref pos), 1);
+
+                    string sub;
+                    if (source[++index] == '(')
+                    {
+                        sub = source.ReadWhile(++index, c => c != ')');
+                        index++;
+                    }
+                    else
+                        sub = source.ReadWhile(index, c => !_ops.Contains(c));
+
+                    var subNode = CompileRegexTree(sub, ref pos);
+
                     index += sub.Length - 1;
+                    if (index + 1 < source.Length && source[index+1] == '*')
+                    {
+                        var n = new OperatorNode(OperatorNode.RegexTreeOperator.Star);
+                        n.AddChild(subNode, 0);
+                        subNode = n;
+                        index++;
+                    }
+
+                    node.AddChild(subNode, 1);
                 }
                 node.AddChild(leaf, 0);
             }
@@ -41,7 +60,6 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             }
             else
                 node = new SymbolNode(pos++, source.ReadUntil(ref index, c => _ops.Contains(c) || c == '('));
-            
 
             if (++index >= source.Length)
                 return node;

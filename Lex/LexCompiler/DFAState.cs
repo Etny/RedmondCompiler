@@ -8,12 +8,25 @@ namespace Redmond.Lex.LexCompiler
     class DFAState
     {
         public ImmutableDictionary<char, DFAState> Transitions = ImmutableDictionary<char, DFAState>.Empty;
-        public bool Marked = false;
-        public readonly IEnumerable<int> Numbers;
+        public readonly string ID;
 
-        public DFAState(IEnumerable<int> nums)
+        public bool IsStartingState = false, IsAcceptingState = false;
+
+        public DFAState(string id = "")
         {
-            Numbers = nums;
+            ID = id;
+        }
+
+        public List<DFAState> GetFullDFA(List<DFAState> states = null)
+        {
+            if (states == null) states = new List<DFAState>();
+
+            states.Add(this);
+
+            foreach(var s in Transitions.Values)
+                if(!states.Contains(s)) states = s.GetFullDFA(states);
+
+            return states;
         }
 
         public void AddTransition(char key, DFAState state)
