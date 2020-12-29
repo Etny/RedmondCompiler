@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using OpType = Redmond.Lex.LexCompiler.RegexTree.OperatorNode.RegexTreeOperator;
 
 namespace Redmond.Lex.LexCompiler.RegexTree
 {
@@ -9,62 +10,70 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         private static string _ops = "|*+";
 
-        public static RegexTreeNode CompileRegexTree(string source, int index = 0, RegexTreeNode leaf = null)
+        public static RegexTreeNode CompileRegexTree(string source)
         {
             int i = 1;
-            return CompileRegexTree(source, ref i, index, leaf);
+            return CompileRegexTree(source, ref i);
         }
 
-        public static RegexTreeNode CompileRegexTree(string source, ref int pos, int index = 0, RegexTreeNode leaf = null)
+        private static RegexTreeNode CompileRegexNode(string source, ref int pos, ref int index) 
         {
             char c = source[index];
             RegexTreeNode node;
 
-            if (_ops.Contains(c))
+            if(c == '(')
             {
-                if (c == '*')
-                    node = new OperatorNode(OperatorNode.RegexTreeOperator.Star);
-                else
+                int brackets = 1;
+                string sub = "";
+                char n = '\0';
+                while (brackets > 0)
                 {
-                    node = new OperatorNode(c == '|' ? OperatorNode.RegexTreeOperator.Or : OperatorNode.RegexTreeOperator.Concat);
-
-                    string sub;
-                    if (source[++index] == '(')
-                    {
-                        sub = source.ReadWhile(++index, c => c != ')');
-                        index++;
-                    }
-                    else
-                        sub = source.ReadWhile(index, c => !_ops.Contains(c));
-
-                    var subNode = CompileRegexTree(sub, ref pos);
-
-                    index += sub.Length - 1;
-                    if (index + 1 < source.Length && source[index+1] == '*')
-                    {
-                        var n = new OperatorNode(OperatorNode.RegexTreeOperator.Star);
-                        n.AddChild(subNode, 0);
-                        subNode = n;
-                        index++;
-                    }
-
-                    node.AddChild(subNode, 1);
+                    if(n != '\0') sub += n;
+                    n = source[++index];
+                    if (n == ')') brackets--;
+                    else if (n == '(') brackets++;
                 }
-                node.AddChild(leaf, 0);
-            }
-            else if (c == '(')
-            {
-                string sub = source.ReadUntil(++index, c => c == ')');
                 node = CompileRegexTree(sub, ref pos);
-                index+=sub.Length; // sub.Length - 1 plus 1 for the closing )
-            }
+            }else if (_ops.Contains(c))
+                node = new OperatorNode(c == '*' ? OpType.Star : (c == '|' ? OpType.Or : OpType.Concat));
             else
                 node = new SymbolNode(pos++, source.ReadUntil(ref index, c => _ops.Contains(c) || c == '('));
 
-            if (++index >= source.Length)
-                return node;
-
-            return CompileRegexTree(source, ref pos, index, node);
+            index++;
+            return node;
         }
+
+        public static RegexTreeNode CompileRegexTree(string source, ref int pos, int index = 0)
+        {
+            RegexTreeNode root = null;
+            OperatorNode opNode = null;
+
+            while(index < source.Length)
+            {
+                root = CompileRegexNode(source, ref pos, ref index);
+
+                while (index < source.Length && source[index] == '*')
+                {
+                    var starNode = CompileRegexNode(source, ref pos, ref index);
+                    starNode.AddChild(root, 0);
+                    root = starNode;
+                }
+
+                if (opNode != null) opNode.AddChild(root, 1);
+
+                if (index >= source.Length) break;
+
+                var op = CompileRegexNode(source, ref pos, ref index) as OperatorNode;
+                if (op == null) throw new Exception("Expected Operator Node");
+
+                op.AddChild(opNode == null ? root : opNode, 0);
+                opNode = op;
+
+            }
+
+            return opNode ?? root;
+        }
+
+ 
     }
 }

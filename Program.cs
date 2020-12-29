@@ -22,6 +22,9 @@ namespace Redmond
 
             string input = "bdddeeeeedacdddddd";
             var dfa = DFACompiler.CompileDFA("(b+d*)+e+e+e+e*+(c|d|a)+a+c+d*", "abcde");
+//            string input = "ab";
+//            var dfa = DFACompiler.CompileDFA("(((a*+b)|a)*)+b", "ab");
+
 
             DFACompiler.PrintDFA(dfa);
 
@@ -31,9 +34,10 @@ namespace Redmond
 
             foreach (char c in input)
             {
+                string currentID = dfa.CurrentState.ID;
                 if (!dfa.Progress(c))
                 {
-                    Console.WriteLine("No Transition");
+                    Console.WriteLine("No Transition on "+c+" in state "+currentID);
                     break;
                 }
             }
