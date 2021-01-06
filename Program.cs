@@ -15,21 +15,17 @@ namespace Redmond
         private static string InputString = "86 + 3 / (24 + 3 / 2)";
         private static TokenStream Input = new TokenStream(InputString);
         private static IStringStream Output = new ConsoleStream();
+        private static string alphabet = "abcdefghijklmnopqrstuvwxyz";
 
         static void Main(string[] args)
         {
             //new CompilationContext(Input, Output).Start();
 
-            string input = "bdddeeeeedacdddddd";
-            var dfa = DFACompiler.CompileDFA("(b+d*)+e+e+e+e*+(c|d|a)+a+c+d*", "abcde");
-//            string input = "ab";
-//            var dfa = DFACompiler.CompileDFA("(((a*+b)|a)*)+b", "ab");
+            string input = "_hahahaha";
+            var dfa = DFACompiler.CompileDFA("letter|_letter*", alphabet+'_');
 
 
             DFACompiler.PrintDFA(dfa);
-
-            Console.WriteLine();
-            DFACompiler.PrintDFA(DFACompiler.OptimizeDFA(dfa));
             Console.WriteLine();
 
             foreach (char c in input)

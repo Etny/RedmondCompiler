@@ -12,7 +12,8 @@ namespace Redmond.Lex.LexCompiler
 
         public static DFA CompileDFA(string regex, string alphabet, bool optimize = false)
         {
-            var tree = RegexTreeCompiler.CompileRegexTree(regex+"+"+AcceptingCharacter);
+            var regexCompiler = new RegexTreeCompiler(" a");
+            var tree = regexCompiler.CompileRegexTree(regex+":"+AcceptingCharacter);
 
             string fullAlphabet = alphabet;
             if (!fullAlphabet.Contains(AcceptingCharacter)) fullAlphabet += AcceptingCharacter;
