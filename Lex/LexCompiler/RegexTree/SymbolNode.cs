@@ -8,7 +8,7 @@ namespace Redmond.Lex.LexCompiler.RegexTree
     class SymbolNode : RegexTreeNode
     {
 
-        public readonly int Position;
+        public int Position;
         public readonly string Symbol;
 
         public SymbolNode(int pos, string symbol)  { Position = pos; Symbol = symbol; }
@@ -30,5 +30,13 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         public override void Print(IStringStream output)
             => output *= Symbol + " pos: " + Position;
+
+        public override void SetStartingPosition(ref int startPos)
+        { 
+            Position = startPos++;
+        }
+
+        public override RegexTreeNode Clone()
+            => new SymbolNode(Position, Symbol);
     }
 }

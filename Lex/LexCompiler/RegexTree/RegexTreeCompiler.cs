@@ -10,13 +10,76 @@ namespace Redmond.Lex.LexCompiler.RegexTree
     class RegexTreeCompiler
     {
 
-        private const string _ops = "|*:";
+        public readonly string FilePath;
 
-        private Dictionary<string, string> _macros = new Dictionary<string, string>();
+        private const string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        private const string _ops = "|*:";
+        private static Dictionary<char, char> _specialEscapes = new Dictionary<char, char>()
+        {
+            {'t', '\t'},
+            {'r', '\r'},
+            {'n', '\n'},
+            {'w', ' ' }
+        };
+
+        private Dictionary<string, RegexTreeNode> _macros = new Dictionary<string, RegexTreeNode>();
+
 
         public RegexTreeCompiler(string path)
         {
-            _macros.Add("letter", "[abcdefghijklmnopqrstuvwxyz]");
+            FilePath = path;
+        }
+
+        public List<(string, RegexTreeNode)> CompileFile(string suffix = "")
+        {
+            if (!File.Exists(FilePath))
+                throw new FileNotFoundException(FilePath);
+
+            List<(string, RegexTreeNode)> trees = new List<(string, RegexTreeNode)>();
+
+            var lines = File.ReadAllLines(FilePath);
+            int mode = 0; // 0 = Macros, 1 = Productions, 2 == Done
+
+            for(int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+            {
+                string line = StripLine(lines[lineIndex]);
+                if (line.Length <= 0) continue;
+
+                if(line == "%%") { mode++; continue; }
+
+                string[] split;
+
+                switch (mode)
+                {
+                    case 0:
+                        split = line.Split('=', 2);
+                        AddMacro(split[0].Trim(), split[1].Trim());
+                        break;
+
+                    case 1:
+                        if (!line.EndsWith('}')) continue;
+
+                        split = new string[] { line.Substring(0, line.LastIndexOf('{')), line.Substring(line.LastIndexOf('{'))[1..^1] };
+
+                        trees.Add((split[1], CompileRegexTree(split[0].Trim()+suffix)));
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            return trees;
+        }
+
+        private void AddMacro(string key, string regex)
+            => _macros.Add(key, CompileRegexTree(regex));
+        
+        private string StripLine(string line)
+        {
+            if (line.Contains(@"//")) line = line.Split("//", 2)[0];
+            return line.Trim();
         }
 
 
@@ -31,14 +94,68 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             RegexTreeNode node;
 
             string expandedString = "";
+            int charCount = source.Length;
 
-            foreach (char c in source)
-                expandedString += "(" + c + "|";
-            expandedString = expandedString[0..^1] + new string(')', source.Length);
+            for (int i = 0; i < source.Length; i++)
+            {
+                char c = source[i];
+
+                if (c == '-' && i > 0 && i < source.Length - 1)
+                {
+                    char prev = (char)(source[i - 1] + 1);
+                    char next = source[i + 1];
+
+                    if (next == '\\' && i < source.Length - 2)
+                    {
+                        next = ReadEscapedSymbol(source[++i + 1])[0];
+                        charCount--;
+                    }
+
+                    if (prev > next)
+                    {
+                        char temp = next;
+                        next = prev;
+                        prev = temp;
+                    }
+                    charCount -= 2;
+                    charCount += (next - prev) + 1;
+
+                    char current = prev;
+
+                    while (current != next + 1)
+                    {
+                        if(letters.Contains(current))
+                            expandedString += "(" + current++ + "|";
+                        else
+                            expandedString += "(\\" + current++ + "|";
+                    }
+
+                    i++;
+                }
+                else if (c == '\\' && i < source.Length - 1)
+                {
+                    charCount--;
+                    expandedString += "(\\" + ReadEscapedSymbol(source[++i]) + "|";
+                }
+                else
+                    expandedString += "(" + c + "|";
+            }
+               
+            expandedString = expandedString[0..^1] + new string(')', charCount);
 
             node = CompileRegexTree(expandedString, ref pos);
 
             return node;
+        }
+
+        private string ReadEscapedSymbol(char escaped)
+        {
+            string symbol = escaped + "";
+
+            if (_specialEscapes.Keys.Contains(escaped))
+                symbol = _specialEscapes[escaped] + "";
+
+            return symbol;
         }
 
         private RegexTreeNode CompileRegexNode(string source, ref int pos, ref int index) 
@@ -48,49 +165,46 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
             if (c == '(')
             {
-                int brackets = 1;
-                string sub = "";
-                char n = '\0';
-                while (brackets > 0)
-                {
-                    if (n != '\0') sub += n;
-                    n = source[++index];
-                    if (n == ')') brackets--;
-                    else if (n == '(') brackets++;
-                }
+                string sub = source.ReadUntilClosingBracket(ref index, '(', ')');
                 node = CompileRegexTree(sub, ref pos);
             }
             else if(c == '[')
             {
-                index++;
-                string s = source.ReadUntil(ref index, c => c == ']');
-                node = CompileCharacterRange(s, ref pos);
-                index++;
+                string sub = source.ReadUntilClosingBracket(ref index, '[', ']');
+                node = CompileCharacterRange(sub, ref pos);
             }
             else if (_ops.Contains(c))
                 node = new OperatorNode(c == '*' ? OpType.Star : (c == '|' ? OpType.Or : OpType.Concat));
             else if (c == 'ε')
                 node = new EmptyNode(pos++);
+            else if(c == '\\')
+            {
+                if (index >= source.Length - 1) node = new SymbolNode(pos++, c + "");
+                else
+                    node = new SymbolNode(pos++, ReadEscapedSymbol(source[++index]));
+            }
             else
             {
-                List<string> matchingMacros = new List<string>();
+                List<string> matchingMacros = _macros.Keys.ToList();
 
                 int localIndex = index;
                 int i = 0;
-                while(true)
+                while(localIndex + i < source.Length)
                 {
-                    var match = _macros.Keys.ToList().FindAll(s => i < s.Length && s[i] == source[localIndex + i]);
+                    var match = matchingMacros.FindAll(s => i < s.Length && s[i] == source[localIndex + i]);
                     if (match.Count <= 0) break;
                     matchingMacros = match;
                     i++;
                 }
 
-                if(matchingMacros.Exists(s => s.Length <= i))
+                if(i != 0 && matchingMacros.Exists(s => s.Length <= i))
                 {
                     matchingMacros = matchingMacros.FindAll(s => s.Length <= i);
                     var longestMatch = matchingMacros[matchingMacros.FindIndex(s => s.Length == matchingMacros.Max(s => s.Length))];
                     index += longestMatch.Length-1;
-                    node = CompileRegexTree(_macros[longestMatch], ref pos);
+                    //node = CompileRegexTree(_macros[longestMatch], ref pos);
+                    node = _macros[longestMatch].Clone();
+                    node.SetStartingPosition(ref pos);
                 }
                 else
                     node = new SymbolNode(pos++, c+"");
@@ -105,9 +219,11 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             RegexTreeNode root = null;
             OperatorNode opNode = null;
 
+            //if (source.Contains(Program.regex))
+            //    Console.WriteLine("hey");
+
             while(index < source.Length)
             {
-                int startIndex = index;
                 root = CompileRegexNode(source, ref pos, ref index);
 
                 while (index < source.Length)
@@ -122,9 +238,11 @@ namespace Redmond.Lex.LexCompiler.RegexTree
                     {
                         var concatNode = new OperatorNode(OpType.Concat);
                         var starNode = new OperatorNode(OpType.Star);
+                        var rootClone = root.Clone();
+                        rootClone.SetStartingPosition(ref pos);
                         concatNode.AddChild(root, 0);
                         concatNode.AddChild(starNode, 1);
-                        starNode.AddChild(CompileRegexNode(source, ref pos, ref startIndex));
+                        starNode.AddChild(rootClone);
                         root = concatNode;
                         index++;
                     }

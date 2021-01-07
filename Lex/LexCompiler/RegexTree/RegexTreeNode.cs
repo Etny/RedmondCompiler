@@ -25,6 +25,11 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             node.Parent = this;
         }
 
+
+        public abstract void SetStartingPosition(ref int startPos);
+
+        public abstract RegexTreeNode Clone();
+
         public abstract bool Nullable();
         public abstract IEnumerable<int> FirstPositions();
         public abstract IEnumerable<int> LastPositions();

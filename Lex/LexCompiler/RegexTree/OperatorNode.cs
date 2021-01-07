@@ -97,22 +97,34 @@ namespace Redmond.Lex.LexCompiler.RegexTree
                     yield return i;
         }
 
+        public override RegexTreeNode Clone()
+        {
+            OperatorNode clone = new OperatorNode(Operator);
+
+            for (int i = 0; i < 2; i++)
+                if (Children[i] != null)
+                    clone.AddChild(Children[i].Clone(), i);
+
+            return clone;
+        }
+
+        public override void SetStartingPosition(ref int startPos)
+        {
+            Children[0].SetStartingPosition(ref startPos);
+
+            if (Operator != RegexTreeOperator.Star)
+                Children[1].SetStartingPosition(ref startPos);
+        }
+
         public override bool Nullable()
         {
-            switch (Operator)
+            return Operator switch
             {
-                case RegexTreeOperator.Concat:
-                    return Children[0].Nullable() && Children[1].Nullable();
-
-                case RegexTreeOperator.Or:
-                    return Children[0].Nullable() || Children[1].Nullable();
-
-                case RegexTreeOperator.Star:
-                    return true;
-
-                default:
-                    return true;
-            }
+                RegexTreeOperator.Concat => Children[0].Nullable() && Children[1].Nullable(),
+                RegexTreeOperator.Or => Children[0].Nullable() || Children[1].Nullable(),
+                RegexTreeOperator.Star => true,
+                _ => true,
+            };
         }
 
         public override SymbolNode GetNodeAtIndex(int index)

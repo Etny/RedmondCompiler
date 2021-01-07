@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Redmond.Lex.LexCompiler
 {
@@ -10,11 +11,29 @@ namespace Redmond.Lex.LexCompiler
     {
         public const char AcceptingCharacter = '#';
 
-        public static DFA CompileDFA(string regex, string alphabet, bool optimize = false)
+        public static List<DFA> CompileFile(string path, string alphabet)
+        {
+            var regexCompiler = new RegexTreeCompiler(path);
+            var trees = regexCompiler.CompileFile(":" + AcceptingCharacter);
+
+            List<DFA> dfas = new List<DFA>();
+
+            foreach(var t in trees)
+                dfas.Add(CompileDFA(t.Item2, alphabet, t.Item1));
+
+            return dfas;
+        }
+
+        public static DFA CompileDFA(string regex, string alphabet, string name = "", bool optimize = false)
         {
             var regexCompiler = new RegexTreeCompiler(" a");
-            var tree = regexCompiler.CompileRegexTree(regex+":"+AcceptingCharacter);
+            var tree = regexCompiler.CompileRegexTree(regex + ":" + AcceptingCharacter);
+            return CompileDFA(tree, alphabet, name, optimize);
+        }
 
+
+        public static DFA CompileDFA(RegexTreeNode tree, string alphabet, string name = "", bool optimize = false)
+        {
             string fullAlphabet = alphabet;
             if (!fullAlphabet.Contains(AcceptingCharacter)) fullAlphabet += AcceptingCharacter;
 
@@ -31,6 +50,8 @@ namespace Redmond.Lex.LexCompiler
                 if (state.Marked) goto end;
                 state.Marked = true;
 
+
+                //TODO: Refactor
                 foreach (char c in fullAlphabet)
                 {
                     List<int> edges = new List<int>();
@@ -64,15 +85,15 @@ namespace Redmond.Lex.LexCompiler
             }
 
             if (!optimize)
-                return new DFA(startState, alphabet);
+                return new DFA(startState, alphabet, name);
             else
                 return OptimizeDFA(startState, alphabet);
         }
 
         public static DFA OptimizeDFA(DFA dfa)
-            => OptimizeDFA(dfa.Start, dfa.Alphabet);
+            => OptimizeDFA(dfa.Start, dfa.Alphabet,dfa.Name);
 
-        public static DFA OptimizeDFA(DFAState init, string alphabet)
+        public static DFA OptimizeDFA(DFAState init, string alphabet, string name = "")
         {
             List<DFAState> initAccepting = new List<DFAState>();
             List<DFAState> initNonAccepting = new List<DFAState>();
@@ -169,7 +190,7 @@ namespace Redmond.Lex.LexCompiler
                         }
                     }
                     #endregion
-                    return new DFA(startState, alphabet);
+                    return new DFA(startState, alphabet, name);
                 }
 
                 statePartitions = newStatePartitions;
@@ -180,11 +201,11 @@ namespace Redmond.Lex.LexCompiler
 
         public static void PrintDFA(DFA dfa)
         {
-            int spacing = 10;
-            string basicSpacing = new string(' ', spacing);
-            Console.Write(basicSpacing);
+            int nameSpacing = 6;
+            int basicSpacing = 4;
+            Console.Write(new string(' ', nameSpacing));
             foreach (char c in dfa.Alphabet)
-                Console.Write(c + basicSpacing);
+                Console.Write(Regex.Escape(c+"") + new string(' ', basicSpacing - Regex.Escape(c + "").Length));
             Console.WriteLine();
             foreach (var state in dfa.FullDFA)
             {
@@ -192,17 +213,15 @@ namespace Redmond.Lex.LexCompiler
                 if (state.IsAcceptingState) s += "(a)";
                 if (state.IsStartingState) s += "(s)";
                 Console.Write(s);
-                Console.Write(new string(' ', s.Length >= spacing ? 1 : spacing - s.Length));
+                Console.Write(new string(' ', s.Length >= nameSpacing ? 1 : nameSpacing - s.Length));
                 foreach (char c in dfa.Alphabet)
                 {
-                    if (state.Transitions.ContainsKey(c))
-                        Console.Write(state.Transitions[c].ID);
-                    else
-                        Console.Write(" ");
-                    Console.Write(basicSpacing);
+                    string id = state.Transitions.ContainsKey(c) ? state.Transitions[c].ID : " ";
+                    Console.Write(id);
+                    Console.Write(new string(' ', basicSpacing - id.Length));
                 }
                 Console.WriteLine();
-                Console.WriteLine(new string('-', dfa.Alphabet.Length * (spacing+1)));
+                Console.WriteLine(new string('-', dfa.Alphabet.Length * (basicSpacing + 1)));
             }
         }
 

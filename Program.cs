@@ -15,30 +15,34 @@ namespace Redmond
         private static string InputString = "86 + 3 / (24 + 3 / 2)";
         private static TokenStream Input = new TokenStream(InputString);
         private static IStringStream Output = new ConsoleStream();
-        private static string alphabet = "abcdefghijklmnopqrstuvwxyz";
+        private static string alphabet = @"abcdefghijklmnopqrstuvwxyz0123456789_";
+
+        public static string input = @"1234";
+        public static string regex = @"atest+a";
 
         static void Main(string[] args)
         {
             //new CompilationContext(Input, Output).Start();
+            //var dfa = DFACompiler.CompileDFA(regex, alphabet);
 
-            string input = "_hahahaha";
-            var dfa = DFACompiler.CompileDFA("letter|_letter*", alphabet+'_');
-
-
-            DFACompiler.PrintDFA(dfa);
-            Console.WriteLine();
+            var dfas = DFACompiler.CompileFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.lex", alphabet);
+            List<DFA> living = dfas;
 
             foreach (char c in input)
             {
-                string currentID = dfa.CurrentState.ID;
-                if (!dfa.Progress(c))
-                {
-                    Console.WriteLine("No Transition on "+c+" in state "+currentID);
-                    break;
-                }
+                List<DFA> newLiving = new List<DFA>();
+
+                foreach (var dfa in living)
+                    if (dfa.Progress(c))
+                        newLiving.Add(dfa);
+
+                if (newLiving.Count <= 0) break;
+                living = newLiving;
             }
 
-            Console.WriteLine(dfa.CurrentState.IsAcceptingState ? "Accepted!" : "Not Accepted");
+            DFA final = living[0];
+
+            Console.WriteLine(final.CurrentState.IsAcceptingState ? "Accepted by "+ final.Name+"!" : "Not Accepted by " + final.Name + " :(");
 
             #region Manual Test DFA
             //DFAState manualDFA_A = new DFAState(new List<int>(), "A") { IsStartingState = true };

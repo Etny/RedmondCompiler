@@ -8,17 +8,19 @@ namespace Redmond.Lex.LexCompiler
     {
         public readonly DFAState Start;
         public readonly string Alphabet;
+        public readonly string Name;
         public DFAState CurrentState;
 
         private List<DFAState> _fullDfa = null;
 
         public List<DFAState> FullDFA { get { if (_fullDfa == null) _fullDfa = Start.GetFullDFA(); return _fullDfa; } }
 
-        public DFA(DFAState startState, string alphabet)
+        public DFA(DFAState startState, string alphabet, string name = "")
         {
             Start = startState;
             CurrentState = Start;
             Alphabet = alphabet;
+            Name = name;
         }
 
         public bool Progress(char c)
@@ -29,7 +31,9 @@ namespace Redmond.Lex.LexCompiler
         }
 
         public void Reset()
-            => CurrentState = Start;
+        {
+            CurrentState = Start;
+        }
 
     }
 }

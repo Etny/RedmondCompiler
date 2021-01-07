@@ -21,5 +21,8 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         public override void Print(IStringStream output)
             => output *= "Empty" + " pos: " + Position;
+
+        public override RegexTreeNode Clone()
+            => new EmptyNode(Position);
     }
 }
