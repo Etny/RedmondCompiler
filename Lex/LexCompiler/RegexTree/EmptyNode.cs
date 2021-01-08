@@ -8,7 +8,7 @@ namespace Redmond.Lex.LexCompiler.RegexTree
     class EmptyNode : SymbolNode
     {
 
-        public EmptyNode(int pos):base(pos, "") { }
+        public EmptyNode(int pos, bool marked = false):base(pos, "") { MarkedAsJumpahead = marked; }
 
         public override IEnumerable<int> FirstPositions()
             => new List<int>();

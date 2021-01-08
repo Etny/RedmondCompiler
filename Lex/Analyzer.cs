@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Redmond.Lex.LexCompiler;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Redmond.Lex
 {
@@ -11,10 +14,13 @@ namespace Redmond.Lex
         private readonly string _ops = "+-/*";
         private readonly string _punct = "();";
 
-        public Analyzer(string input)
+        private string defaultAlphabet = new string(Enumerable.Range(32, (126 - 32) + 1).Select(i => (char)i).ToArray());
+        private readonly List<DFA> _dfas = new List<DFA>();
+
+        public Analyzer(string input, string lexFilePath, string alphabet = "")
         {
-#warning All spaces will be removed
-            _input = input.Replace(" ", "");
+            _input = input;
+            _dfas = DFACompiler.CompileFile(lexFilePath, alphabet == "" ? defaultAlphabet : alphabet);
         }
 
         public Token GetNextToken()
@@ -23,18 +29,47 @@ namespace Redmond.Lex
                 return Token.EndOfFile;
 
 
-            string c = _input[_index] + "";
-
             Token t = Token.Unknown;
 
-            if (_digits.Contains(c))
-                t = new Token(_input.ReadWhile(ref _index, c => _digits.Contains(c)), TokenType.NumLiteral);
-            else if (_ops.Contains(c))
-                t = new Token(c, TokenType.Operator);
-            else if (_punct.Contains(c))
-                t = new Token(c, TokenType.Punctuation);
+            List<DFA> living = _dfas;
 
-            _index++;
+            //DFACompiler.PrintDFA(_dfas[0]);
+
+            int i = 0;
+            for(; i < _input.Length - _index; i++)
+            {
+                List<DFA> newLiving = new List<DFA>();
+
+                foreach (var dfa in living)
+                    if (dfa.Progress(_input[_index + i]))
+                        newLiving.Add(dfa);
+
+                if (newLiving.Count <= 0) break;
+                living = newLiving;
+                if (living.Count == 1) break;
+            }
+
+            i++;
+            DFA final = living[0];
+            bool accepted = final.CurrentState.IsAcceptingState;
+
+            while (final != null &&
+                   _index + i < _input.Length &&
+                   final.Progress(_input[_index + i]))
+            {
+                if (final.CurrentState.IsAcceptingState) accepted = true;
+                i++;
+            }
+
+            if (final.LastJumpAhead != -1) i = final.LastJumpAhead;
+
+            if (accepted)
+                t = new Token(_input.Substring(_index, i), (TokenType)Enum.Parse(typeof(TokenType), final.Name));
+
+            _index +=i;
+
+            foreach (var dfa in _dfas)
+                dfa.Reset();
 
             return t;
         }

@@ -10,9 +10,9 @@ namespace Redmond.Lex
         private int _tokenIndex = 0;
         private List<Token> _tokens = new List<Token>();
 
-        public TokenStream(string input)
+        public TokenStream(string input, string filePath, string alphabet = "")
         {
-            _analyzer = new Analyzer(input);
+            _analyzer = new Analyzer(input, filePath, alphabet);
         }
 
         public Token NextToken
@@ -29,7 +29,7 @@ namespace Redmond.Lex
 
         public Token EatToken()
         {
-            var temp = NextToken;
+            var temp = GetToken(_tokenIndex);
             _tokenIndex++;
             return temp;
         }

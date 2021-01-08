@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace Redmond.Lex.LexCompiler
 {
@@ -57,12 +58,14 @@ namespace Redmond.Lex.LexCompiler
                     List<int> edges = new List<int>();
 
                     foreach (int i in state.Numbers)
+                    {
                         if (tree[i].Symbol == c + "")
                         {
                             edges.AddRange(tree.FollowingPositions(i));
-                            if (c == AcceptingCharacter)
-                                state.IsAcceptingState = true;
+                            if (c == AcceptingCharacter) { state.IsAcceptingState = true; }
                         }
+                        if (tree[i].MarkedAsJumpahead) state.MarkedAsJumpahead = true;
+                    }
 
                     if (edges.Count <= 0) continue;
                     string id = ToID(edges);
@@ -212,6 +215,7 @@ namespace Redmond.Lex.LexCompiler
                 string s = state.ID;
                 if (state.IsAcceptingState) s += "(a)";
                 if (state.IsStartingState) s += "(s)";
+                if(state.MarkedAsJumpahead) s+= "(j)";
                 Console.Write(s);
                 Console.Write(new string(' ', s.Length >= nameSpacing ? 1 : nameSpacing - s.Length));
                 foreach (char c in dfa.Alphabet)
@@ -228,7 +232,7 @@ namespace Redmond.Lex.LexCompiler
         private static string ToID(IEnumerable<int> nums)
         {
             string s = "";
-            foreach (int i in nums)
+            foreach (int i in nums.ToList())
                 s += i + ",";
             return s[0..^1];
         }

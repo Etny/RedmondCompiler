@@ -12,7 +12,8 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public RegexTreeNode[] Children = new RegexTreeNode[2];
 
         public RegexTreeNode Parent = null;
-
+        public bool MarkedAsJumpahead { get => _jumpahead; set => _markAsJumpahead(value); }
+        protected bool _jumpahead;
         public bool IsRoot { get => Parent == null; }
 
         public SymbolNode this[int index] { get => GetNodeAtIndex(index); }
@@ -29,6 +30,9 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public abstract void SetStartingPosition(ref int startPos);
 
         public abstract RegexTreeNode Clone();
+
+        protected virtual void _markAsJumpahead(bool value)
+            => _jumpahead = value;
 
         public abstract bool Nullable();
         public abstract IEnumerable<int> FirstPositions();

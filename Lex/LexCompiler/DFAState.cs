@@ -11,6 +11,7 @@ namespace Redmond.Lex.LexCompiler
         public readonly string ID;
 
         public bool IsStartingState = false, IsAcceptingState = false;
+        public bool MarkedAsJumpahead = false;
 
         public DFAState(string id = "")
         {

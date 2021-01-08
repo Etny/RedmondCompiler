@@ -11,6 +11,9 @@ namespace Redmond.Lex.LexCompiler
         public readonly string Name;
         public DFAState CurrentState;
 
+        public int LastJumpAhead = -1;
+        private int _currentLength = 0;
+
         private List<DFAState> _fullDfa = null;
 
         public List<DFAState> FullDFA { get { if (_fullDfa == null) _fullDfa = Start.GetFullDFA(); return _fullDfa; } }
@@ -27,13 +30,16 @@ namespace Redmond.Lex.LexCompiler
         {
             if (!CurrentState.Transitions.ContainsKey(c)) return false;
             CurrentState = CurrentState.Transitions[c];
+            _currentLength++;
+            if (CurrentState.MarkedAsJumpahead) LastJumpAhead = _currentLength;
             return true;
         }
 
         public void Reset()
         {
             CurrentState = Start;
+            LastJumpAhead = -1;
+            _currentLength = 0;
         }
-
     }
 }

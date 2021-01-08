@@ -97,6 +97,14 @@ namespace Redmond.Lex.LexCompiler.RegexTree
                     yield return i;
         }
 
+        protected override void _markAsJumpahead(bool value)
+        {
+            Children[0].MarkedAsJumpahead = value;
+
+            if (Operator != RegexTreeOperator.Star)
+                Children[1].MarkedAsJumpahead = value;
+        }
+
         public override RegexTreeNode Clone()
         {
             OperatorNode clone = new OperatorNode(Operator);

@@ -29,6 +29,6 @@ namespace Redmond.Lex
 
     internal enum TokenType
     {
-        Identifier, NumLiteral, Operator, StringLiteral, Punctuation, EndOfFile, Other
+        Expression, Identifier, NumLiteral, Operator, Whitespace, StringLiteral, Punctuation, EndOfFile, Other
     }
 }

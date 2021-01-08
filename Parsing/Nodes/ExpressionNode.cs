@@ -11,14 +11,19 @@ namespace Redmond.Parsing.Nodes
         {
             Output.AddIndentation();
 
-            new TermNode(Token, Context).Parse();
+            Output *= Token.Text + " ||| " + Token.Type;
 
-            while (Input.NextToken.Type == TokenType.Operator)
-            {
-                var op = new OperatorNode(Input.EatToken(), Context);
-                new TermNode(Input.EatToken(), Context).Parse();
-                op.Parse();
-            }
+            if (Token.Type == TokenType.Expression)
+                new ExpressionNode(Input.EatToken(), Context).Parse();
+
+            //new TermNode(Token, Context).Parse();
+
+            //while (Input.NextToken.Type == TokenType.Operator)
+            //{
+            //    var op = new OperatorNode(Input.EatToken(), Context);
+            //    new TermNode(Input.EatToken(), Context).Parse();
+            //    op.Parse();
+            //}
 
             Output.ReduceIndentation();
         }

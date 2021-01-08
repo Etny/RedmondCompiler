@@ -21,7 +21,15 @@ namespace Redmond.Parsing
 
         public void StartCompilation()
         {
-            new ExpressionNode(_input.EatToken(), _context).Parse();
+            //new ExpressionNode(_input.EatToken(), _context).Parse();
+
+            Token t = _input.EatToken();
+
+            while (t.Type != TokenType.EndOfFile)
+            {
+                _output.WriteLine(t.Text + " ||| " + t.Type);
+                t = _input.EatToken();
+            }
         }
 
         private void Error(String msg)
