@@ -1,14 +1,15 @@
 ﻿
 
 letter = [a-z]
-number = [0-9]
-char = letter|number
+digit = [0-9]
+number = digit+
+char = letter|digit
 binop = [+\-*/]
 
 %%
 
 if/ab\wb				{Punctuation}
 (letter|_)char* {Identifier}
-number+			{NumLiteral} //Hey
+number			{NumLiteral} //Hey
 \w				{Whitespace}
-number+ binop number+ {Expression}
+number binop number {Expression}
