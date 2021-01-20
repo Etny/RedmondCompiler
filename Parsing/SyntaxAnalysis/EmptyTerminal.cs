@@ -10,11 +10,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
         { }
 
         protected override bool _isTerminal() => true;
+        protected override bool _canBeEmpty() => true;
 
-        public override string ToString() => "\'ε\'";
+        public override string ToString() => "\'Empty\'";
+
 
         public override bool Equals(object obj) => obj is EmptyTerminal;
 
         protected override IEnumerable<ProductionEntry> _calculateFirst() { yield return this; }
+
     }
 }

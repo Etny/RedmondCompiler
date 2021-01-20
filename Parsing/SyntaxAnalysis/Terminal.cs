@@ -14,8 +14,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
         }
 
         protected override bool _isTerminal() => true;
+        protected override bool _canBeEmpty() => false;
 
-        public override string ToString() => "\'" + Value + "\'";
+        //public override string ToString() => "\'" + Value + "\'";
+        public override string ToString() => Value;
         public override bool Equals(object obj) => obj is Terminal && ((Terminal)obj).Value == Value;
 
 

@@ -34,6 +34,24 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 }
             }
         }
+        
+        public bool CanBeEmpty()
+        {
+
+            foreach (var e in Rhs)
+            {
+                if (e.IsTerminal && !e.CanBeEmpty) return false;
+                if (!e.IsTerminal)
+                {
+                    if (((NonTerminal)e).Tag != Lhs.Tag)
+                    {
+                        if (!((NonTerminal)e).CanBeEmpty) return false;
+                    }
+                }
+            }
+
+            return true;
+        }
 
         public void Print()
         {
