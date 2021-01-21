@@ -53,12 +53,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return true;
         }
 
-        public void Print()
+        public override string ToString()
         {
-            Console.Write(Lhs.Tag + " -> ");
-            foreach (var e in Rhs)
-                Console.Write(e + " ");
-            Console.WriteLine();
+            string s = Lhs + " → ";
+
+            for (int i = 0; i < Rhs.Length; i++)
+                s += Rhs[i];
+
+            return s;
         }
 
     }

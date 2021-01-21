@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Lex;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,7 +7,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 {
     class Grammar
     {
-        public const char IdentifierChar = (char)0;
+        public const char IdentifierChar = (char)1;
         public const char EndChar = '$';//(char)1;
         public const char EmptyChar = 'ε';
 
@@ -20,9 +21,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
             //var expression = new NonTerminal(this, "expr", "expr + expr", "( expr )", "id"); 
             //var start = new NonTerminal(this, "start", "expr " + EndChar);
 
-            var start = new NonTerminal(this, "start", "S" );
-            var S = new NonTerminal(this, "S", "C C");
-            var C = new NonTerminal(this, "C", "c C", "d");
+            var start = new NonTerminal(this, "start", "Statements" );
+            var S = new NonTerminal(this, "Statements", "Entry Entry");
+            var C = new NonTerminal(this, "Entry", "c Entry", "d");
 
 
             AddNonTerminal(start);
@@ -40,7 +41,12 @@ namespace Redmond.Parsing.SyntaxAnalysis
             //        Console.WriteLine("\t" + p);
             //}
 
-            GetGrammarItems();
+            //GetGrammarItems();
+        }
+
+        public ParseTreeNode Parse(TokenStream input)
+        {
+            return new Parser(CreateParsingTable()).Parse(input);
         }
 
         private void AddNonTerminal(NonTerminal nt)
@@ -58,6 +64,63 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 n.CalculateFollows();
         }
 
+        private ParserState CreateParsingTable()
+        {
+            List<GrammarItem> startI = Closure(new List<GrammarItem>()
+                {
+                    new GrammarItem(startSymbol.Productions[0], 0, EndChar + "")
+                });
+            ParserState startState = new ParserState(startI);
+
+
+            List<(ParserState, List<GrammarItem>)> C = new List<(ParserState, List<GrammarItem>)>()
+            {
+                (startState, startI)
+            };
+
+            for (int i = 0; i < C.Count; i++)
+            {
+                var I = C[i];
+                var gotos = FullGoto(I.Item2);
+
+                //Add new items to C and apply rule 2a and rule 3 (page 234)
+                foreach (var key in gotos.Keys)
+                {
+                    var go = gotos[key];
+                    if (go.Count == 0) continue;
+
+                    ParserState gotoState;
+
+                    if (!C.Exists(g => SetEquals(g.Item2, go)))
+                    {
+                        gotoState = new ParserState(go);
+                        C.Add((gotoState, go));
+                    }
+                    else
+                        gotoState = C.Find(g => SetEquals(g.Item2, go)).Item1;
+
+                    if (key.IsTerminal)
+                        I.Item1.Action[key] = (ParserAction.Shift, gotoState);
+                    else
+                        I.Item1.Goto[key] = gotoState;
+                }
+
+                //Apply rule 2b and 2c (page 234)
+                foreach (var item in I.Item2)
+                {
+                    if (item.IsHightlightAfterFinalEntry)
+                    {
+                        if (!item.Production.Lhs.Equals(startSymbol))
+                            I.Item1.Action[new Terminal(item.Lookahead)] = (ParserAction.Reduce, item.Production);
+                        else
+                            I.Item1.Action[new Terminal(item.Lookahead)] = (ParserAction.Accept, null);
+                    }
+                }
+            }
+
+            return startState;
+        }
+#if DEBUG
         private List<(ProductionEntry, List<GrammarItem>)> GetGrammarItems()
         {
             List<(ProductionEntry, List<GrammarItem>)> C = new List<(ProductionEntry, List<GrammarItem>)>()
@@ -82,7 +145,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     {
                         var go = gotos[key];
                         if (go.Count == 0) continue;
-                        if (C.Exists(g => ToID(g.Item2) == ToID(go))) continue;
+                        if (C.Exists(g => SetEquals(g.Item2, go))) continue;
                         C.Add((key, go));
                         addedNew = true;
                     }
@@ -99,7 +162,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
 
             return C;
-        }   
+        }
+#endif
 
         private Dictionary<ProductionEntry, List<GrammarItem>> FullGoto(List<GrammarItem> items)
         {
@@ -178,11 +242,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return I;
         }
 
-        private string ToID(List<GrammarItem> items)
+        private bool SetEquals(List<GrammarItem> items1, List<GrammarItem> items2)
         {
-            string s = "";
-            foreach (var i in items) s += i.ToString();
-            return s;
+            return items1.Count == items2.Count && items1.TrueForAll(items2.Contains);
         }
 
     }

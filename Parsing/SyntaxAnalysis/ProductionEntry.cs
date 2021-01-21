@@ -33,6 +33,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public abstract override string ToString();
         public abstract override bool Equals(object obj);
+        public abstract override int GetHashCode();
         public bool _canFirstBeEmpty()
             => First.ToList().Exists(e => e is EmptyTerminal);
 
