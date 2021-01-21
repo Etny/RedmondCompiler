@@ -8,7 +8,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
     {
         public readonly Production Production;
         public readonly int Highlight;
-        public readonly string Lookahead;
+        public string Lookahead { get => Lookaheads[0]; }
+        public readonly List<string> Lookaheads = new List<string>();
 
         public ProductionEntry HighlightedEntry { get => IsHightlightAfterFinalEntry ? null : Production.Rhs[Highlight]; }
         public bool IsFinalEntryHighlighted { get => Highlight == Production.Rhs.Length - 1; }
@@ -35,7 +36,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         {
             Production = prod;
             Highlight = highlight;
-            Lookahead = look;
+            Lookaheads.Add(look);
         }
 
         public override string ToString()
@@ -49,14 +50,22 @@ namespace Redmond.Parsing.SyntaxAnalysis
             }
             if (IsHightlightAfterFinalEntry) s += '·';
 
-            s += ", " + Lookahead;
+            s += ", ";
+            foreach (string l in Lookaheads)
+                s += l + "/";
 
-            return s;
+            return s[..^1];
+        }
+
+
+        public bool CoreEquals(GrammarItem other)
+        {
+            return other != null && other.Production == Production && other.Highlight == Highlight;
         }
 
         public bool Equals(GrammarItem other)
         {
-            return other != null && other.Production == Production && other.Highlight == Highlight && other.Lookahead == Lookahead;
+            return CoreEquals(other) && other.Lookaheads.Count == Lookaheads.Count && other.Lookaheads.TrueForAll(Lookaheads.Contains);
         }
 
         public override bool Equals(object obj) => Equals(obj as GrammarItem);

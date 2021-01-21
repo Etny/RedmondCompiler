@@ -1,6 +1,7 @@
 ﻿using Redmond.Lex;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
@@ -21,9 +22,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
             //var expression = new NonTerminal(this, "expr", "expr + expr", "( expr )", "id"); 
             //var start = new NonTerminal(this, "start", "expr " + EndChar);
 
-            var start = new NonTerminal(this, "start", "Statements" );
-            var S = new NonTerminal(this, "Statements", "Entry Entry");
-            var C = new NonTerminal(this, "Entry", "c Entry", "d");
+            var start = new NonTerminal(this, "start", "Stmnts" );
+            var S = new NonTerminal(this, "Stmnts", "Exprs Exprs");
+            var C = new NonTerminal(this, "Exprs", "c Exprs", "d");
 
 
             AddNonTerminal(start);
@@ -46,7 +47,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public ParseTreeNode Parse(TokenStream input)
         {
-            return new Parser(CreateParsingTable()).Parse(input);
+            return new Parser(CreateLALRParsingTable()).Parse(input);
         }
 
         private void AddNonTerminal(NonTerminal nt)
@@ -62,6 +63,107 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             foreach (var n in NonTerminals.Values)
                 n.CalculateFollows();
+        }
+
+        private ParserState CreateLALRParsingTable()
+        {
+            List<GrammarItem> startI = Closure(new List<GrammarItem>()
+                {
+                    new GrammarItem(startSymbol.Productions[0], 0, EndChar + "")
+                });
+
+
+            List<List<GrammarItem>> C = new List<List<GrammarItem>>()
+            {
+                startI
+            };
+
+            //Construct inital C (rule 1 page 238)
+            for (int i = 0; i < C.Count; i++)
+            {
+                var I = C[i];
+                var gotos = FullGoto(I);
+
+                foreach (var key in gotos.Keys)
+                {
+                    var go = gotos[key];
+                    if (go.Count == 0 || C.Exists(g => SetEquals(g, go))) continue;
+                    C.Add(go);
+                }
+            }
+
+            List<(ParserState, List<GrammarItem>)> Cd = new List<(ParserState, List<GrammarItem>)>();
+            List<List<GrammarItem>> done = new List<List<GrammarItem>>();
+
+            //Join sets with same core (rule 2 page 238)
+            for (int i = 0; i < C.Count; i++)
+            {
+                var I = C[i];
+                if (done.Contains(I)) continue;
+
+                var sameCore = C.FindAll(I1 => !done.Contains(I1) && CoreEquals(I1, I));
+
+                done.AddRange(sameCore);
+
+                if (sameCore.Count == 1)
+                    Cd.Add((new ParserState(I), I));
+                else
+                {
+                    var union = new List<GrammarItem>();
+
+                    foreach(var item in I)
+                    {
+                        var newItem = new GrammarItem(item.Production, item.Highlight, item.Lookahead);
+
+                        foreach (var otherSet in sameCore)
+                            foreach (var otherItem in otherSet.FindAll(other => other.CoreEquals(item)))
+                                if (!newItem.Lookaheads.Contains(otherItem.Lookahead))
+                                    newItem.Lookaheads.Add(otherItem.Lookahead);
+
+                        union.Add(newItem);
+                    }
+
+                    Cd.Add((new ParserState(union), union));
+                }
+            }
+
+
+            //Apply rule 2 and 3 (page 234)
+            foreach (var J in Cd)
+            {
+                var state = J.Item1;
+                var set = J.Item2;
+
+                var gotos = FullGoto(set);
+
+                foreach(var key in gotos.Keys)
+                {
+                    var goSet = gotos[key];
+                    var goState = Cd.Find(j => CoreEquals(j.Item2, goSet));
+
+                    Debug.Assert(goState.Item1 != null);
+
+                    if(key.IsTerminal)
+                        state.Action[key] = (ParserAction.Shift, goState.Item1);
+                    else
+                        state.Goto[key] = goState.Item1;
+                }
+
+                foreach(var item in set)
+                {
+                    if (!item.IsHightlightAfterFinalEntry) continue;
+
+                    if (item.Production.Lhs.Equals(startSymbol))
+                        foreach (string l in item.Lookaheads)
+                            state.Action[new Terminal(l)] = (ParserAction.Accept, null);
+                    else
+                        foreach (string l in item.Lookaheads)
+                            state.Action[new Terminal(l)] = (ParserAction.Reduce, item.Production);
+                }
+            }
+
+
+            return Cd[0].Item1;
         }
 
         private ParserState CreateParsingTable()
@@ -212,29 +314,32 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     var nt = item.HighlightedEntry as NonTerminal;
 
                     var afterHighlight = item.EntriesAfterHighlight;
-                    ProductionEntry[] afterPlusLookahead = new ProductionEntry[afterHighlight.Length + 1];
-                    Array.Copy(afterHighlight, afterPlusLookahead, afterHighlight.Length);
-                    afterPlusLookahead[^1] = new Terminal(item.Lookahead);
-
-                    var first = ProductionEntry.GetFirstOfSet(afterPlusLookahead);
-
-                    foreach (var prod in nt.Productions)
+                    foreach (string l in item.Lookaheads)
                     {
-                        //TODO: Check if this is actually needed
-                        if (prod.IsEmpty) continue;
+                        ProductionEntry[] afterPlusLookahead = new ProductionEntry[afterHighlight.Length + 1];
+                        Array.Copy(afterHighlight, afterPlusLookahead, afterHighlight.Length);
+                        afterPlusLookahead[^1] = new Terminal(l) ;
 
-                        foreach (var f in first)
+                        var first = ProductionEntry.GetFirstOfSet(afterPlusLookahead);
+
+                        foreach (var prod in nt.Productions)
                         {
-                            var term = f as Terminal;
-                            if (f == null) continue;
+                            //TODO: Check if this is actually needed
+                            if (prod.IsEmpty) continue;
 
-                            GrammarItem newItem = new GrammarItem(prod, 0, term.Value);
+                            foreach (var f in first)
+                            {
+                                var term = f as Terminal;
+                                if (f == null) continue;
 
-                            if (I.Contains(newItem)) continue;
-                            I.Add(newItem);
-                            addedItem = true;
+                                GrammarItem newItem = new GrammarItem(prod, 0, term.Value);
+
+                                if (I.Contains(newItem)) continue;
+                                I.Add(newItem);
+                                addedItem = true;
+                            }
+
                         }
-
                     }
                 }
             } while (addedItem);
@@ -242,6 +347,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return I;
         }
 
+        private bool CoreEquals(List<GrammarItem> items1, List<GrammarItem> items2)
+        {
+            return !items1.Exists(i => !items2.Exists(j => j.CoreEquals(i)));
+        }
         private bool SetEquals(List<GrammarItem> items1, List<GrammarItem> items2)
         {
             return items1.Count == items2.Count && items1.TrueForAll(items2.Contains);
