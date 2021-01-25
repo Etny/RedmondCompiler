@@ -12,9 +12,9 @@ namespace Redmond.Lex.LexCompiler
     {
         public const char AcceptingCharacter = '#';
 
-        public static List<DFA> CompileFile(string path, string alphabet)
+        public static List<DFA> CompileFile(string[] lexLines, string alphabet)
         {
-            var regexCompiler = new RegexTreeCompiler(path);
+            var regexCompiler = new RegexTreeCompiler(lexLines);
             var trees = regexCompiler.CompileFile(":" + AcceptingCharacter);
 
             List<DFA> dfas = new List<DFA>();
@@ -23,13 +23,6 @@ namespace Redmond.Lex.LexCompiler
                 dfas.Add(CompileDFA(t.Item2, alphabet, t.Item1));
 
             return dfas;
-        }
-
-        public static DFA CompileDFA(string regex, string alphabet, string name = "", bool optimize = false)
-        {
-            var regexCompiler = new RegexTreeCompiler(" a");
-            var tree = regexCompiler.CompileRegexTree(regex + ":" + AcceptingCharacter);
-            return CompileDFA(tree, alphabet, name, optimize);
         }
 
 

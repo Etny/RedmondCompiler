@@ -10,9 +10,9 @@ namespace Redmond.Lex
         private int _tokenIndex = 0;
         private List<Token> _tokens = new List<Token>();
 
-        public TokenStream(string input, string filePath, string alphabet = "")
+        public TokenStream(string input, string[] lexLines, string alphabet = "")
         {
-            _analyzer = new Analyzer(input, filePath, alphabet);
+            _analyzer = new Analyzer(input, lexLines, alphabet);
         }
 
         public Token NextToken

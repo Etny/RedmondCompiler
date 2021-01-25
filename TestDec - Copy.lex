@@ -1,4 +1,4 @@
-﻿
+﻿#Lex
 
 letter = [a-z]
 digit = [0-9]
@@ -11,5 +11,7 @@ binop = [+\-*/]
 if/ab\wb				{Punctuation}
 (letter|_)char* {Identifier}
 number			{NumLiteral} //Hey
-\w				{Whitespace}
+\w+				{Whitespace}
 number binop number {Expression}
+
+#End

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Redmond.Lex
+namespace Redmond.Common
 {
     static class StringUtil
     {
@@ -42,12 +42,12 @@ namespace Redmond.Lex
         }
 
         public static string ReadWhile(this string input, int index, Predicate<char> pred)
-            => ReadWhile(input, ref index, pred);
+            => input.ReadWhile(ref index, pred);
 
         public static string ReadUntil(this string input, int index, Predicate<char> pred)
-            => ReadWhile(input, ref index, c => !pred(c));
+            => input.ReadWhile(ref index, c => !pred(c));
 
         public static string ReadUntil(this string input, ref int index, Predicate<char> pred)
-            => ReadWhile(input, ref index, c => !pred(c));
+            => input.ReadWhile(ref index, c => !pred(c));
     }
 }

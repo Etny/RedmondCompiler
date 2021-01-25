@@ -24,7 +24,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 if (prods.Length > 0)
                 {
                     for (int i = 0; i < prods.Length; i++)
-                        prods[i] = Production.Rhs[Highlight + i];
+                        prods[i] = Production.Rhs[Highlight + 1 + i];
                 }
 
                 return prods;

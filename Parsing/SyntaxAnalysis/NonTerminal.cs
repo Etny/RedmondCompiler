@@ -14,6 +14,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         private string[] productionStrings;
         private Grammar _grammar;
 
+        public int ID { get => _id; }
         private static List<string> NonTerminalTags = new List<string>();
         private int _id = 0;
 

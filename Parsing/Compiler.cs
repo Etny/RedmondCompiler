@@ -1,6 +1,5 @@
 ﻿using Redmond.Lex;
 using Redmond.Output;
-using Redmond.Parsing.Nodes;
 using System;
 
 namespace Redmond.Parsing
@@ -25,7 +24,7 @@ namespace Redmond.Parsing
 
             Token t = _input.EatToken();
 
-            while (t.Type != TokenType.EndOfFile)
+            while (t.Type.Name != "EndOfFile")
             {
                 _output.WriteLine(t.Text + " ||| " + t.Type);
                 t = _input.EatToken();

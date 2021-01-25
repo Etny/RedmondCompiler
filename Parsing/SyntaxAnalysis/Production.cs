@@ -11,10 +11,17 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public ProductionEntry[] Rhs;
         public bool IsEmpty = false;
 
+
+        public int Precendece { get { if (_precedence == null) _getPrecedenceAndAssociativity(); return _precedence.Value; } }
+        private int? _precedence = null;
+
+        public OperatorAssociativity Associatvity { get { if (_associatvity == null) _getPrecedenceAndAssociativity(); return _associatvity.Value; } }
+        private OperatorAssociativity? _associatvity = null;
+
         public Production(NonTerminal lhs, Grammar g, string dec)
         {
             Lhs = lhs;
-
+            
             string[] split = dec.Split(" ");
             if (split.Length == 0 || dec == "ε")
             {
@@ -23,15 +30,39 @@ namespace Redmond.Parsing.SyntaxAnalysis
             }
             else
             {
-                Rhs = new ProductionEntry[split.Length];
+                List<ProductionEntry> entries = new List<ProductionEntry>();
 
-                for(int i = 0; i < split.Length; i++)
+                for (int i = 0; i < split.Length; i++)
                 {
-                    if (g.NonTerminals.ContainsKey(split[i]))
-                        Rhs[i] = g.NonTerminals[split[i]];
+                    string entry = split[i];
+
+                    if (entry[0] != '\\')
+                    {
+                        if(entry[0] == '%')
+                        {
+                            string[] ss = entry.Substring(1).Split(":");
+
+                            switch (ss[0])
+                            {
+                                case "prec":
+                                    var term = new Terminal(ss[1]);
+                                    _precedence = term.Precedence;
+                                    _associatvity = term.Associativity;
+                                    break;
+                            }
+                            continue;
+                        }
+                    }
                     else
-                        Rhs[i] = new Terminal(split[i]);
+                        entry = entry.Substring(1);
+
+                    if (g.NonTerminals.ContainsKey(entry))
+                        entries.Add(g.NonTerminals[entry]);
+                    else
+                        entries.Add(new Terminal(entry));
                 }
+
+                Rhs = entries.ToArray();
             }
         }
         
@@ -51,6 +82,20 @@ namespace Redmond.Parsing.SyntaxAnalysis
             }
 
             return true;
+        }
+
+        private void _getPrecedenceAndAssociativity()
+        {
+            _precedence = 0;
+            _associatvity = OperatorAssociativity.None;
+
+            for (int i = Rhs.Length-1; i >= 0; i--)
+            {
+                if (!Rhs[i].IsTerminal || Rhs[i].IsEmptyTerminal) continue;
+                _precedence = (Rhs[i] as Terminal).Precedence;
+                _associatvity = (Rhs[i] as Terminal).Associativity;
+                break;
+            }
         }
 
         public override string ToString()

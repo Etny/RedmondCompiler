@@ -1,4 +1,5 @@
 ﻿
+using Redmond.Common;
 using Redmond.Lex;
 using Redmond.Lex.LexCompiler;
 using Redmond.Lex.LexCompiler.RegexTree;
@@ -13,16 +14,16 @@ namespace Redmond
     class Program
     {
 
-        private static string InputString = @"ccccccdd$";
-
-        //private static string InputString = @"ifab b 123-123";
-        private static TokenStream Input = new TokenStream(InputString, @"C:\Users\yveem\source\repos\Redmond\TestDec.lex", @"cd$");
+        private static string InputString = @"-1*1$";
+        private static DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.lex");
         private static IStringStream Output = new ConsoleStream();
         static void Main(string[] args)
         {
             //new CompilationContext(Input, Output).Start();
 
-            Console.WriteLine(new Grammar().Parse(Input));
+            TokenType.AddTypes(Dec.TokenLines);
+            TokenStream Input = new TokenStream(InputString, Dec.LexLines, @"*+-1()$");
+            Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input));
         }
     }
 }

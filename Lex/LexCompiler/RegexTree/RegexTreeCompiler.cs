@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Common;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,7 +12,7 @@ namespace Redmond.Lex.LexCompiler.RegexTree
     class RegexTreeCompiler
     {
 
-        public readonly string FilePath;
+        public readonly string[] Lines;
 
         private const string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         private const string _ops = "|*:";
@@ -26,24 +27,20 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         private readonly Dictionary<string, RegexTreeNode> _macros = new Dictionary<string, RegexTreeNode>();
 
 
-        public RegexTreeCompiler(string path)
-            => FilePath = path;
+        public RegexTreeCompiler(string[] lines)
+            => Lines = lines;
         
         #region Full File Compilation
         public List<(string, RegexTreeNode)> CompileFile(string suffix = "")
         {
-            if (!File.Exists(FilePath))
-                throw new FileNotFoundException(FilePath);
 
             List<(string, RegexTreeNode)> trees = new List<(string, RegexTreeNode)>();
 
-            var lines = File.ReadAllLines(FilePath);
             int mode = 0; // 0 = Macros, 1 = Productions, 2 == Done
 
-            for(int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
+            for(int lineIndex = 0; lineIndex < Lines.Length; lineIndex++)
             {
-                string line = StripLine(lines[lineIndex]);
-                if (line.Length <= 0) continue;
+                string line = Lines[lineIndex];
 
                 if(line == "%%") { mode++; continue; }
 
@@ -74,12 +71,6 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         private void AddMacro(string key, string regex)
             => _macros.Add(key, CompileRegexTree(regex));
-        
-        private string StripLine(string line)
-        {
-            if (line.Contains(@"//")) line = line.Split("//", 2)[0];
-            return line.Trim();
-        }
         #endregion
 
         #region Range Expression Compilation
