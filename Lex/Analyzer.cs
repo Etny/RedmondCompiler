@@ -10,11 +10,7 @@ namespace Redmond.Lex
         private readonly string _input;
         private int _index = 0;
 
-        private readonly string _digits = "0123456789";
-        private readonly string _ops = "+-/*";
-        private readonly string _punct = "();";
-
-        private string defaultAlphabet = new string(Enumerable.Range(32, (126 - 32) + 1).Select(i => (char)i).ToArray());
+        private readonly string defaultAlphabet = new string(Enumerable.Range(32, (126 - 32) + 1).Select(i => (char)i).ToArray());
         private readonly List<DFA> _dfas = new List<DFA>();
 
         public Analyzer(string input, string[] lexLines, string alphabet = "")

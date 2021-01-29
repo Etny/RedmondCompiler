@@ -14,7 +14,8 @@ number = [0-9]
 
 %%
 
-letter {Letter}
+int {Letter}
+float {Letter}
 number {Digit}
 [=\*+-] {Operator}
 $ {Punctuation}
@@ -29,10 +30,11 @@ right UMINUS
 
 %%
 
-Stmnts: Expr;
-Expr: Expr + Expr | Expr * Expr | ( Expr ) | - Expr %prec:UMINUS | 1;
+Dec: Type Id;
+Type: int {int} | float {float};
+Id: 1 {print};
 
-//Stmnts:	Left = Right | Right;
+//Stmnts:	Left = Right | Right; 
 //Left:	* Right | d;
 //Right:	Left;
 

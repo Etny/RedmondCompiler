@@ -17,15 +17,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public ParseTreeNode Parse(TokenStream input)
         {
-            ParseTreeNode root = null;
-
-            Stack<ParserState> stateStack = new Stack<ParserState>();
+            Stack<ParserStackEntry> stateStack = new Stack<ParserStackEntry>();
             Stack<ParseTreeNode> treeStack = new Stack<ParseTreeNode>();
 
 
-            stateStack.Push(_start);
+            stateStack.Push(new ParserStackEntry(_start));
 
-            var action = stateStack.Peek().Action[new Terminal(input.NextToken.Text)];
+            var action = stateStack.Peek().State.Action[new Terminal(input.NextToken.Text)];
 
             while (action.Item1 != ParserAction.Accept)
             {
@@ -33,7 +31,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 switch (action.Item1)
                 { 
                     case ParserAction.Shift:
-                        stateStack.Push(action.Item2 as ParserState);
+                        stateStack.Push(new ParserStackEntry(action.Item2 as ParserState));
                         treeStack.Push(new ParseTreeNode(new Terminal(input.NextToken.Text)));
                         input.EatToken();
                         break;
@@ -49,16 +47,30 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         }
 
                         treeStack.Push(newNode);
+                        stateStack.Push(new ParserStackEntry(stateStack.Peek().State.Goto[production.Lhs]));
 
-                        stateStack.Push(stateStack.Peek().Goto[production.Lhs]);
+                        if (production.HasAction)
+                            production.Action.Invoke(stateStack);
+
                         break;
                 }
 
-                action = stateStack.Peek().Action[new Terminal(input.NextToken.Text)];
+                action = stateStack.Peek().State.Action[new Terminal(input.NextToken.Text)];
             }
 
             return treeStack.Peek();
         }
 
+    }
+
+    class ParserStackEntry
+    {
+        public readonly ParserState State;
+        public readonly Dictionary<string, Object> Attributes = new Dictionary<string, object>();
+
+        public ParserStackEntry(ParserState state)
+        {
+            State = state;
+        }
     }
 }

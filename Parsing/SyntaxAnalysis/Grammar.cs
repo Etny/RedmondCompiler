@@ -3,16 +3,12 @@ using Redmond.Lex;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.Linq;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
     class Grammar
     {
-        public const char IdentifierChar = (char)1;
-        public const char EndChar = '$';//(char)1;
-        public const char EmptyChar = 'ε';
-
         public Dictionary<string, NonTerminal> NonTerminals = new Dictionary<string, NonTerminal>();
         private NonTerminal startSymbol = null;
 
@@ -45,22 +41,16 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 string lhs = all.ReadUntil(ref index, c => c == ':').Trim();
                 List<string> prods = new List<string>();
 
-                while (index + 2 < all.Length && all[index + 1] != ';')
+                while (index < all.Length && all[index] != ';')
                 {
                     index += 2;
-                    string prod = all.ReadUntil(ref index, c => c == '|' || c == ';' || c == '{').Trim();
+                    string prod = all.ReadUntil(ref index, c => c == '|' || c == ';' && (index == 0 || !"\'\\".Contains(all[index-1]))).Trim();
 
-                    if (all[index + 1] == '{') 
-                    { 
-                        string extra = all.ReadUntil(ref index, c => c == '}');
-                        all.ReadUntil(ref index, c => c == '|' || c == ';'); 
-                    }
-
-                    if (prod.Length == 0) prod = EmptyChar + "";
+                    if (prod.Length == 0) prod = GrammarConstants.EmptyChar + "";
                     prods.Add(prod);
                 }
 
-                index += 2;
+                index ++;
 
                 if (firstLhs == "") firstLhs = lhs;
 
@@ -110,13 +100,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return new Parser(CreateLALRParsingTable()).Parse(input);
         }
 
-        private void AddNonTerminal(NonTerminal nt)
+        public void AddNonTerminal(NonTerminal nt)
             => NonTerminals.Add(nt.Tag, nt);
 
         private void InitNonTerminals()
         {
-            foreach (var n in NonTerminals.Values)
-                n.MakeProductions();
+            for (int i = 0; i < NonTerminals.Count; i++)
+                NonTerminals.Values.ElementAt(i).MakeProductions();
 
             foreach (var n in NonTerminals.Values)
                 n.CalculateFirst();
@@ -190,7 +180,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         {
             List<GrammarItem> startI = Closure(new List<GrammarItem>()
                 {
-                    new GrammarItem(startSymbol.Productions[0], 0, EndChar + "")
+                    new GrammarItem(startSymbol.Productions[0], 0, GrammarConstants.EndChar + "")
                 });
 
 
@@ -337,8 +327,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                     foreach (var prod in nt.Productions)
                     {
-                        if (prod.IsEmpty) continue;
-
                         foreach (var f in first)
                         {
                             var term = f as Terminal;

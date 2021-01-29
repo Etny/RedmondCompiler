@@ -10,7 +10,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public Dictionary<ProductionEntry, ParserState> Goto = new Dictionary<ProductionEntry, ParserState>();
         public Dictionary<ProductionEntry, (ParserAction, Object)> Action = new Dictionary<ProductionEntry, (ParserAction, Object)>();
 
-        private List<GrammarItem> _i;
+
+#warning Remove this!
+        private readonly List<GrammarItem> _i;
 
         public ParserState(List<GrammarItem> I)
         {

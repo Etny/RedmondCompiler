@@ -14,15 +14,15 @@ namespace Redmond
     class Program
     {
 
-        private static string InputString = @"-1*1$";
-        private static DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.lex");
-        private static IStringStream Output = new ConsoleStream();
-        static void Main(string[] args)
+        private static readonly string InputString = @"float1$";
+        private static readonly DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.lex");
+        //private static IStringStream Output = new ConsoleStream();
+        static void Main()
         {
             //new CompilationContext(Input, Output).Start();
 
             TokenType.AddTypes(Dec.TokenLines);
-            TokenStream Input = new TokenStream(InputString, Dec.LexLines, @"*+-1()$");
+            TokenStream Input = new TokenStream(InputString, Dec.LexLines, @"intfloa1()$");
             Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input));
         }
     }

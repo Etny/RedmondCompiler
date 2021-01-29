@@ -11,12 +11,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public Production[] Productions;
 
-        private string[] productionStrings;
-        private Grammar _grammar;
+        protected string[] productionStrings;
+        protected Grammar _grammar;
 
-        public int ID { get => _id; }
-        private static List<string> NonTerminalTags = new List<string>();
-        private int _id = 0;
+        public int ID { get; } = 0;
+        protected static readonly List<string> NonTerminalTags = new List<string>();
 
         public NonTerminal(Grammar g, string tag, params string[] productions)
         {
@@ -25,7 +24,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             productionStrings = productions;
 
             if (!NonTerminalTags.Contains(Tag)) NonTerminalTags.Add(Tag);
-            _id = NonTerminalTags.IndexOf(Tag);
+            ID = NonTerminalTags.IndexOf(Tag);
         }
 
         public void MakeProductions()
@@ -40,8 +39,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string ToString() => Tag;
 
-        public override bool Equals(object obj) => obj is NonTerminal && ((NonTerminal)obj).Tag == Tag;
-        public override int GetHashCode() => -_id;
+        public override bool Equals(object obj) => obj is NonTerminal other && other.Tag == Tag;
+        public override int GetHashCode() => -ID;
 
 
         protected override bool _canBeEmpty()
@@ -84,7 +83,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             foreach (var prod in Productions) {
                 if (!prod.IsEmpty) continue;
 
-                first.Add(prod.Rhs[0]);
+                first.Add(new EmptyTerminal());
                 containsEmpty = true;
                 break;
             }

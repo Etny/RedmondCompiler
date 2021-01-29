@@ -8,10 +8,10 @@ namespace Redmond.Common
     {
         public static string ReadWhile(this string input, ref int index, Predicate<char> pred)
         {
-            string read = input[index] + "";
+            string read = "";
 
-            while (index + 1 < input.Length && pred(input[index + 1]))
-                read += input[++index];
+            while (index < input.Length && pred(input[index]))
+                read += input[index++];
 
             return read;
         }

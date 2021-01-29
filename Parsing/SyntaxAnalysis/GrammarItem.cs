@@ -68,6 +68,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return CoreEquals(other) && other.Lookaheads.Count == Lookaheads.Count && other.Lookaheads.TrueForAll(Lookaheads.Contains);
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override bool Equals(object obj) => Equals(obj as GrammarItem);
 
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Common;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -18,6 +19,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public OperatorAssociativity Associatvity { get { if (_associatvity == null) _getPrecedenceAndAssociativity(); return _associatvity.Value; } }
         private OperatorAssociativity? _associatvity = null;
 
+        public GrammarAction Action;
+        private string _actionString;
+        public bool HasAction = false;
+
         public Production(NonTerminal lhs, Grammar g, string dec)
         {
             Lhs = lhs;
@@ -26,44 +31,87 @@ namespace Redmond.Parsing.SyntaxAnalysis
             if (split.Length == 0 || dec == "ε")
             {
                 IsEmpty = true;
-                Rhs = new ProductionEntry[] { new EmptyTerminal() };
+                Rhs = new ProductionEntry[] { };
             }
             else
+                Parse(dec, g);
+        }
+
+        private void Parse(string dec, Grammar g)
+        {
+            List<ProductionEntry> entries = new List<ProductionEntry>();
+
+            int index = 0;
+
+            while (index < dec.Length)
             {
-                List<ProductionEntry> entries = new List<ProductionEntry>();
 
-                for (int i = 0; i < split.Length; i++)
+                dec.ReadWhile(ref index, c => " \t".Contains(c));
+                if (index >= dec.Length) break;
+                string entry = dec.ReadUntil(ref index, c => " \t".Contains(c) ||
+                                ((index > 0 && dec[index - 1] == '{') && (index == 1 ||  " \t".Contains(dec[index - 2]))) );
+
+                if (HasAction)
                 {
-                    string entry = split[i];
+                    HasAction = false;
+                    var marker = new MarkerNonTerminal(g, "{"+_actionString+"}");
 
-                    if (entry[0] != '\\')
-                    {
-                        if(entry[0] == '%')
-                        {
-                            string[] ss = entry.Substring(1).Split(":");
-
-                            switch (ss[0])
-                            {
-                                case "prec":
-                                    var term = new Terminal(ss[1]);
-                                    _precedence = term.Precedence;
-                                    _associatvity = term.Associativity;
-                                    break;
-                            }
-                            continue;
-                        }
-                    }
-                    else
-                        entry = entry.Substring(1);
-
-                    if (g.NonTerminals.ContainsKey(entry))
-                        entries.Add(g.NonTerminals[entry]);
-                    else
-                        entries.Add(new Terminal(entry));
+                    entries.Add(marker);
+                    g.AddNonTerminal(marker);
                 }
 
-                Rhs = entries.ToArray();
+                switch (entry[0])
+                {
+                    case '\\':
+                        entry = entry.Substring(1);
+                        break;
+
+                    case '\'':
+                        entry = entry[1..^1];
+                        break;
+                        
+                    case '%':
+                        string[] ss = entry.Substring(1).Split(":");
+
+                        switch (ss[0])
+                        {
+                            case "prec":
+                                var term = new Terminal(ss[1]);
+                                _precedence = term.Precedence;
+                                _associatvity = term.Associativity;
+                                break;
+                        }
+                        continue;
+
+                    case '{':
+                        string actionString = dec.ReadWhile(ref index, c => c != '}');
+                        HasAction = true;
+                        _actionString = actionString;
+                        index++;
+                        continue;
+
+                    default:
+                        break;
+                }
+                   
+
+                if (g.NonTerminals.ContainsKey(entry))
+                    entries.Add(g.NonTerminals[entry]);
+                else
+                    entries.Add(new Terminal(entry));
+
+                index++;
             }
+
+            if (HasAction)
+                Action = new GrammarAction(_actionString);
+
+            if(entries.Count <= 0)
+            {
+                IsEmpty = true;
+                Rhs = new ProductionEntry[] { };
+            }else
+                Rhs = entries.ToArray();
         }
         
         public bool CanBeEmpty()
@@ -100,6 +148,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string ToString()
         {
+            if (IsEmpty)
+                return "Empty";
+
             string s = Lhs + " → ";
 
             for (int i = 0; i < Rhs.Length; i++)

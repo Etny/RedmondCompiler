@@ -1,36 +1,18 @@
-﻿using System;
+﻿using Redmond.Common;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
-    class ParseTreeNode
+    class ParseTreeNode : TreeNode<ParseTreeNode>
     {
-        public ParseTreeNode Parent = null;
-
-        public bool IsRoot { get => Parent == null; }
 
         public ProductionEntry Value;
-
-        public ParseTreeNode[] Children = new ParseTreeNode[0];
 
         public ParseTreeNode(ProductionEntry value)
         {
             Value = value;
-        }
-
-        public void AddChild(ParseTreeNode node, int index)
-        {
-            node.Parent = this;
-
-            if(Children.Length - 1 < index)
-            {
-                var temp = new ParseTreeNode[index + 1];
-                Array.Copy(Children, temp, Children.Length);
-                Children = temp;
-            }
-
-            Children[index] = node;
         }
 
         public override string ToString()
