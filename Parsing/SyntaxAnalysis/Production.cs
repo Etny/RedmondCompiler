@@ -103,8 +103,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 index++;
             }
 
-            if (HasAction)
-                Action = new GrammarAction(_actionString);
 
             if(entries.Count <= 0)
             {
@@ -112,6 +110,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 Rhs = new ProductionEntry[] { };
             }else
                 Rhs = entries.ToArray();
+
+
+            if (HasAction)
+                Action = new GrammarAction(_actionString, this);
         }
         
         public bool CanBeEmpty()

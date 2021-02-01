@@ -16,6 +16,13 @@ namespace Redmond.Common
             return read;
         }
 
+        public static bool MatchNext(this string input, char c, ref int index)
+        {
+            bool r = index < input.Length && input[index] == c;
+            if (r) index++;
+            return r;
+        }
+
         public static string ReadUntilClosingBracket(this string input, ref int index, char open, char close, bool canEscape = true)
         {
             int brackets = 1;

@@ -16,6 +16,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public Grammar(string[] lines)
         {
             CompileFile(lines);
+            GrammarAction.Init();
 
             InitNonTerminals();
         }
@@ -39,18 +40,42 @@ namespace Redmond.Parsing.SyntaxAnalysis
             while (index < all.Length - 1)
             {
                 string lhs = all.ReadUntil(ref index, c => c == ':').Trim();
+                index++;
+                all.ReadWhile(ref index, c => " \t".Contains(c));
                 List<string> prods = new List<string>();
 
-                while (index < all.Length && all[index] != ';')
+                string prod = "";
+                bool end = false;
+                while(index < all.Length && !end)
                 {
-                    index += 2;
-                    string prod = all.ReadUntil(ref index, c => c == '|' || c == ';' && (index == 0 || !"\'\\".Contains(all[index-1]))).Trim();
+                    char c = all[index++];
 
-                    if (prod.Length == 0) prod = GrammarConstants.EmptyChar + "";
-                    prods.Add(prod);
+                    if (index > 0 && all[index - 1] == '\\')
+                        prod += c;
+                    else
+                    {
+                        switch (c)
+                        {
+                            case ';':
+                            case '|':
+                                if (prod.Length == 0) prod = GrammarConstants.EmptyChar + "";
+                                prods.Add(prod);
+                                prod = "";
+                                if (c == ';') end = true;
+                                break;
+
+                            case '{':
+                                index--;
+                                prod += c + all.ReadUntilClosingBracket(ref index, '{', '}', true);
+                                break;
+
+                            default:
+                                prod += c;
+                                break;
+                        }
+                    }
+
                 }
-
-                index ++;
 
                 if (firstLhs == "") firstLhs = lhs;
 

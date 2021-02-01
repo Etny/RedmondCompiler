@@ -18,7 +18,7 @@ int {Letter}
 float {Letter}
 number {Digit}
 [=\*+-] {Operator}
-$ {Punctuation}
+[$,] {Punctuation}
 
 #End
 
@@ -30,9 +30,9 @@ right UMINUS
 
 %%
 
-Dec: Type Id;
-Type: int {int} | float {float};
-Id: 1 {print};
+Dec: Type Id | Type Id , {$$.type = $-3.type} Id;
+Type: int {$$.type="int";} | float {$$.type="float";};
+Id: 1 {print($-1.type);};
 
 //Stmnts:	Left = Right | Right; 
 //Left:	* Right | d;

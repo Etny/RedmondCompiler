@@ -40,6 +40,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         var production = action.Item2 as Production;
                         var newNode = new ParseTreeNode(production.Lhs);
 
+                        Stack<ParserStackEntry> tempStack = new Stack<ParserStackEntry>(new Stack<ParserStackEntry>(stateStack));
+
                         for (int i = 0; i < production.Rhs.Length; i++)
                         {
                             stateStack.Pop();
@@ -48,9 +50,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         treeStack.Push(newNode);
                         stateStack.Push(new ParserStackEntry(stateStack.Peek().State.Goto[production.Lhs]));
+                        tempStack.Push(stateStack.Peek());
 
                         if (production.HasAction)
-                            production.Action.Invoke(stateStack);
+                            production.Action.Invoke(tempStack);
 
                         break;
                 }
@@ -66,11 +69,19 @@ namespace Redmond.Parsing.SyntaxAnalysis
     class ParserStackEntry
     {
         public readonly ParserState State;
-        public readonly Dictionary<string, Object> Attributes = new Dictionary<string, object>();
+        public readonly Dictionary<string, object> Attributes = new Dictionary<string, object>();
 
         public ParserStackEntry(ParserState state)
         {
             State = state;
+        }
+
+        public void UpdateAttribute(string key, object value)
+        {
+            if (!Attributes.ContainsKey(key))
+                Attributes.Add(key, value);
+            else
+                Attributes[key] = value;
         }
     }
 }
