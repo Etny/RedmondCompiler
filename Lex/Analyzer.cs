@@ -62,10 +62,17 @@ namespace Redmond.Lex
             if (accepted)
                 t = new Token(_input.Substring(_index, i), TokenType.GetTokenType(final.Name));
 
+            if (t.Type.Name == "Unkown")
+                Console.WriteLine("Bad Token");
+
+            if (final.Action != null)
+                final.Action.Invoke(t);
+
             _index +=i;
 
             foreach (var dfa in _dfas)
                 dfa.Reset();
+
 
             return t;
         }

@@ -7,19 +7,21 @@ namespace Redmond.Parsing.SyntaxAnalysis
     class Terminal : ProductionEntry
     {
         public readonly string Value;
+        public readonly bool IsToken;
 
-        private static List<string> TerminalValues = new List<string>();
+        private static List<(string, bool)> TerminalValues = new List<(string, bool)>();
         private static Dictionary<int, int> _precedences = new Dictionary<int, int>();
         private static Dictionary<int, OperatorAssociativity> _associativies = new Dictionary<int, OperatorAssociativity>();
 
         private int _id = 0;
 
-        public Terminal(string value) 
+        public Terminal(string value, bool isToken) 
         { 
             Value = value;
+            IsToken = isToken;
 
-            if (!TerminalValues.Contains(Value)) TerminalValues.Add(Value);
-            _id = TerminalValues.IndexOf(Value);
+            if (!TerminalValues.Contains((Value, isToken))) TerminalValues.Add((Value, isToken));
+            _id = TerminalValues.IndexOf((Value, isToken));
         }
 
         public int Precedence
@@ -52,7 +54,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string ToString() => "\'" + Value + "\'";
         //public override string ToString() => Value;
-        public override bool Equals(object obj) => obj is Terminal && ((Terminal)obj).Value == Value;
+        public override bool Equals(object obj) => obj is Terminal terminal && terminal.Value == Value && terminal.IsToken == IsToken;
 
 
         protected override IEnumerable<ProductionEntry> _calculateFirst() { yield return this; }

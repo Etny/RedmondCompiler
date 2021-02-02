@@ -107,9 +107,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         for(int i = 1; i < split.Length; i++)
                         {
-                            var term = new Terminal(split[i]);
-                            term.Precedence = currentPrecedence;
-                            term.Associativity = split[0] == "left" ? OperatorAssociativity.Left : (split[0] == "right" ? OperatorAssociativity.Right : OperatorAssociativity.None);
+                            var term = new Terminal(split[i], false)
+                            {
+                                Precedence = currentPrecedence,
+                                Associativity = split[0] == "left" ? OperatorAssociativity.Left : (split[0] == "right" ? OperatorAssociativity.Right : OperatorAssociativity.None)
+                            };
                         }
 
                         currentPrecedence++;
@@ -120,9 +122,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
             if (index < lines.Length) index++;
         }
 
-        public ParseTreeNode Parse(TokenStream input)
+        public SyntaxTreeNode Parse(TokenStream input)
         {
-            return new Parser(CreateLALRParsingTable()).Parse(input);
+            new Parser(CreateLALRParsingTable()).Parse(input);
+            return SyntaxTreeNode.CurrentNode;
         }
 
         public void AddNonTerminal(NonTerminal nt)
@@ -205,7 +208,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         {
             List<GrammarItem> startI = Closure(new List<GrammarItem>()
                 {
-                    new GrammarItem(startSymbol.Productions[0], 0, GrammarConstants.EndChar + "")
+                    new GrammarItem(startSymbol.Productions[0], 0, new Terminal(GrammarConstants.EndChar + "", false))
                 });
 
 
@@ -289,11 +292,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     if (!item.IsHightlightAfterFinalEntry) continue;
 
                     if (item.Production.Lhs.Equals(startSymbol))
-                        foreach (string l in item.Lookaheads)
-                            SetAction(state, new Terminal(l), (ParserAction.Accept, null));
+                        foreach (var l in item.Lookaheads)
+                            SetAction(state, l, (ParserAction.Accept, null));
                     else
-                        foreach (string l in item.Lookaheads)
-                            SetAction(state, new Terminal(l), (ParserAction.Reduce, item.Production));
+                        foreach (var l in item.Lookaheads)
+                            SetAction(state, l, (ParserAction.Reduce, item.Production));
                 }
             }
             
@@ -342,11 +345,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 var nt = item.HighlightedEntry as NonTerminal;
 
                 var afterHighlight = item.EntriesAfterHighlight;
-                foreach (string l in item.Lookaheads)
+                foreach (var l in item.Lookaheads)
                 {
                     ProductionEntry[] afterPlusLookahead = new ProductionEntry[afterHighlight.Length + 1];
                     Array.Copy(afterHighlight, afterPlusLookahead, afterHighlight.Length);
-                    afterPlusLookahead[^1] = new Terminal(l) ;
+                    afterPlusLookahead[^1] = l ;
 
                     var first = ProductionEntry.GetFirstOfSet(afterPlusLookahead);
 
@@ -357,7 +360,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                             var term = f as Terminal;
                             if (f == null) continue;
 
-                            GrammarItem newItem = new GrammarItem(prod, 0, term.Value);
+                            GrammarItem newItem = new GrammarItem(prod, 0, term);
 
                             if (I.Contains(newItem)) continue;
                             I.Add(newItem);

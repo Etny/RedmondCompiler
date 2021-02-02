@@ -192,27 +192,19 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             public int Offset => (int)_val;
             public string Key => _key;
-
+            
             public object Value => _val;
             public Func<Stack<ParserStackEntry>, object> Function => _val as Func<Stack<ParserStackEntry>, object>;
 
             public object ResolveValue(Stack<ParserStackEntry> parseStack)
             {
-                switch (Type)
+                return Type switch
                 {
-                    case GrammarActionArgumentType.Literal:
-                        return _val;
-
-                    case GrammarActionArgumentType.Function:
-                        return (_val as Func<Stack<ParserStackEntry>, object>).Invoke(parseStack);
-
-                    case GrammarActionArgumentType.Stack:
-                        return parseStack.ToArray()[Offset].Attributes[Key];
-
-                    default:
-                        return 1;
-                }
-                
+                    GrammarActionArgumentType.Literal => _val,
+                    GrammarActionArgumentType.Function => (_val as Func<Stack<ParserStackEntry>, object>).Invoke(parseStack),
+                    GrammarActionArgumentType.Stack => parseStack.ToArray()[Offset].GetAttribute(Key),
+                    _ => 1,
+                };
             }
 
         }

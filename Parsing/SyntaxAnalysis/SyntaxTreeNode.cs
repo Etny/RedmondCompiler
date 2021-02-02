@@ -10,31 +10,44 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public static SyntaxTreeNode CurrentNode = null;
 
-        [SyntaxFunction("makeNode")]
-        public static SyntaxTreeNode MakeNode(string op)
+        [SyntaxFunction("makeLeaf")]
+        public static SyntaxTreeNode MakeLeaf(string op, object val)
         {
-            CurrentNode = new SyntaxTreeNode(op);
+            CurrentNode = new SyntaxTreeNode(op, val);
             return CurrentNode;
         }
+            
+
+        [SyntaxFunction("makeNode")]
+        public static SyntaxTreeNode MakeNode(string op)
+            => _MakeNode(op);
 
         [SyntaxFunction("makeNode")]
         public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1, SyntaxTreeNode child2)
+            => _MakeNode(op, child1, child2);
+             
+        private static SyntaxTreeNode _MakeNode(string op, params SyntaxTreeNode[] children)
         {
             CurrentNode = new SyntaxTreeNode(op);
-            CurrentNode.AddChild(child1);
-            CurrentNode.AddChild(child2);
+            foreach (var c in children) CurrentNode.AddChild(c);
             return CurrentNode;
         }
 
         public readonly string Op;
+        public readonly object Val;
 
-        public SyntaxTreeNode(string op)
+        //TODO: Make this a graph to allow for Directed Aclyclic Graphs 
+        public SyntaxTreeNode(string op, object val = null)
         {
             Op = op;
+            Val = val;
         }
 
 
         public override string ToString()
-            => Op;
+        {
+            if (Val == null) return Op;
+            return Op + ": " + Val;
+        }
     }
 }

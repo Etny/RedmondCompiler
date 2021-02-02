@@ -8,8 +8,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
     {
         public readonly Production Production;
         public readonly int Highlight;
-        public string Lookahead { get => Lookaheads[0]; }
-        public readonly List<string> Lookaheads = new List<string>();
+        public Terminal Lookahead { get => Lookaheads[0]; }
+        public readonly List<Terminal> Lookaheads = new List<Terminal>();
 
         public ProductionEntry HighlightedEntry { get => IsHightlightAfterFinalEntry ? null : Production.Rhs[Highlight]; }
         public bool IsFinalEntryHighlighted { get => Highlight == Production.Rhs.Length - 1; }
@@ -32,7 +32,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         }
 
 
-        public GrammarItem(Production prod, int highlight, string look)
+        public GrammarItem(Production prod, int highlight, Terminal look)
         {
             Production = prod;
             Highlight = highlight;
@@ -51,7 +51,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             if (IsHightlightAfterFinalEntry) s += '·';
 
             s += ", ";
-            foreach (string l in Lookaheads)
+            foreach (Terminal l in Lookaheads)
                 s += l + "/";
 
             return s[..^1];

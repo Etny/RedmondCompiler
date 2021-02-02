@@ -1,6 +1,6 @@
 ﻿#Tokens
 
-Letter
+Word
 Digit
 Operator
 Punctuation
@@ -14,11 +14,10 @@ number = [0-9]
 
 %%
 
-int {Letter}
-float {Letter}
-number {Digit}
-[=\*+-] {Operator}
-[$,] {Punctuation}
+letter+ {Word}
+number+ {Digit; $$ = parseInt($);}
+[=\*/+-] {Operator}
+[$,()] {Punctuation}
 
 #End
 
@@ -30,8 +29,18 @@ right UMINUS
 
 %%
 
-Dec: Type Id {$$ = makeNode("Dec", $1, $2);};
-Type: int {$$ = makeNode("int");} | float {$$ == makeNode("float");};
-Id: 1 {$$ = makeNode("1");};
+line	: expr {print($1);} ;
+
+expr	: expr '+' expr 				{ $$ = add($1, $3); }
+		| expr '-' expr 				{ $$ = sub($1, $3); }
+		| expr '/' expr 				{ $$ = div($1, $3); }
+		| expr '*' expr 				{ $$ = mul($1, $3); }
+		| '(' expr ')' 					{ $$ = $2; }
+		| Digit 						{ $$ = $1; }
+		;
+
+//Dec: Type Id {$$ = makeNode("Dec", $1, $2);};
+//Type: 'int' {$$ = makeNode("int");} | 'float' {$$ == makeNode("float");};
+//Id: Digit {$$ = makeLeaf("num", $1);};
 
 #End

@@ -16,7 +16,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         }
 
         [SyntaxFunction("print")]
-        public static string Print(string s)
+        public static object Print(object s)
         {
             Console.WriteLine(s);
             return s;
@@ -27,6 +27,12 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         [SyntaxFunction("sub")]
         public static int Sub(int i1, int i2) => i1 - i2;
+
+        [SyntaxFunction("mul")]
+        public static int Mul(int i1, int i2) => i1 * i2;
+
+        [SyntaxFunction("div")]
+        public static int Div(int i1, int i2) => i1 / i2;
 
     }
 }

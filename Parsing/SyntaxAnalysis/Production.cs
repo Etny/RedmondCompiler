@@ -1,4 +1,5 @@
 ﻿using Redmond.Common;
+using Redmond.Lex;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -45,6 +46,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             while (index < dec.Length)
             {
+                bool isToken = true;
 
                 dec.ReadWhile(ref index, c => " \t".Contains(c));
                 if (index >= dec.Length) break;
@@ -60,7 +62,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     g.AddNonTerminal(marker);
                 }
 
-                switch (entry[0])
+                parse:  switch (entry[0])
                 {
                     case '\\':
                         entry = entry.Substring(1);
@@ -68,7 +70,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                     case '\'':
                         entry = entry[1..^1];
-                        break;
+                        isToken = false;
+                        goto parse;
                         
                     case '%':
                         string[] ss = entry.Substring(1).Split(":");
@@ -76,7 +79,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         switch (ss[0])
                         {
                             case "prec":
-                                var term = new Terminal(ss[1]);
+                                var term = new Terminal(ss[1], TokenType.IsTokenType(ss[1]));
                                 _precedence = term.Precedence;
                                 _associatvity = term.Associativity;
                                 break;
@@ -95,10 +98,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 }
                    
 
-                if (g.NonTerminals.ContainsKey(entry))
+                if (g.NonTerminals.ContainsKey(entry) && isToken)
                     entries.Add(g.NonTerminals[entry]);
                 else
-                    entries.Add(new Terminal(entry));
+                    entries.Add(new Terminal(entry, isToken));
 
                 index++;
             }

@@ -2,7 +2,7 @@
 
 namespace Redmond.Lex
 {
-    internal struct Token
+    internal class Token
     {
         public static Token EndOfFile = new Token("EOF", TokenType.GetTokenType("EndOfFile"));
         public static Token Unknown = new Token("????", TokenType.GetTokenType("Unkown"));
@@ -10,12 +10,14 @@ namespace Redmond.Lex
 
         public readonly string Text;
         public TokenType Type;
+        public object Value;
 
-        public Token(string text, TokenType type = null)
+        public Token(string text, TokenType type = null, object value = null)
         {
             if (type == null) type = TokenType.GetTokenType("Unkown");
             Text = text;
             Type = type;
+            Value = value;
         }
 
         public int NumValue
@@ -51,6 +53,8 @@ namespace Redmond.Lex
         }
 
         public static TokenType GetTokenType(string name) => _tokenTypes[name];
+
+        public static bool IsTokenType(string name) => _tokenTypes.ContainsKey(name);
 
         public static void AddType(string name)
             => _tokenTypes.Add(name, new TokenType(_tokenTypes.Count, name));

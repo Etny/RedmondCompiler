@@ -58,6 +58,6 @@ namespace Redmond.Common
             return s;
         }
 
-        public abstract string ToString();
+        public abstract override string ToString();
     }
 }

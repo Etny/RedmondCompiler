@@ -31,10 +31,10 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             => Lines = lines;
         
         #region Full File Compilation
-        public List<(string, RegexTreeNode)> CompileFile(string suffix = "")
+        public List<(string, LexAction, RegexTreeNode)> CompileFile(string suffix = "")
         {
 
-            List<(string, RegexTreeNode)> trees = new List<(string, RegexTreeNode)>();
+            List<(string, LexAction, RegexTreeNode)> trees = new List<(string, LexAction, RegexTreeNode)>();
 
             int mode = 0; // 0 = Macros, 1 = Productions, 2 == Done
 
@@ -58,7 +58,18 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
                         split = new string[] { line.Substring(0, line.LastIndexOf('{')), line.Substring(line.LastIndexOf('{'))[1..^1] };
 
-                        trees.Add((split[1], CompileRegexTree(split[0].Trim().Replace(" ", "") + suffix)));
+                        string name;
+                        LexAction action = null;
+
+                        if (split[1].Contains(";"))
+                        {
+                            var actions = split[1].Split(';', 2);
+                            name = actions[0];
+                            action = new LexAction(actions[1]);
+                        }
+                        else name = split[1];
+
+                        trees.Add((name, action, CompileRegexTree(split[0].Trim().Replace(" ", "") + suffix)));
                         break;
 
                     default:

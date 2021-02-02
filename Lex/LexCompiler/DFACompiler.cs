@@ -14,19 +14,21 @@ namespace Redmond.Lex.LexCompiler
 
         public static List<DFA> CompileFile(string[] lexLines, string alphabet)
         {
+            LexAction.Init();
+
             var regexCompiler = new RegexTreeCompiler(lexLines);
             var trees = regexCompiler.CompileFile(":" + AcceptingCharacter);
 
             List<DFA> dfas = new List<DFA>();
 
             foreach(var t in trees)
-                dfas.Add(CompileDFA(t.Item2, alphabet, t.Item1));
+                dfas.Add(CompileDFA(t.Item3, alphabet, t.Item1, t.Item2));
 
             return dfas;
         }
 
 
-        public static DFA CompileDFA(RegexTreeNode tree, string alphabet, string name = "", bool optimize = false)
+        public static DFA CompileDFA(RegexTreeNode tree, string alphabet, string name = "", LexAction action = null, bool optimize = false)
         {
             string fullAlphabet = alphabet;
             if (!fullAlphabet.Contains(AcceptingCharacter)) fullAlphabet += AcceptingCharacter;
@@ -81,15 +83,15 @@ namespace Redmond.Lex.LexCompiler
             }
 
             if (!optimize)
-                return new DFA(startState, alphabet, name);
+                return new DFA(startState, alphabet, name, action);
             else
-                return OptimizeDFA(startState, alphabet);
+                return OptimizeDFA(startState, alphabet, name, action);
         }
 
-        public static DFA OptimizeDFA(DFA dfa)
-            => OptimizeDFA(dfa.Start, dfa.Alphabet,dfa.Name);
+        public static DFA OptimizeDFA(DFA dfa, LexAction action = null)
+            => OptimizeDFA(dfa.Start, dfa.Alphabet,dfa.Name, action);
 
-        public static DFA OptimizeDFA(DFAState init, string alphabet, string name = "")
+        public static DFA OptimizeDFA(DFAState init, string alphabet, string name = "", LexAction action = null)
         {
             List<DFAState> initAccepting = new List<DFAState>();
             List<DFAState> initNonAccepting = new List<DFAState>();
@@ -186,7 +188,7 @@ namespace Redmond.Lex.LexCompiler
                         }
                     }
                     #endregion
-                    return new DFA(startState, alphabet, name);
+                    return new DFA(startState, alphabet, name, action);
                 }
 
                 statePartitions = newStatePartitions;
