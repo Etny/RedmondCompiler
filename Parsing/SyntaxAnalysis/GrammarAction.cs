@@ -34,7 +34,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             foreach (var f in syntaxFuncs)
             {
                 string name = (f.GetCustomAttribute(typeof(SyntaxFunctionAttribute)) as SyntaxFunctionAttribute).Name;
-                syntaxFunctions.Add(name, (s, a) => InvokeSyntaxFunction(f, s, a));
+                syntaxFunctions.Add(name + f.GetParameters().Length, (s, a) => InvokeSyntaxFunction(f, s, a));
             }
         }
 
@@ -72,10 +72,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         if (dec[index] != '$')
                         {
                             string s = dec.ReadWhile(ref index, c => "-0123456789".Contains(c));
-                            offset = int.Parse(s) + 1;
-                            offset -= prod.Rhs.Length;
-                            offset *= -1;
-                            offset++;
+                            offset = int.Parse(s);
+                            if (offset < 0) offset = prod.Rhs.Length - offset;
+                            else if(offset > 0) offset = prod.Rhs.Length - (offset - 1);
                         }
                         else index++;
 
@@ -118,7 +117,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                     if (c == ')' || dec.MatchNext(')', ref index))
                     {
-                        currentAction = (s, a) => syntaxFunctions[currentFunc].Invoke(s, a);
+                        currentAction = (s, a) => syntaxFunctions[currentFunc+args.Count].Invoke(s, a);
                         if (funcStack.Count > 0)
                         {
                             var oldArgs = args;
@@ -135,7 +134,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     if (currentFunc != "")
                     {
                         var oldArgs = args;
-                        args = new List<GrammarActionArgument> { new GrammarActionArgument(s => syntaxFunctions[currentFunc].Invoke(s, oldArgs)) };
+                        args = new List<GrammarActionArgument> { new GrammarActionArgument(s => syntaxFunctions[currentFunc+oldArgs.Count].Invoke(s, oldArgs)) };
                     }
 
                     currentAction = (s, a) => Assign(s, a, assign.Item1, assign.Item2);

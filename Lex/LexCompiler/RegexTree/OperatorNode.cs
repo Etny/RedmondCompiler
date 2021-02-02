@@ -135,6 +135,9 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             };
         }
 
+        public override string ToString()
+            => Operator.ToString();
+
         public override SymbolNode GetNodeAtIndex(int index)
         {
             switch (Operator)

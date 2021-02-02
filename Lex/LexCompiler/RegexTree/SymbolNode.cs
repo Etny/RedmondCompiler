@@ -28,6 +28,9 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public override bool Nullable()
             => false;
 
+        public override string ToString()
+            => Symbol;
+
         public override void Print(IStringStream output)
             => output *= Symbol + " pos: " + Position;
 

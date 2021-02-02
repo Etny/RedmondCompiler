@@ -22,18 +22,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return s;
         }
 
-        [SyntaxFunction("test1")]
-        public static (int i, string s) Huh()
-        {
-            return (1, "234");
-        }
+        [SyntaxFunction("add")]
+        public static int Add(int i1, int i2) => i1 + i2;
 
-        [SyntaxFunction("test2")]
-        public static string huh2((int, string) t)
-        {
-            Console.WriteLine($"int: {t.Item1}, string: {t.Item2}");
-            return "";
-        }
+        [SyntaxFunction("sub")]
+        public static int Sub(int i1, int i2) => i1 - i2;
 
     }
 }

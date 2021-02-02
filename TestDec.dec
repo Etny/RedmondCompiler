@@ -30,12 +30,8 @@ right UMINUS
 
 %%
 
-Dec: Type Id | Type Id , {$$.type = $-3.type} Id;
-Type: int {$$.type="int";} | float {$$.type="float";};
-Id: 1 {print($-1.type);};
-
-//Stmnts:	Left = Right | Right; 
-//Left:	* Right | d;
-//Right:	Left;
+Dec: Type Id {$$ = makeNode("Dec", $1, $2);};
+Type: int {$$ = makeNode("int");} | float {$$ == makeNode("float");};
+Id: 1 {$$ = makeNode("1");};
 
 #End

@@ -12,9 +12,10 @@ namespace Redmond.Common
 
         public T[] Children = new T[0];
 
-        public virtual void AddChild(T node, int index = 0)
+        public virtual void AddChild(T node, int index = -1)
         {
             node.Parent = this;
+            if (index < 0) index = Children.Length;
 
             if (Children.Length - 1 < index)
             {
@@ -26,5 +27,37 @@ namespace Redmond.Common
             Children[index] = node;
         }
 
+
+        public virtual string ToTreeString()
+            => ToTreeString("", true, true);
+
+
+        public virtual string ToTreeString(string indent, bool last, bool first = false, int prevLength = 0)
+        {
+            string s = indent;
+
+            if (last)
+            {
+                if (!first)
+                {
+                    s += new string(' ', prevLength) + '└';
+                }
+                indent += new string(' ', prevLength) + " ";
+
+            }
+            else
+            {
+                s += new string(' ', prevLength) + '├';
+                indent += new string(' ', prevLength) + "|";
+            }
+            s += ToString() + '\n';
+
+            for (int i = 0; i < Children.Length; i++)
+                s += Children[i].ToTreeString(indent, i == Children.Length - 1, false, ToString().Length / 2);
+
+            return s;
+        }
+
+        public abstract string ToString();
     }
 }

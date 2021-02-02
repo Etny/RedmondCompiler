@@ -14,7 +14,7 @@ namespace Redmond
     class Program
     {
 
-        private static readonly string InputString = @"int1,1$";
+        private static readonly string InputString = @"int1$";
         private static readonly DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.dec");
         //private static IStringStream Output = new ConsoleStream();
         static void Main()
@@ -23,7 +23,9 @@ namespace Redmond
 
             TokenType.AddTypes(Dec.TokenLines);
             TokenStream Input = new TokenStream(InputString, Dec.LexLines, @",intfloa1()$");
-            Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input));
+            Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input).ToTreeString());
+            //Console.WriteLine("\n");
+            Console.WriteLine(SyntaxTreeNode.CurrentNode.ToTreeString());
         }
     }
 }
