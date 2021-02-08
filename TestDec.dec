@@ -4,6 +4,7 @@ Word
 Digit
 Operator
 Punctuation
+NewLine
 
 #End
 
@@ -14,10 +15,11 @@ number = [0-9]
 
 %%
 
-letter+ {Word}
+letter letter letter+ {Word}
 number+ {Digit; $$ = parseInt($);}
 [=\*/+-] {Operator}
 [$,()] {Punctuation}
+\n	{NewLine}
 
 #End
 
@@ -29,7 +31,7 @@ right UMINUS
 
 %%
 
-line	: expr {print($1);} ;
+line	: line NewLine line | expr {print($1);};
 
 expr	: expr '+' expr 				{ $$ = add($1, $3); }
 		| expr '-' expr 				{ $$ = sub($1, $3); }

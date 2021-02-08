@@ -1,4 +1,6 @@
 ﻿using Redmond.Lex;
+using Redmond.Output.Error;
+using Redmond.Output.Error.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,10 +26,18 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             (ParserAction, object) nextAction()
             {
-                if (stateStack.Peek().State.Action.ContainsKey(new Terminal(input.NextToken.Text, false)))
-                    return stateStack.Peek().State.Action[new Terminal(input.NextToken.Text, false)];
-                else
-                    return stateStack.Peek().State.Action[new Terminal(input.NextToken.Type.Name, true)];
+                try
+                {
+                    if (stateStack.Peek().State.Action.ContainsKey(new Terminal(input.NextToken.Text, false)))
+                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Text, false)];
+                    else
+                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Type.Name, true)];
+                } 
+                catch
+                {
+                    ErrorManager.ExitWithError(new ParserActionNotFoundException(stateStack.Peek().State, input.NextToken));
+                }
+                return (ParserAction.Accept, null);
             }
 
             var action = nextAction();

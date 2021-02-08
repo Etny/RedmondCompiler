@@ -24,7 +24,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             string s = "";
 
             foreach (var g in _i)
-                s += "["+g + "]; ";
+                s += "["+g + "] \n";
 
             return s;
         }

@@ -11,6 +11,9 @@ namespace Redmond.Lex
         public readonly string Text;
         public TokenType Type;
         public object Value;
+        public string Line;
+        public int LineIndex;
+        public int LineNumber;
 
         public Token(string text, TokenType type = null, object value = null)
         {
@@ -20,19 +23,19 @@ namespace Redmond.Lex
             Value = value;
         }
 
-        public int NumValue
+        public string GetHighlightOnLine()
         {
-            get
+            string under = "";
+            int endIndex = LineIndex + (Text.Length - 1);
+
+            for (int i = 0; i < Line.Length; i++)
             {
-                try
-                {
-                    return int.Parse(Text);
-                }
-                catch
-                {
-                    return 0;
-                }
+                if (i == endIndex || i == LineIndex) under += "^";
+                else if(i > LineIndex && i < endIndex) under += "-";
+                else under += " ";
             }
+
+            return Line + '\n' + under;
         }
     }
 
