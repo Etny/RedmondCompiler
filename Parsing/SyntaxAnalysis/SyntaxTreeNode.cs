@@ -22,6 +22,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public static SyntaxTreeNode MakeNode(string op)
             => _MakeNode(op);
 
+
+        [SyntaxFunction("makeNode")]
+        public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1)
+            => _MakeNode(op, child1);
+
         [SyntaxFunction("makeNode")]
         public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1, SyntaxTreeNode child2)
             => _MakeNode(op, child1, child2);

@@ -31,7 +31,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             while(linesIndex < lines.Length)
                 all += lines[linesIndex++];
 
-            all = all.Replace("\n", "").Replace("\t", "");
+            all = all.Replace("\n", "").Replace("\t", " ");
 
             string firstLhs = "";
 
@@ -50,29 +50,32 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 {
                     char c = all[index++];
 
-                    if (index > 0 && all[index - 1] == '\\')
-                        prod += c;
-                    else
+
+                   
+                    switch (c)
                     {
-                        switch (c)
-                        {
-                            case ';':
-                            case '|':
-                                if (prod.Length == 0) prod = GrammarConstants.EmptyChar + "";
-                                prods.Add(prod);
-                                prod = "";
-                                if (c == ';') end = true;
-                                break;
+                        case ';':
+                        case '|':
+                            if (prod.Length == 0) prod = GrammarConstants.EmptyChar + "";
+                            prods.Add(prod);
+                            prod = "";
+                            if (c == ';') end = true;
+                            break;
 
-                            case '{':
-                                index--;
-                                prod += c + all.ReadUntilClosingBracket(ref index, '{', '}', true);
-                                break;
+                        case '{':
+                            index--;
+                            prod += c + all.ReadUntilClosingBracket(ref index, '{', '}', true);
+                            break;
 
-                            default:
-                                prod += c;
-                                break;
-                        }
+                        case '\'':
+                            string s = all.ReadUntil(ref index, c => c == '\'');
+                            index++;
+                            prod += '\'' + s + '\'';
+                            break;
+
+                        default:
+                            prod += c;
+                            break;
                     }
 
                 }

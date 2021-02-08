@@ -144,9 +144,28 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             for (int i = Rhs.Length-1; i >= 0; i--)
             {
-                if (!Rhs[i].IsTerminal || Rhs[i].IsEmptyTerminal) continue;
-                _precedence = (Rhs[i] as Terminal).Precedence;
-                _associatvity = (Rhs[i] as Terminal).Associativity;
+                if (Rhs[i].IsEmptyTerminal) continue;
+
+                Terminal term = Rhs[i] as Terminal;
+
+                //TODO: Add setting for precedence search depth
+                if (term == null)
+                {
+                    var nonTerm = Rhs[i] as NonTerminal;
+                    if (nonTerm == Lhs) continue;
+
+                    foreach(var prod in nonTerm.Productions)
+                    {
+                        if (prod.Rhs.Length == 1 && prod.Rhs[0].IsTerminal && !prod.Rhs[0].IsEmptyTerminal)
+                            term = prod.Rhs[0] as Terminal;
+                        break;
+                    }
+                }
+
+                if (term == null) continue;
+
+                _precedence = term.Precedence;
+                _associatvity = term.Associativity;
                 break;
             }
         }

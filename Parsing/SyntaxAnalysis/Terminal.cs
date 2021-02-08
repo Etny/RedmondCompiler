@@ -54,8 +54,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string ToString() => "\'" + Value + "\'";
         //public override string ToString() => Value;
-        public override bool Equals(object obj) => obj is Terminal terminal && terminal.Value == Value && terminal.IsToken == IsToken;
 
+        //TODO: check this!
+        public override bool Equals(object obj) => obj is Terminal terminal && terminal.Value == Value && terminal.IsToken == IsToken;
 
         protected override IEnumerable<ProductionEntry> _calculateFirst() { yield return this; }
     }
