@@ -1,0 +1,12 @@
+﻿{
+	first = 10; 
+	second = 7 + first / 2;
+	third = "text test";
+	fourth = third;
+	foo();
+	{
+		fifth = 20;
+		bar();
+		{}
+	}
+}

@@ -1,10 +1,19 @@
-﻿#Tokens
+﻿#Settings
+	
+PrecedenceSearchDepth: 1
+AutoValueInheritance: true
+
+#end
+
+#Tokens
 
 Identifier
 Operator
 Punctuation
 Digit
 Whitespace
+NewLine
+StringLiteral
 
 #End
 
@@ -15,12 +24,13 @@ number = [0-9]
 
 %%
 
-letter letter* {Identifier; $$ = $}
+letter letter* {Identifier}
 number+ {Digit; $$ = parseInt($);}
 [=\*/+-] {Operator}
-[$,();:] {Punctuation}
-\n	{NewLine}
-\w|\t	{Whitespace}
+[$,();:\{\}] {Punctuation}
+//[\n\r]	{NewLine}
+[\w\t\r\n]	{Whitespace}
+"((letter|number)|[\w\t\r\n])*"	{StringLiteral}
 
 #End
 
@@ -32,24 +42,34 @@ left * /
 
 %%
 
-
-statementList		:	statement ';' emptyChar statementList	{$$.node = makeNode("stmntList", $1.node, $4.node);}
-					|		{$$.node = makeLeaf("empty", "nothing");}
+block				: '\{' statementList '\}'		{$$ = makeNode("block", $2);}
 					;
 
-statement			:	assign_statement	{$$.node = $1.node;}
+statementList		:		statementList statement {addChild($1, $2); $$ = $1}
+					|		statement {$$ = makeNode("stmntList", $1);}
+					|		{$$ = makeNode("stmntList");}
 					;
 
-assign_statement	:	id '=' expression	{$$.node = makeNode("assign", $1.node, $3.node);}
+
+statement			:	assign_statement ';' {$$ = $1}
+					|	call_statement ';' {$$ = $1}
+					|	block
 					;
 
-expression			:	Digit							{$$.node = makeLeaf("num", $1);}
-					|	id								{$$.node = $1.node;}
-					|	expression binop expression		{$$.node = makeNode($2.op, $1.node, $3.node);}
-					|	'(' expression ')'				{$$.node = $2.node;}
+assign_statement	:	id '=' expression	{$$ = makeNode("assign", $1, $3)}
 					;
 
-id					:	Identifier	{$$.node = makeLeaf("id", $1);}
+call_statement		:	id '(' ')' {$$ = makeNode("call", $1)}
+					;
+
+expression			:	Digit							{$$ = makeLeaf("num", $1);}
+					|	StringLiteral					{$$ = makeLeaf("string", $1);}
+					|	id								{$$ = $1;}
+					|	expression binop expression		{$$ = makeNode($2.op, $1, $3);}
+					|	'(' expression ')'				{$$ = $2;}
+					;
+
+id					:	Identifier	{$$ = makeLeaf("id", $1)}
 					;
 
 binop				:	'+' {$$.op = "add";}
@@ -59,9 +79,5 @@ binop				:	'+' {$$.op = "add";}
 					;
 
 
-emptyChar		:	NewLine
-				|	Whitespace
-				|
-				;
 
 #End

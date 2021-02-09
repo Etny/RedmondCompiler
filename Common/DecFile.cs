@@ -10,7 +10,7 @@ namespace Redmond.Common
         public string[] TokenLines;
         public string[] LexLines;
         public string[] GrammarLines;
-
+        public string[] SettingsLines;
 
         public DecFile(string path)
         {
@@ -43,6 +43,9 @@ namespace Redmond.Common
                                     break;
                                 case "#grammar":
                                     GrammarLines = lineList.ToArray();
+                                    break;
+                                case "#settings":
+                                    SettingsLines = lineList.ToArray();
                                     break;
                             }
                             lineList.Clear();

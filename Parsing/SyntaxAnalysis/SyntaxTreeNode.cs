@@ -16,6 +16,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
             CurrentNode = new SyntaxTreeNode(op, val);
             return CurrentNode;
         }
+
+        [SyntaxFunction("setNode")]
+        public static SyntaxTreeNode SetNode(SyntaxTreeNode node)
+        {
+            CurrentNode = node;
+            return node;
+        }
             
 
         [SyntaxFunction("makeNode")]
@@ -36,6 +43,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
             CurrentNode = new SyntaxTreeNode(op);
             foreach (var c in children) CurrentNode.AddChild(c);
             return CurrentNode;
+        }
+
+        [SyntaxFunction("addChild")]
+        public static SyntaxTreeNode Addchild(SyntaxTreeNode node, SyntaxTreeNode child)
+        {
+            node.AddChild(child);
+            CurrentNode = node;
+            return node;
         }
 
         public readonly string Op;

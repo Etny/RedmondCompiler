@@ -51,7 +51,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 dec.ReadWhile(ref index, c => " \t".Contains(c));
                 if (index >= dec.Length) break;
                 string entry = dec.ReadUntil(ref index, c => " \t".Contains(c) ||
-                                ((index > 0 && dec[index - 1] == '{') && (index == 1 ||  " \t".Contains(dec[index - 2]))) );
+                                ((index > 0 && dec[index - 1] == '{') && (index == 1 ||  (" \t".Contains(dec[index - 2]) && !"\'\\".Contains(dec[index - 2])))) );
 
                 if (HasAction)
                 {
@@ -117,6 +117,12 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             if (HasAction)
                 Action = new GrammarAction(_actionString, this);
+            else if (Rhs.Length == 1 && Rhs[0] is NonTerminal && CompileSettings.AutoValueInheritance)
+            {
+                Action = new GrammarAction("$$ = $1", this);
+                HasAction = true;
+            }
+
         }
         
         public bool CanBeEmpty()
@@ -142,24 +148,36 @@ namespace Redmond.Parsing.SyntaxAnalysis
             _precedence = 0;
             _associatvity = OperatorAssociativity.None;
 
+            int maxDepth = CompileSettings.PrecedenceSearchDepth;
+
             for (int i = Rhs.Length-1; i >= 0; i--)
             {
                 if (Rhs[i].IsEmptyTerminal) continue;
 
                 Terminal term = Rhs[i] as Terminal;
 
-                //TODO: Add setting for precedence search depth
-                if (term == null)
+                if (term == null && maxDepth > 0)
                 {
-                    var nonTerm = Rhs[i] as NonTerminal;
-                    if (nonTerm == Lhs) continue;
+                    int currentDepth = 0;
 
-                    foreach(var prod in nonTerm.Productions)
+                    void SearchNT(NonTerminal nt)
                     {
-                        if (prod.Rhs.Length == 1 && prod.Rhs[0].IsTerminal && !prod.Rhs[0].IsEmptyTerminal)
-                            term = prod.Rhs[0] as Terminal;
-                        break;
+                        currentDepth++;
+                        if (nt == Lhs) return;
+
+                        foreach (var prod in nt.Productions)
+                        {
+                            if (prod.Rhs.Length == 1 && prod.Rhs[0].IsTerminal && !prod.Rhs[0].IsEmptyTerminal)
+                                term = prod.Rhs[0] as Terminal; 
+                            else if (currentDepth < maxDepth && !prod.IsEmpty && prod.Rhs[^1] is NonTerminal)
+                                SearchNT(prod.Rhs[^1] as NonTerminal);
+
+                            if (term != null) break;
+                        }
+                        currentDepth--;
                     }
+
+                    SearchNT(Rhs[i] as NonTerminal);
                 }
 
                 if (term == null) continue;

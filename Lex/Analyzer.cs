@@ -75,14 +75,28 @@ namespace Redmond.Lex
             }
 
 
+            //Discard White Spaces
+            if(final?.Name == "Whitespace")
+            {
+                _index += i;
+                foreach (var dfa in _dfas)
+                    dfa.Reset();
+                return GetNextToken();
+            }
+
             if (accepted)
-                t = new Token(_input.Substring(_index, i), TokenType.GetTokenType(final.Name)) 
-                    { Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex+1 };
+                t = new Token(_input.Substring(_index, i), TokenType.GetTokenType(final.Name))
+                { Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex + 1 };
             else
-                ErrorManager.ExitWithError(new FailedToParseTokenException(_lines[_lineIndex], _index - _lastLine - 1, i+1));
+            {
+                ErrorManager.ExitWithError(new FailedToParseTokenException(_lines[_lineIndex], _index - _lastLine - 1, i + 1));
+            }
+
 
             if (final.Action != null)
                 final.Action.Invoke(t);
+            else
+                t.Value = t.Text;
 
             _index +=i;
 

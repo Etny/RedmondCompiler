@@ -11,14 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="TestDec - Copy.dec" />
     <None Remove="TestDec.dec" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="TestDec - Copy.dec">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="TestDec.dec">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
