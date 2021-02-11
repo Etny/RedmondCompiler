@@ -1,6 +1,7 @@
 ﻿using Redmond.Common;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
@@ -29,7 +30,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public static SyntaxTreeNode MakeNode(string op)
             => _MakeNode(op);
 
-
         [SyntaxFunction("makeNode")]
         public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1)
             => _MakeNode(op, child1);
@@ -37,10 +37,32 @@ namespace Redmond.Parsing.SyntaxAnalysis
         [SyntaxFunction("makeNode")]
         public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1, SyntaxTreeNode child2)
             => _MakeNode(op, child1, child2);
-             
+
+        [SyntaxFunction("makeNode")]
+        public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1, SyntaxTreeNode child2, SyntaxTreeNode child3)
+            => _MakeNode(op, child1, child2, child3);
+
+        [SyntaxFunction("makeValueNode")]
+        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1)
+            => _MakeNode(op, val, child1);
+
+        [SyntaxFunction("makeValueNode")]
+        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1, SyntaxTreeNode child2)
+            => _MakeNode(op, val, child1, child2);
+
+        [SyntaxFunction("makeValueNode")]
+        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1, SyntaxTreeNode child2, SyntaxTreeNode child3)
+            => _MakeNode(op, val, child1, child2, child3);
+
         private static SyntaxTreeNode _MakeNode(string op, params SyntaxTreeNode[] children)
         {
             CurrentNode = new SyntaxTreeNode(op);
+            foreach (var c in children) CurrentNode.AddChild(c);
+            return CurrentNode;
+        }
+        private static SyntaxTreeNode _MakeNode(string op, object val, params SyntaxTreeNode[] children)
+        {
+            CurrentNode = new SyntaxTreeNode(op, val);
             foreach (var c in children) CurrentNode.AddChild(c);
             return CurrentNode;
         }
@@ -55,6 +77,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public readonly string Op;
         public readonly object Val;
+        public string ValueString { get => (Val as string)?.ToLower(); }
 
         //TODO: Make this a graph to allow for Directed Aclyclic Graphs 
         public SyntaxTreeNode(string op, object val = null)

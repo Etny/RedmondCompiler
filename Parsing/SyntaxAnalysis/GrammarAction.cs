@@ -118,13 +118,15 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     if (c == ')' || dec.MatchNext(')', ref index))
                     {
                         currentAction = (s, a) => syntaxFunctions[currentFunc+args.Count].Invoke(s, a);
+
                         if (funcStack.Count > 0)
                         {
                             var oldArgs = args;
                             var newFunc = funcStack.Pop();
-                            currentFunc = newFunc.Item1;
                             args = newFunc.Item2;
-                            args.Add(new GrammarActionArgument(s => currentAction.Invoke(s, oldArgs)));
+                            string str = new string(currentFunc);
+                            args.Add(new GrammarActionArgument(s => syntaxFunctions[str + "" + oldArgs.Count].Invoke(s, oldArgs)));
+                            currentFunc = newFunc.Item1; 
                         }
                     }
                 }
