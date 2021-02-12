@@ -14,12 +14,13 @@ Digit
 Whitespace
 NewLine
 StringLiteral
+Keyword
 
 #End
 
 #Lex
 
-letter = [a-z]
+letter = [a-zA-Z]
 number = [0-9]
 
 %%
@@ -27,7 +28,7 @@ number = [0-9]
 letter letter* {Identifier}
 number+ {Digit; $$ = parseInt($);}
 [=\*/+-] {Operator}
-[$,();:\{\}] {Punctuation}
+[$,();:\{\}>] {Punctuation}
 //[\n\r]	{NewLine}
 [\w\t\r\n]	{Whitespace}
 "((letter|number)|[\w\t\r\n])*"	{StringLiteral}
@@ -41,40 +42,73 @@ left * /
 
 %%
 
-block				: '\{' statementList '\}'		{$$ = makeNode("block", $2);}
+function			: function_dec function_body	{$$ = makeNode("Function", $1, $2)}
 					;
 
-statementList		:		statementList statement {addChild($1, $2); $$ = $1}
-					|		statement {$$ = makeNode("stmntList", $1);}
-					|		{$$ = makeNode("stmntList");}
+function_dec		: access_dec function_keywords 'void' id '(' ')' {$$ = makeNode("FunctionDec", $1, $2, $4)}
+					;
+
+access_dec			: 'public'		{$$ = makeLeaf("AccessKeyword", $1)}
+					| 'private'		{$$ = makeLeaf("AccessKeyword", $1)}	
+					| 'protected'	{$$ = makeLeaf("AccessKeyword", $1)}
+					| 'internal'	{$$ = makeLeaf("AccessKeyword", $1)}
+					|				{$$ = makeLeaf("AccessKeyword", "internal")}
+					;
+
+function_keywords	: function_keywords function_keyword	{addChild($1, $2); $$ = $1}
+					| function_keyword						{$$ = makeNode("FunctionKeywords", $1)}
+					|										{$$ = makeNode("FunctionKeywords")}
+					;
+
+function_keyword	: 'sealed'		{$$ = makeLeaf("FunctionKeyword", $1)}
+					| 'static'		{$$ = makeLeaf("FunctionKeyword", $1)}
+					| 'abstract'	{$$ = makeLeaf("FunctionKeyword", $1)}
+					| 'virtual'		{$$ = makeLeaf("FunctionKeyword", $1)}
+					;
+
+function_body		: compound_statement				{$$ = makeNode("FunctionBody", $1)}
+					| '=' '>' statement					{$$ = makeNode("FunctionBody", $3)}
+					;
+
+
+compound_statement	: '\{' statement_list '\}'		{$$ = makeNode("CompoundStatement", $2);}
+					;
+
+statement_list		:		statement_list statement {addChild($1, $2); $$ = $1}
+					|		statement {$$ = makeNode("StatementList", $1);}
+					|		{$$ = makeNode("StatementLisr");}
 					;
 
 
 statement			:	assign_statement ';' {$$ = $1}
 					|	call_statement ';' {$$ = $1}
-					|	block
+					|	compound_statement
+					|	if_statement
 					;
 
-assign_statement	:	id '=' expression	{$$ = makeValueNode("statement", "assign", $1, $3)}
+assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1, $3)}
 					;
 
-call_statement		:	id '(' ')' {$$ = makeNode("call", $1)}
+if_statement		:	'if' '(' expression ')'	statement	{$$ = makeNode("IfStatement", $3, $5)}
 					;
 
-expression			:	Digit							{$$ = makeValueNode("expr", "const", makeLeaf("num", $1))}
-					|	StringLiteral					{$$ = makeValueNode("expr", "const", makeLeaf("string", $1))}
-					|	id								{$$ = makeValueNode("expr", "const", $1)}
-					|	expression binop expression		{$$ = makeValueNode("expr", "binop", $1, $3, $2);}
+call_statement		:	id '(' ')' {$$ = makeNode("Call", $1)}
+					;
+
+expression			:	Digit							{$$ = makeLeaf("NumericalLiteral", $1)}
+					|	StringLiteral					{$$ = makeLeaf("StringLiteral", $1)}
+					|	id								{$$ = $1}
+					|	expression binop expression		{$$ = makeNode("BinaryExpression", $1, $3, $2);}
 					|	'(' expression ')'				{$$ = $2;}
 					;
 
-id					:	Identifier	{$$ = makeLeaf("id", $1)}
+id					:	Identifier	{$$ = makeLeaf("IdentifierName", $1)}
 					;
 
-binop				:	'+' {$$ = makeLeaf("binop", "add")}
-					|	'-' {$$ = makeLeaf("binop", "sub")}
-					|	'/' {$$ = makeLeaf("binop", "div")}
-					|	'*' {$$ = makeLeaf("binop", "mul")}
+binop				:	'+' {$$ = makeLeaf("BinaryOperator", "add")}
+					|	'-' {$$ = makeLeaf("BinaryOperator", "sub")}
+					|	'/' {$$ = makeLeaf("BinaryOperator", "div")}
+					|	'*' {$$ = makeLeaf("BinaryOperator", "mul")}
 					;
 
 

@@ -7,11 +7,11 @@ namespace Redmond.Parsing
     internal class Compiler
     {
         private readonly TokenStream _input;
-        private readonly IStringStream _output;
+        private readonly OutputStream _output;
 
         private readonly CompilationContext _context;
 
-        public Compiler(TokenStream input, IStringStream output, CompilationContext context)
+        public Compiler(TokenStream input, OutputStream output, CompilationContext context)
         {
             _input = input;
             _output = output;

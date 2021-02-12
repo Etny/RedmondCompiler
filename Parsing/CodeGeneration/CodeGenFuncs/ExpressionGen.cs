@@ -7,50 +7,24 @@ namespace Redmond.Parsing.CodeGeneration
 {
     internal partial class CodeGenerator
     {
+        [CodeGenFunction("StringLiteral")]
 
-        [CodeGenFunction("expr")]
-        public void CompileExpression(SyntaxTreeNode node)
+        [CodeGenFunction("NumericalLiteral")]
+        public void CompileNumLiteralExpression(SyntaxTreeNode node)
         {
-            switch (node.ValueString)
-            {
-                case "const":
-                    CompileConstExpression(node.Children[0]);
-                    break;
-
-                case "binop":
-                    CompileBinaryExpression(node);
-                    break;
-
-                default:
-                    throw new Exception("Unknown expression type: " + node.ValueString);
-            }
+            builder.EmitLine("Push " + node.Val);
         }
 
-        private void CompileConstExpression(SyntaxTreeNode node)
+        [CodeGenFunction("IdentifierName")]
+        public void CompileIdNameExpression(SyntaxTreeNode node)
         {
-            switch (node.Op)
-            {
-                case "num":
-                    builder.EmitString("Num Const: " + node.Val);
-                    break;
-
-                case "string":
-                    builder.EmitString("String Const: " + node.Val);
-                    break;
-
-                case "id":
-                    builder.EmitString("Id Const: " + node.Val);
-                    break;
-
-                default:
-                    throw new Exception("Unknown const type: " + node.ValueString);
-            }
+            builder.EmitLine("Push ID " + node.Val);
         }
 
-        private void CompileBinaryExpression(SyntaxTreeNode node)
+        [CodeGenFunction("BinaryExpression")]
+        public void CompileBinaryExpression(SyntaxTreeNode node)
         {
-            CompileExpression(node.Children[0]);
-            CompileExpression(node.Children[1]);
+            CompileNodes(node.Children[0], node.Children[1]);
             CompileBinaryOperator(node.Children[2]);
         }
     }

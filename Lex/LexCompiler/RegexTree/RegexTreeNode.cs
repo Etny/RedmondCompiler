@@ -27,7 +27,7 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public abstract IEnumerable<int> FirstPositions();
         public abstract IEnumerable<int> LastPositions();
         public abstract IEnumerable<int> FollowingPositions(int index);
-        public abstract void Print(IStringStream output);
+        public abstract void Print(OutputStream output);
 
     }
 }

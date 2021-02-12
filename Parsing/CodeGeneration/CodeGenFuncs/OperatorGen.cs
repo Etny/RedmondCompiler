@@ -8,10 +8,10 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class CodeGenerator
     {
 
-        [CodeGenFunction("binop")]
+        [CodeGenFunction("BinaryOperator")]
         public void CompileBinaryOperator(SyntaxTreeNode node)
         {
-            builder.EmitString("Binop: " + node.Val);
+            builder.EmitLine("" + node.Val);
         }
     }
 }

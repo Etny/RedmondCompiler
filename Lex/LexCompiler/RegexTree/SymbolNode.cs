@@ -31,8 +31,8 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public override string ToString()
             => Symbol;
 
-        public override void Print(IStringStream output)
-            => output *= Symbol + " pos: " + Position;
+        public override void Print(OutputStream output)
+            => output.WriteLine(Symbol + " pos: " + Position);
 
         public override void SetStartingPosition(ref int startPos)
         { 

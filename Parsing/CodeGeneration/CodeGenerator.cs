@@ -3,6 +3,7 @@ using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace Redmond.Parsing.CodeGeneration
 {
@@ -29,6 +30,20 @@ namespace Redmond.Parsing.CodeGeneration
                 throw new Exception("Unkown SyntaxNode Operator: " + node.Op);
 
             _codeGenFunctions[node.Op.ToLower()].Invoke(this, new object[] { node });
+        }
+
+        private void CompileNodes(params SyntaxTreeNode[] nodes)
+        {
+            foreach (var node in nodes)
+                CompileNode(node);
+        }
+
+        private void MatchNode(SyntaxTreeNode node, string s, params string[] sr)
+        {
+            if (node.Op.ToLower() != s.ToLower() && !sr.ToList().Contains(node.Op.ToLower()))
+                throw new Exception("uuuh...");
+
+            CompileNode(node);
         }
 
     }

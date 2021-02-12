@@ -2,24 +2,29 @@
 
 namespace Redmond.Output
 {
-    class ConsoleStream : IStringStream
+    class ConsoleStream : OutputStream
     {
-        private int _indent = 0;
 
-        public void AddIndentation(int indent = 1)
-            => _indent += indent;
-
-
-        public void ReduceIndentation(int indent = 1)
-            => _indent -= indent;
+        private bool wroteIndent = false;
 
         private string GetIndentation()
-            => new string('\t', _indent < 0 ? 0 : _indent);
+            => new string('\t', currentIndent < 0 ? 0 : currentIndent);
 
-        public void Write(string s = "")
-            => Console.Write(GetIndentation() + s);
+        public override void WriteString(string s = "")
+        {
+            if (!wroteIndent) Console.Write(GetIndentation());
+            wroteIndent = true;
+            Console.Write(s);
+        }
 
-        public void WriteLine(string s = "")
-            => Console.WriteLine(GetIndentation() + s);
+        public override void WriteLine(string s = "")
+        {
+            if(!wroteIndent) Console.Write(GetIndentation());
+            Console.WriteLine(s);
+            wroteIndent = false;
+        }
+
+        public override void WriteByte(byte b)
+            => Console.Write(GetIndentation() + b);
     }
 }

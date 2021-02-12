@@ -14,9 +14,9 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         public OperatorNode(RegexTreeOperator op) { Operator = op; }
 
-        public override void Print(IStringStream output)
+        public override void Print(OutputStream output)
         {
-            output *= $"Operator {Operator} with child(ren):";
+            output.WriteLine($"Operator {Operator} with child(ren):");
             output.AddIndentation();
             foreach (var node in Children)
                 if(node != null) node.Print(output);

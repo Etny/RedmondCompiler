@@ -10,11 +10,11 @@ namespace Redmond.Parsing
     {
 
         public readonly TokenStream Input;
-        public readonly IStringStream Output;
+        public readonly OutputStream Output;
 
         public readonly Compiler Compiler;
 
-        public CompilationContext(TokenStream input, IStringStream output)
+        public CompilationContext(TokenStream input, OutputStream output)
         {
             Input = input;
             Output = output;

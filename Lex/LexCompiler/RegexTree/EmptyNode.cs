@@ -19,8 +19,8 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         public override bool Nullable()
             => true;
 
-        public override void Print(IStringStream output)
-            => output *= "Empty" + " pos: " + Position;
+        public override void Print(OutputStream output)
+            => output.WriteLine("Empty" + " pos: " + Position);
 
         public override RegexTreeNode Clone()
             => new EmptyNode(Position);

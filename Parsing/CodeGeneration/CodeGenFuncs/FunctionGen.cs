@@ -1,6 +1,7 @@
 ﻿using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration
@@ -8,18 +9,68 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class CodeGenerator
     {
 
-        [CodeGenFunction("block")]
-        [CodeGenFunction("stmntList")]
+        [CodeGenFunction("CompoundStatement")]
+        [CodeGenFunction("StatementList")]
         public void CompileCompound(SyntaxTreeNode node)
         {
             foreach (var child in node.Children)
                 CompileNode(child);
         }
 
-        [CodeGenFunction("call")]
+        [CodeGenFunction("Call")]
         public void CompileFunctionCall(SyntaxTreeNode node)
         {
-            builder.EmitString("Call to: " + node.Children[0].Val);
+            builder.EmitLine("Call to: " + node.Children[0].Val);
+        }
+
+        [CodeGenFunction("Function")]
+        public void CompileFunction(SyntaxTreeNode node)
+        {
+            MatchNode(node.Children[0], "FunctionDec");
+
+            MatchNode(node.Children[1], "FunctionBody");
+        }
+
+        [CodeGenFunction("FunctionBody")]
+        public void CompileFunctionBody(SyntaxTreeNode node)
+        {
+            builder.EmitLine("{");
+            builder.Output.AddIndentation();
+
+            CompileNodes(node.Children);
+
+            builder.Output.ReduceIndentation();
+            builder.EmitLine("}");
+        }
+
+        [CodeGenFunction("FunctionDec")]
+        public void CompileFunctionDeclaration(SyntaxTreeNode node)
+        {
+            string name = "error";
+            string access = "error";
+            List<string> functionKeywords = new List<string>();
+
+            foreach(var child in node.Children)
+            {
+                switch (child.Op)
+                {
+                    case "AccessKeyword":
+                        access = child.ValueString;
+                        break;
+
+                    case "FunctionKeywords":
+                        foreach (var kw in child.Children)
+                            functionKeywords.Add(kw.ValueString);
+                        break;
+
+                    case "IdentifierName":
+                        name = child.ValueString;
+                        break;
+                }
+            }
+            builder.EmitString($".method {access} ");
+            foreach (string k in functionKeywords) builder.EmitString(k + " ");
+            builder.EmitLine($"void {name}() cil managed");
         }
 
     }

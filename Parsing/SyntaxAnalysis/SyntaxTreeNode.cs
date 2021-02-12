@@ -42,18 +42,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public static SyntaxTreeNode MakeNode(string op, SyntaxTreeNode child1, SyntaxTreeNode child2, SyntaxTreeNode child3)
             => _MakeNode(op, child1, child2, child3);
 
-        [SyntaxFunction("makeValueNode")]
-        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1)
-            => _MakeNode(op, val, child1);
-
-        [SyntaxFunction("makeValueNode")]
-        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1, SyntaxTreeNode child2)
-            => _MakeNode(op, val, child1, child2);
-
-        [SyntaxFunction("makeValueNode")]
-        public static SyntaxTreeNode MakeValueNode(string op, object val, SyntaxTreeNode child1, SyntaxTreeNode child2, SyntaxTreeNode child3)
-            => _MakeNode(op, val, child1, child2, child3);
-
         private static SyntaxTreeNode _MakeNode(string op, params SyntaxTreeNode[] children)
         {
             CurrentNode = new SyntaxTreeNode(op);
@@ -72,6 +60,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         {
             node.AddChild(child);
             CurrentNode = node;
+            
             return node;
         }
 

@@ -8,24 +8,26 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class CodeGenerator
     {
 
-        [CodeGenFunction("statement")]
-        public void CompileStatement(SyntaxTreeNode node)
+        [CodeGenFunction("AssignStatement")]
+        public void CompileAssignStatement(SyntaxTreeNode node)
         {
-            switch (node.ValueString)
-            {
-                case "assign":
-                    CompileAssign(node);
-                    break;
-
-                default:
-                    throw new Exception("Unknown statement type: " + node.ValueString);
-            }
+            CompileNode(node.Children[1]);
+            builder.EmitLine("Pop to ID " + node.Children[0].Val);
         }
 
-        public void CompileAssign(SyntaxTreeNode node)
+        [CodeGenFunction("IfStatement")]
+        public void CompileIfStatement(SyntaxTreeNode node)
         {
-            CompileExpression(node.Children[1]);
-            builder.EmitString("Assigning to ID " + node.Children[0].Val);
+            CompileNode(node.Children[0]);
+
+            builder.EmitLine("If then");
+            builder.EmitLine("{");
+            builder.Output.AddIndentation();
+
+            CompileNode(node.Children[1]);
+
+            builder.Output.ReduceIndentation();
+            builder.EmitLine("}");
         }
     }
 }
