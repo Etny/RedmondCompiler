@@ -20,7 +20,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Call")]
         public void CompileFunctionCall(SyntaxTreeNode node)
         {
-            builder.EmitLine("Call to: " + node.Children[0].Val);
+            builder.EmitLine("Call to: " + node.Val);
         }
 
         [CodeGenFunction("Function")]
@@ -29,6 +29,8 @@ namespace Redmond.Parsing.CodeGeneration
             MatchNode(node.Children[0], "FunctionDec");
 
             MatchNode(node.Children[1], "FunctionBody");
+
+            Tables.Pop();
         }
 
         [CodeGenFunction("FunctionBody")]
@@ -65,9 +67,12 @@ namespace Redmond.Parsing.CodeGeneration
 
                     case "IdentifierName":
                         name = child.ValueString;
+                        if (Tables.Peek().Contains(name)) throw new Exception("Already exists :(");
+                        Tables.Peek().AddSymbol(new SymbolManagement.CodeSymbol(name, "function"));
                         break;
                 }
             }
+            PushNewTable();
             builder.EmitString($".method {access} ");
             foreach (string k in functionKeywords) builder.EmitString(k + " ");
             builder.EmitLine($"void {name}() cil managed");

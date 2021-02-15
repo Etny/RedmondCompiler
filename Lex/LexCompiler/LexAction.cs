@@ -16,6 +16,7 @@ namespace Redmond.Lex.LexCompiler
 
         private static Dictionary<string, Func<Token, List<LexActionArgument>, object>> lexFunctions = new Dictionary<string, Func<Token, List<LexActionArgument>, object>>();
 
+        //TODO: Unify this with the grammar actions
         public LexAction(string dec)
         {
             _dec = dec;
@@ -53,6 +54,7 @@ namespace Redmond.Lex.LexCompiler
             while (index < dec.Length)
             {
                 bool assign = false;
+                string assignString = "val";
 
                 Func<Token, List<LexActionArgument>, object> currentAction = null;
 
@@ -66,9 +68,15 @@ namespace Redmond.Lex.LexCompiler
 
                     if (c == '$')
                     {
-                        if (index < dec.Length - 2 && dec[index] == '$' && dec[index+1] == '=')
+                        if (index < dec.Length - 1 && dec[index] == '$')
                         {
-                            index += 2;
+                            if(dec[++index] == '.')
+                            {
+                                index++;
+                                assignString = dec.ReadUntil(ref index, c => c == '=');
+                            }
+                            index++;
+
                             assign = true;
                         }else
                             args.Add(new LexActionArgument("", true));
@@ -106,9 +114,10 @@ namespace Redmond.Lex.LexCompiler
                         {
                             var oldArgs = args;
                             var newFunc = funcStack.Pop();
-                            currentFunc = newFunc.Item1;
                             args = newFunc.Item2;
-                            args.Add(new LexActionArgument(s => currentAction.Invoke(s, oldArgs)));
+                            string str = new string(currentFunc);
+                            args.Add(new LexActionArgument(s => lexFunctions[str + "" + oldArgs.Count].Invoke(s, oldArgs)));
+                            currentFunc = newFunc.Item1;
                         }
                     }
                 }
@@ -121,7 +130,7 @@ namespace Redmond.Lex.LexCompiler
                         args = new List<LexActionArgument> { new LexActionArgument(s => lexFunctions[currentFunc + oldArgs.Count].Invoke(s, oldArgs)) };
                     }
 
-                    currentAction = (s, a) => Assign(s, a);
+                    currentAction = (s, a) => Assign(s, assignString, a);
                 }
                 
 
@@ -132,10 +141,10 @@ namespace Redmond.Lex.LexCompiler
             _actions = actions.ToArray();
         }
 
-        private object Assign(Token token, List<LexActionArgument> args)
+        private object Assign(Token token, string key, List<LexActionArgument> args)
         {
             object o = args[0].ResolveValue(token);
-            token.Value = o;
+            token.Values[key] = o;
             return null;
         }
 

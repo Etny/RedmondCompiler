@@ -1,11 +1,11 @@
 ﻿public static void FunctionTest(){
-	first = 10; 
-	second = 7 + first / 2;
-	third = "text test";
-	fourth = third;
+	int first = 10; 
+	int second = 7 + first / 2;
+	string third = "text test";
+	string fourth = third;
 	foo();
 	if(5+2){
-		fifth = 20;
+		int fifth = 20;
 		bar();	
 	}
 }

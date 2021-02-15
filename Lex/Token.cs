@@ -10,17 +10,16 @@ namespace Redmond.Lex
 
         public readonly string Text;
         public TokenType Type;
-        public object Value;
+        public Dictionary<string, object> Values = new Dictionary<string, object>();
         public string Line;
         public int LineIndex;
         public int LineNumber;
 
-        public Token(string text, TokenType type = null, object value = null)
+        public Token(string text, TokenType type = null)
         {
             if (type == null) type = TokenType.GetTokenType("Unkown");
             Text = text;
             Type = type;
-            Value = value;
         }
 
         public string GetHighlightOnLine()

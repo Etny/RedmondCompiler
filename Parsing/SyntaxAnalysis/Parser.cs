@@ -91,7 +91,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public object GetAttribute(string key)
         {
             if (Attributes.ContainsKey(key)) return Attributes[key];
-            else if (key == "val" && Token.Type != TokenType.GetTokenType("Unkown")) return Token.Value;
+            else if (Token.Type != TokenType.GetTokenType("Unkown") && Token.Values.ContainsKey(key)) return Token.Values[key];
             return null;
         }
 

@@ -1,4 +1,5 @@
-﻿using Redmond.Parsing.SyntaxAnalysis;
+﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,15 +11,15 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("StringLiteral")]
 
         [CodeGenFunction("NumericalLiteral")]
-        public void CompileNumLiteralExpression(SyntaxTreeNode node)
+        public void CompileLiteralExpression(SyntaxTreeNode node)
         {
-            builder.EmitLine("Push " + node.Val);
+            Push(node.Val as CodeValue);
         }
 
-        [CodeGenFunction("IdentifierName")]
+        [CodeGenFunction("IdentifierExpression")]
         public void CompileIdNameExpression(SyntaxTreeNode node)
         {
-            builder.EmitLine("Push ID " + node.Val);
+            builder.EmitLine("Push ID " + GetFirst(node.ValueString));
         }
 
         [CodeGenFunction("BinaryExpression")]

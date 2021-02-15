@@ -96,7 +96,7 @@ namespace Redmond.Lex
             if (final.Action != null)
                 final.Action.Invoke(t);
             else
-                t.Value = t.Text;
+                t.Values["val"] = t.Text;
 
             _index +=i;
 
