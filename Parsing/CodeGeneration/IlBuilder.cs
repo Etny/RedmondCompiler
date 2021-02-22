@@ -1,4 +1,5 @@
 ﻿using Redmond.Output;
+using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -14,6 +15,12 @@ namespace Redmond.Parsing.CodeGeneration
         public IlBuilder(OutputStream output)
         {
             Output = output;
+        }
+
+
+        public void PushValue(CodeValue val)
+        {
+            EmitOpCode(val.PushCode, val.Value);
         }
 
         public void EmitOpCode(OpCode opCode, params object[] operands)

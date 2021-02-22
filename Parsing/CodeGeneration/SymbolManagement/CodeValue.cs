@@ -2,13 +2,14 @@
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
     class CodeValue
     {
-        public readonly CodeType Type;
+        public CodeType Type;
         public object Value { get; protected set; }
 
         [LexFunction("makeValue")]
@@ -27,7 +28,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         }
 
         public override string ToString()
-            => Type.MainName + " => " + Value;
+            => Type.Name + " => " + Value;
+
+        public virtual OpCode PushCode => Type.PushCode;
 
     }
 }

@@ -1,4 +1,6 @@
-﻿using Redmond.Parsing.SyntaxAnalysis;
+﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
+using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -6,7 +8,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration
 {
-    internal partial class CodeGenerator
+    internal partial class IntermediateGenerator
     {
 
         [CodeGenFunction("CompoundStatement")]
@@ -20,7 +22,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Call")]
         public void CompileFunctionCall(SyntaxTreeNode node)
         {
-            builder.EmitLine("Call to: " + node.Val);
+            builder.AddInstruction(new InterCall(node.ValueString));
         }
 
         [CodeGenFunction("Function")]
@@ -36,20 +38,13 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("FunctionBody")]
         public void CompileFunctionBody(SyntaxTreeNode node)
         {
-            builder.EmitLine("{");
-            builder.Output.AddIndentation();
-
             CompileNodes(node.Children);
-
-            builder.Output.ReduceIndentation();
-            builder.EmitLine("}");
         }
 
         [CodeGenFunction("FunctionDec")]
         public void CompileFunctionDeclaration(SyntaxTreeNode node)
         {
             string name = "error";
-            string access = "error";
             List<string> functionKeywords = new List<string>();
 
             foreach(var child in node.Children)
@@ -57,8 +52,6 @@ namespace Redmond.Parsing.CodeGeneration
                 switch (child.Op)
                 {
                     case "AccessKeyword":
-                        access = child.ValueString;
-                        break;
 
                     case "FunctionKeywords":
                         foreach (var kw in child.Children)
@@ -73,9 +66,10 @@ namespace Redmond.Parsing.CodeGeneration
                 }
             }
             PushNewTable();
-            builder.EmitString($".method {access} ");
-            foreach (string k in functionKeywords) builder.EmitString(k + " ");
-            builder.EmitLine($"void {name}() cil managed");
+
+            InterMethod method = new InterMethod(name, "void");
+            foreach (string k in functionKeywords) method.AddFlag(k);
+            builder.AddMethod(method);
         }
 
     }

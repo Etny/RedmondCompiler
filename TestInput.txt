@@ -1,5 +1,5 @@
 ﻿public static void FunctionTest(){
-	int first = 10; 
+	float first = 10; 
 	int second = 7 + first / 2;
 	string third = "text test";
 	string fourth = third;

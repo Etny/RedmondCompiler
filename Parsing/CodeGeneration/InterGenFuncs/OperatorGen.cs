@@ -5,13 +5,13 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration
 {
-    internal partial class CodeGenerator
+    internal partial class IntermediateGenerator
     {
 
         [CodeGenFunction("BinaryOperator")]
         public void CompileBinaryOperator(SyntaxTreeNode node)
         {
-            builder.EmitLine("" + node.Val);
+            //builder.EmitLine("" + node.Val);
         }
     }
 }

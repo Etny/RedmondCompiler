@@ -1,6 +1,7 @@
 ﻿using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
@@ -22,10 +23,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public CodeSymbol(string id, string type, object value = null) : base(type, value)
         {
             ID = id;
+            Value = "ID with name " + id;
         }
 
         public override string ToString()
-            => ID + " of type " + Type.MainName;
+            => ID + " of type " + Type.Name;
+
+        public override OpCode PushCode => OpCodes.Ldarg_0;
+
 
     }
 }

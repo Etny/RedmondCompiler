@@ -54,12 +54,12 @@ namespace Redmond.Lex.LexCompiler
 
                     foreach (int i in state.Numbers)
                     {
-                        if (tree[i].Symbol == c + "")
+                        if (tree.GetNodeAtIndex(i).Symbol == c + "")
                         {
                             edges.AddRange(tree.FollowingPositions(i));
                             if (c == AcceptingCharacter) { state.IsAcceptingState = true; }
                         }
-                        if (tree[i].MarkedAsJumpahead) state.MarkedAsJumpahead = true;
+                        if (tree.GetNodeAtIndex(i).MarkedAsJumpahead) state.MarkedAsJumpahead = true;
                     }
 
                     if (edges.Count <= 0) continue;

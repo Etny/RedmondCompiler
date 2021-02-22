@@ -10,7 +10,7 @@ using Redmond.Output.Error.Exceptions;
 
 namespace Redmond.Parsing.CodeGeneration
 {
-    internal partial class CodeGenerator
+    internal partial class IntermediateGenerator
     {
 
         private Stack<SymbolTable> Tables = new Stack<SymbolTable>();
@@ -18,32 +18,38 @@ namespace Redmond.Parsing.CodeGeneration
 
 
         private readonly SyntaxTreeNode _tree;
-        private readonly IlBuilder builder;
+        private readonly IntermediateBuilder builder;
 
-        public CodeGenerator(SyntaxTreeNode tree)
+        public IntermediateGenerator(SyntaxTreeNode tree)
         {
             _tree = tree;
-            builder = new IlBuilder(new ConsoleStream());
+            builder = new IntermediateBuilder();
 
             if (_codeGenFunctions.Count <= 0)
                 _InitCodeGenFunctions();
 
             PushNewTable();
             CompileNode(tree);
+            builder.Emit(new IlBuilder(new ConsoleStream()));
         }
 
-        private void CompileNode(SyntaxTreeNode node)
+        private object CompileNode(SyntaxTreeNode node)
         {
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
                 throw new Exception("Unkown SyntaxNode Operator: " + node.Op);
 
-            _codeGenFunctions[node.Op.ToLower()].Invoke(this, new object[] { node });
+            var method = _codeGenFunctions[node.Op.ToLower()];
+            
+            object o = null;
+
+            if(method.ReturnType == typeof(void))
+                method.Invoke(this, new object[] { node });
+            else
+                o = method.Invoke(this, new object[] { node });
+
+            return o;
         }
 
-        private void Push(CodeValue val)
-        {
-            builder.EmitOpCode(val.Type.PushCode, val.Value);
-        }
 
         private void CompileNodes(params SyntaxTreeNode[] nodes)
         {

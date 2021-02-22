@@ -28,7 +28,7 @@ namespace Redmond
             var tree = new Grammar(Dec.GrammarLines).Parse(Input);
             Console.WriteLine(tree.ToTreeString());
             Console.WriteLine("============\n");
-            new CodeGenerator(tree);
+            new IntermediateGenerator(tree);
         }
     }
 }

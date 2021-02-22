@@ -27,6 +27,8 @@ namespace Redmond.Common
             Children[index] = node;
         }
 
+        public virtual T this[int index] { get => Children[index]; }
+
 
         public virtual string ToTreeString()
             => ToTreeString("", true, true);

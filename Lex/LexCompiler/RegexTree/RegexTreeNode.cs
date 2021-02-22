@@ -12,7 +12,6 @@ namespace Redmond.Lex.LexCompiler.RegexTree
 
         public bool MarkedAsJumpahead { get => _jumpahead; set => _markAsJumpahead(value); }
         protected bool _jumpahead;
-        public SymbolNode this[int index] { get => GetNodeAtIndex(index); }
 
         public abstract SymbolNode GetNodeAtIndex(int index);
 

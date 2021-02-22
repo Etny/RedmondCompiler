@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration
 {
-    internal partial class CodeGenerator
+    internal partial class IntermediateGenerator
     {
 
         private static Dictionary<string, MethodInfo> _codeGenFunctions = new Dictionary<string, MethodInfo>();
@@ -13,7 +13,7 @@ namespace Redmond.Parsing.CodeGeneration
         
         private void _InitCodeGenFunctions()
         {
-            foreach(var func in typeof(CodeGenerator).GetMethods())
+            foreach(var func in typeof(IntermediateGenerator).GetMethods())
             {
                 var atts = func.GetCustomAttributes(typeof(CodeGenFunctionAttribute));
                 foreach(var a in atts)

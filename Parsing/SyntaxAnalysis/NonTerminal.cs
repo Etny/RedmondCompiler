@@ -14,7 +14,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         protected string[] productionStrings;
         protected Grammar _grammar;
 
-        public int ID { get; } = 0;
+        public int ID { get; protected set; } = 0;
         protected static readonly List<string> NonTerminalTags = new List<string>();
 
         public NonTerminal(Grammar g, string tag, params string[] productions)

@@ -143,14 +143,14 @@ namespace Redmond.Lex.LexCompiler.RegexTree
             switch (Operator)
             {
                 case RegexTreeOperator.Star:
-                    return Children[0][index];
+                    return Children[0].GetNodeAtIndex(index);
 
                 default:
-                    var i = Children[0][index];
+                    var i = Children[0].GetNodeAtIndex(index);
                     if (i != null)
                         return i;
                     else
-                        return Children[1][index];
+                        return Children[1].GetNodeAtIndex(index);
             }
         }
 
