@@ -34,5 +34,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
         [SyntaxFunction("div")]
         public static int Div(int i1, int i2) => i1 / i2;
 
+        [SyntaxFunction("concat")]
+        public static string Concat(string s1, string s2) => s1 + s2;
+
     }
 }

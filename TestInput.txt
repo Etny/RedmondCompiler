@@ -1,11 +1,21 @@
-﻿public static void FunctionTest(){
-	float first = 10; 
-	int second = 7 + first / 2;
-	string third = "text test";
-	string fourth = third;
-	foo();
-	if(5+2){
-		int fifth = 20;
-		bar();	
+﻿using System.Console;
+
+
+class TestClass {
+
+	public static virtual void FunctionTest(){
+		float First = 10; 
+		int second = 7 + First / 2;
+		string third = "Text test";
+		string fourth = third;
+		AnotherFunction();
+		if(5+2){
+			int fifth = 20;
+			FunctionTest();	
+		}
 	}
+
+	private void AnotherFunction()
+		=> bool b = 2;
+
 }

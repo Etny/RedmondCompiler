@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterBinOp : IInterOp
+    class InterBinOp : InterOp
     {
 
         private InterInstOperand _op1, _op2;
@@ -15,7 +15,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public CodeType ConvertTail = null;
 
-        //TODO: Make this good
         public InterBinOp(string op, InterInstOperand op1, InterInstOperand op2)
         {
             Op = op;
@@ -26,7 +25,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             CheckTypes();
         }
 
-        public void Emit(IlBuilder builder)
+        public override void Emit(IlBuilder builder, IntermediateBuilder context)
         {
             CodeType wideType = GetResultType();
 
@@ -67,12 +66,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             }
         }
 
-        public CodeType GetResultType()
+        public override CodeType GetResultType()
         {
             return _op1.Type.GetWiderType(_op2.Type);
         }
 
-        public void AddConvertTail(CodeType type)
+        public override void AddConvertTail(CodeType type)
             => ConvertTail = type;
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterCopy : IInterInst
+    class InterCopy : InterInst
     {
 
         private CodeSymbol _target;
@@ -33,7 +33,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 
         }
 
-        public void Emit(IlBuilder builder)
+        public override void Emit(IlBuilder builder, IntermediateBuilder context)
         {
             if(_source.IsValue) builder.PushValue(_source.Value);
             if (emitConv) builder.EmitOpCode(_target.Type.ConvCode);

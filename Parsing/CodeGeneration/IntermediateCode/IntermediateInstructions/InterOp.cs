@@ -5,12 +5,9 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    interface IInterOp : IInterInst
-    {
-
-        void AddConvertTail(CodeType type);
-
-
-        CodeType GetResultType();
+    abstract class InterOp : InterInst
+    { 
+        public abstract void AddConvertTail(CodeType type);
+        public abstract CodeType GetResultType();
     }
 }

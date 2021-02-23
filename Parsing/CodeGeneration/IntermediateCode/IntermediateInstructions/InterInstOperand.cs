@@ -9,15 +9,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     {
 
         public CodeValue Value { get; private set; }
-        public IInterOp Op { get; private set; }
+        public InterOp Op { get; private set; }
 
         public bool IsValue { get => Op == null; }
 
         public InterInstOperand(object o)
         {
-            if(o is IInterOp)
+            if(o is InterOp)
             {
-                Op = o as IInterOp;
+                Op = o as InterOp;
                 Value = null;
             }
             else

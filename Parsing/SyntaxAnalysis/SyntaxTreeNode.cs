@@ -66,7 +66,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public readonly string Op;
         public readonly object Val;
-        public string ValueString { get => (Val as string)?.ToLower(); }
+        public string ValueString { get => (Val as string); }
 
         //TODO: Make this a graph to allow for Directed Aclyclic Graphs 
         public SyntaxTreeNode(string op, object val = null)

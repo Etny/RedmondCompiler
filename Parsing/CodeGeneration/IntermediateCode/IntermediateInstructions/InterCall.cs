@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterCall : IInterInst
+    class InterCall : InterInst
     {
         private string _target;
         public InterCall(string target)
@@ -13,9 +13,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _target = target;
         }
 
-        public void Emit(IlBuilder builder)
+        public override void Emit(IlBuilder builder, IntermediateBuilder context)
         {
-            builder.EmitOpCode(OpCodes.Call, _target);
+            var target = context.FromSignature(Owner.Owner.FullName + "." + _target);
+
+            if (target.IsInstance)
+                builder.EmitLine("Push this pointer");
+
+            if (target.IsVirtual)
+                builder.EmitOpCode(OpCodes.Callvirt, _target);
+            else
+                builder.EmitOpCode(OpCodes.Call, _target);
         }
     }
 }

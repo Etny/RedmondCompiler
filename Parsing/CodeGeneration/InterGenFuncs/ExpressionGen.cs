@@ -44,14 +44,14 @@ namespace Redmond.Parsing.CodeGeneration
             else
             {
                 object o = CompileNode(node);
-                return new InterInstOperand(o as IInterOp);
+                return new InterInstOperand(o as InterOp);
             }
         }
 
         [CodeGenFunction("BinaryExpression")]
-        public IInterOp CompileBinaryExpression(SyntaxTreeNode node)
+        public InterOp CompileBinaryExpression(SyntaxTreeNode node)
         {
-            return (IInterOp)builder.AddInstruction(new InterBinOp(node[2].ValueString, ToIntermediateExpression(node.Children[0]), ToIntermediateExpression(node.Children[1])));
+            return (InterOp)builder.AddInstruction(new InterBinOp(node[2].ValueString, ToIntermediateExpression(node.Children[0]), ToIntermediateExpression(node.Children[1])));
         }
     }
 }

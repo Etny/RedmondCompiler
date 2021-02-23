@@ -19,6 +19,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             BaseType = baseType;
         }
 
+        public string FullName => Name;
+
         public void AddFlag(string flag)
             => Flags = Flags.Add(flag);
 
@@ -26,17 +28,19 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void AddMember(IInterMember member)
             => Members = Members.Add(member);
 
-        public void Emit(IlBuilder builder)
+        public void Emit(IlBuilder builder, IntermediateBuilder context)
         {
             builder.EmitLine($".class {Name} ");
             builder.EmitLine("{");
+            builder.EmitLine("");
             builder.Output.AddIndentation();
 
             foreach (var member in Members)
-                member.Emit(builder);
+                member.Emit(builder, context);
 
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
+            builder.EmitLine("");
         }
     }
 }

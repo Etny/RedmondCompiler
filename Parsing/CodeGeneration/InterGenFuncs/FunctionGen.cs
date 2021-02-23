@@ -11,6 +11,10 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class IntermediateGenerator
     {
 
+        [CodeGenFunction("File")]
+        [CodeGenFunction("ImportList")]
+        [CodeGenFunction("ClassList")]
+        [CodeGenFunction("MemberList")]
         [CodeGenFunction("CompoundStatement")]
         [CodeGenFunction("StatementList")]
         public void CompileCompound(SyntaxTreeNode node)
@@ -67,9 +71,8 @@ namespace Redmond.Parsing.CodeGeneration
             }
             PushNewTable();
 
-            InterMethod method = new InterMethod(name, "void");
+            InterMethod method = builder.AddMethod(name, "void");
             foreach (string k in functionKeywords) method.AddFlag(k);
-            builder.AddMethod(method);
         }
 
     }
