@@ -1,4 +1,5 @@
-﻿using Redmond.Parsing.SyntaxAnalysis;
+﻿using Redmond.Common;
+using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -10,27 +11,54 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
         public string ID;
 
+        public CodeSymbolLocation Location;
 
 
-        [SyntaxFunction("makeSymbol")]
-        public static CodeSymbol MakeSymbol(string id, string type)
-            => new CodeSymbol(id, type);
-
-        [SyntaxFunction("makeSymbol")]
-        public static CodeSymbol MakeSymbol(string id, string type, object val)
-            => new CodeSymbol(id, type, val);
-
-        public CodeSymbol(string id, string type, object value = null) : base(type, value)
+        public CodeSymbol(string id, string type, CodeSymbolLocation location, object value = null) : base(type, value)
         {
             ID = id;
+            Location = location;
             Value = "ID with name " + id;
         }
 
         public override string ToString()
             => ID + " of type " + Type.Name;
 
-        public override OpCode PushCode => OpCodes.Ldarg_0;
+        public override OpCode PushCode => Location.GetPushOpcode();
 
 
+    }
+
+    public struct CodeSymbolLocation
+    {
+        public readonly CodeSymbolLocationType LocationType;
+        public readonly int Index;
+
+        public CodeSymbolLocation(CodeSymbolLocationType type, int index)
+        {
+            LocationType = type;
+            Index = index;
+        }
+
+        public OpCode GetPushOpcode()
+            => OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix + '_' + Index);
+
+        public OpCode GetStoreOpcode()
+            => OpCodeUtil.GetOpcode("St" + OpCodeSuffix + '_' + Index);
+
+        public string OpCodeSuffix 
+            => LocationType switch {
+                    CodeSymbolLocationType.Local => "loc",
+                    CodeSymbolLocationType.Field => "fld",
+                    _ => "arg",
+                };
+            
+        
+
+    }
+
+    public enum CodeSymbolLocationType
+    {
+        Argument, Local, Field
     }
 }

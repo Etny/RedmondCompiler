@@ -16,15 +16,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Import")]
         public void CompileImport(SyntaxTreeNode node)
         {
-            string moduleName = node.ValueString;
-
-            var mod = Assembly.Load(moduleName);
-
-            var t = from type in mod.GetTypes() where type.Name == "Console" select type;
-
-
-
-
+            builder.AddImport(Assembly.Load(node.ValueString));
         }
 
     }

@@ -35,9 +35,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder, IntermediateBuilder context)
         {
-            if(_source.IsValue) builder.PushValue(_source.Value);
+            //if(_source.IsValue) builder.PushValue(_source.Value);
             if (emitConv) builder.EmitOpCode(_target.Type.ConvCode);
-            builder.EmitLine("Copy to ID " + _target);
+            builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }
     }
 }

@@ -31,14 +31,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_op1.IsValue)
             {
-                builder.PushValue(_op1.Value);
+                //builder.PushValue(_op1.Value);
                 if (_op1.Value.Type != wideType) 
                     builder.EmitOpCode(wideType.ConvCode); //These conversions are for loading variables, not constants
             }
 
             if (_op2.IsValue)
             {
-                builder.PushValue(_op2.Value);
+                //builder.PushValue(_op2.Value);
                 if (_op2.Value.Type != wideType)
                     builder.EmitOpCode(wideType.ConvCode);
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Common;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
@@ -37,8 +38,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         protected float wideness;
 
-        public OpCode PushCode { get => GetOpcode("Ldc_"); }
-        public OpCode ConvCode { get => GetOpcode("Conv_"); }
+        public OpCode PushCode { get => OpCodeUtil.GetOpcode("Ldc_" + OpName); }
+        public OpCode ConvCode { get => OpCodeUtil.GetOpcode("Conv_" + OpName); }
 
 
         protected CodeType(int wide, params string[] names) : this(null, wide, names) { }
@@ -53,15 +54,6 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 _types.Add(s, this);
         }
 
-        protected OpCode GetOpcode(string prefix)
-        {
-            foreach(var f in typeof(OpCodes).GetFields())
-            {
-                if (f.Name == prefix + OpName)
-                    return (OpCode)f.GetValue(null);
-            }
-            return OpCodes.Nop;
-        }
 
         public virtual CodeType GetWiderType(CodeType otherType)
         {

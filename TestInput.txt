@@ -8,14 +8,13 @@ class TestClass {
 		int second = 7 + First / 2;
 		string third = "Text test";
 		string fourth = third;
-		AnotherFunction();
-		if(5+2){
-			int fifth = 20;
-			FunctionTest();	
-		}
+		AnotherFunction(1+3, 2);
+		int fifth = 20;
+		Console.WriteLine();
 	}
 
-	private void AnotherFunction()
-		=> bool b = 2;
+	private void AnotherFunction(int i, int p){
+		bool b = true;
+	}
 
 }

@@ -20,4 +20,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Parsing\CodeGeneration\SymbolManagement\NewFolder\" />
+  </ItemGroup>
+
 </Project>

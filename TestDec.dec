@@ -14,6 +14,7 @@ Digit
 Whitespace
 NewLine
 StringLiteral
+BoolLiteral
 Keyword
 
 #End
@@ -26,10 +27,11 @@ character = letter|number
 
 %%
 
+true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
 (letter|_) character* {Identifier}
 number+ {Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
 [=\*/+-] {Operator}
-[$,();:\{\}>.] {Punctuation}
+[$,();:\{\}>.,] {Punctuation}
 //[\n\r]	{NewLine}
 [\w\t\r\n]	{Whitespace}
 "((letter|number)|[\w\t\r\n])*"	{StringLiteral; $$ = makeValue("string", $)}
@@ -73,7 +75,7 @@ member				: function	{$$ = $1}
 function			: function_dec function_body	{$$ = makeNode("Function", $1, $2)}
 					;
 
-function_dec		: access_dec function_keywords 'void' id '(' ')' {$$ = makeNode("FunctionDec", $1, $2, $4.node)}
+function_dec		: access_dec function_keywords 'void' id '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $4.node, $6)}
 					;
 
 access_dec			: 'public'		{$$ = makeLeaf("AccessKeyword", $1)}
@@ -115,7 +117,7 @@ statement			:	assign_statement ';'	{$$ = $1}
 					|	if_statement
 					;
 
-dec_statement		:	id id '=' expression {$$ = makeNode("DeclarationStatement", $2.node, $4, $1.node);}
+dec_statement		:	dotted_name id '=' expression {$$ = makeNode("DeclarationStatement", $2.node, $4, $1);}
 					;
 
 assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1.node, $3)}
@@ -124,11 +126,25 @@ assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1.node, 
 if_statement		:	'if' '(' expression ')'	statement	{$$ = makeNode("IfStatement", $3, $5)}
 					;
 
-call_statement		:	id '(' ')' {$$ = makeLeaf("Call", $1)}
+call_statement		:	dotted_name '(' parameter_list ')' {$$ = makeNode("Call", $1, $3)}
+					;
+
+parameter_list		: parameter_list ',' expression		{addChild($1, $3); $$ = $1}
+					| expression					{$$ = makeNode("ParameterList", $1)}
+					|								{$$ = makeNode("ParameterList")}
+					;
+
+parameter_dec_list	: parameter_dec_list ',' parameter_dec		{addChild($1, $3); $$ = $1}
+					| parameter_dec								{$$ = makeNode("ParameterDecList", $1)}
+					|											{$$ = makeNode("ParameterDecList")}
+					;
+
+parameter_dec		: dotted_name id	{$$ = makeNode("ParameterDec", $1, $2.node)}
 					;
 
 expression			:	Digit							{$$ = makeLeaf("NumericalLiteral", $1);}
 					|	StringLiteral					{$$ = makeLeaf("StringLiteral", $1)}
+					|	BoolLiteral						{$$ = makeLeaf("BoolLiteral", $1)}
 					|	id								{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression		{$$ = makeNode("BinaryExpression", $1, $3, $2);}
 					|	'(' expression ')'				{$$ = $2;}

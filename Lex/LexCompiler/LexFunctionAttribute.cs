@@ -28,6 +28,12 @@ namespace Redmond.Lex.LexCompiler
             return int.Parse(s);
         }
 
+        [LexFunction("parseBool")]
+        public static bool ParseBool(string s)
+        {
+            return bool.Parse(s);
+        }
+
         [LexFunction("add")]
         public static int Add(int i1, int i2) => i1 + i2;
 

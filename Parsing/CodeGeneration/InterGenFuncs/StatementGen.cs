@@ -15,7 +15,7 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileAssignStatement(SyntaxTreeNode node)
         {
             string name = node[0].ValueString;
-            CodeSymbol symbol = GetFirst(name) ?? CurrentTable.AddSymbol(new CodeSymbol(name, "int32"));
+            CodeSymbol symbol = GetFirst(name);//?? CurrentTable.AddSymbol(new CodeSymbol(name, "int32"));
 
             builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
         }
@@ -28,7 +28,7 @@ namespace Redmond.Parsing.CodeGeneration
             if (CurrentTable.Contains(name))
                 ErrorManager.ExitWithError(new Exception("Duplicate ID: " + name));
 
-            CodeSymbol symbol =  CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
+            CodeSymbol symbol = builder.AddSymbol(CurrentTable, name, node[2].ValueString);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
 
             builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
         }

@@ -57,6 +57,7 @@ namespace Redmond.Lex
             
             
             DFA final = living.Count >= 1 ? living[0] : null;
+            if (living.Count > 1) i--;
             bool accepted = false;
 
             if (final != null)

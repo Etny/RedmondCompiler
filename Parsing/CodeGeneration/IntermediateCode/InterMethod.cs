@@ -12,18 +12,24 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public ImmutableList<InterInst> Instructions = ImmutableList<InterInst>.Empty;
 
         public readonly string Name, ReturnType;
+        public readonly string[] VarTypes;
         public readonly InterType Owner;
 
-        public InterMethod(string name, string returnType, InterType owner)
+        public int Locals = 0;
+        public int Args => VarTypes.Length;
+
+        public InterMethod(string name, string returnType, string[] varTypes, InterType owner)
         {
             Name = name;
             ReturnType = returnType;
+            VarTypes = varTypes;
             Owner = owner;
         }
 
-        public string Signature => Owner.FullName + "." + Name;
+        public string Signature => Owner.FullName + "." + Name + "(" + string.Join(',', VarTypes) + ")";
         public bool IsInstance => !Flags.Contains("static");
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override");
+
 
         public void AddFlag(string flag)
             => Flags = Flags.Add(flag);

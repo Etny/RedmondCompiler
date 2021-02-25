@@ -24,6 +24,7 @@ namespace Redmond.Parsing.CodeGeneration
         {
             switch (node.Op)
             {
+                case "BoolLiteral":
                 case "StringLiteral":
                 case "NumericalLiteral":
                     return node.Val as CodeValue;
@@ -40,7 +41,11 @@ namespace Redmond.Parsing.CodeGeneration
         private InterInstOperand ToIntermediateExpression(SyntaxTreeNode node)
         {
             if (IsValue(node))
-                return new InterInstOperand(ToValue(node));
+            {
+                var val = ToValue(node);
+                builder.AddInstruction(new InterPush(val));
+                return new InterInstOperand(val);
+            }
             else
             {
                 object o = CompileNode(node);

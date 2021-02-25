@@ -8,22 +8,37 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterCall : InterInst
     {
         private string _target;
-        public InterCall(string target)
+        private InterInstOperand[] _parameters;
+        public InterCall(string name, InterInstOperand[] parameters)
         {
-            _target = target;
+            _target = name;
+            _parameters = parameters;
+
+            _target += '(';
+            foreach (var p in parameters)
+                _target += p.Type.Name + ",";
+            if(parameters.Length > 0)
+                _target = _target[..^1];
+            _target += ')';
+ 
+            CheckTypes();
+        }
+        private void CheckTypes()
+        {
+            //TODO: Add implicit type coercion for function calls
         }
 
         public override void Emit(IlBuilder builder, IntermediateBuilder context)
         {
-            var target = context.FromSignature(Owner.Owner.FullName + "." + _target);
+            var target = context.FindClosestWithSignature(_target, Owner.Owner);
 
             if (target.IsInstance)
                 builder.EmitLine("Push this pointer");
 
             if (target.IsVirtual)
-                builder.EmitOpCode(OpCodes.Callvirt, _target);
+                builder.EmitOpCode(OpCodes.Callvirt, target.FullSignature);
             else
-                builder.EmitOpCode(OpCodes.Call, _target);
+                builder.EmitOpCode(OpCodes.Call, target.FullSignature);
         }
     }
 }
