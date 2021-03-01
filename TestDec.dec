@@ -75,14 +75,14 @@ member				: function	{$$ = $1}
 function			: function_dec function_body	{$$ = makeNode("Function", $1, $2)}
 					;
 
-function_dec		: access_dec function_keywords 'void' id '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $4.node, $6)}
+function_dec		: access_dec function_keywords dotted_name id '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $3, $4.node, $6)}
 					;
 
 access_dec			: 'public'		{$$ = makeLeaf("AccessKeyword", $1)}
 					| 'private'		{$$ = makeLeaf("AccessKeyword", $1)}	
-					| 'protected'	{$$ = makeLeaf("AccessKeyword", $1)}
-					| 'internal'	{$$ = makeLeaf("AccessKeyword", $1)}
-					|				{$$ = makeLeaf("AccessKeyword", "internal")}
+					| 'protected'	{$$ = makeLeaf("AccessKeyword", "family")}
+					| 'internal'	{$$ = makeLeaf("AccessKeyword", "assembly")}
+					|				{$$ = makeLeaf("AccessKeyword", "assembly")}
 					;
 
 function_keywords	: function_keywords function_keyword	{addChild($1, $2); $$ = $1}
@@ -110,14 +110,20 @@ statement_list		:		statement_list statement {addChild($1, $2); $$ = $1}
 					;
 
 
-statement			:	assign_statement ';'	{$$ = $1}
-					|	call_statement ';'		{$$ = $1}
-					|	dec_statement ';'		{$$ = $1}
+statement			:	assign_statement ';'		{$$ = $1}
+					|	call_statement ';'			{$$ = $1}
+					|	dec_statement ';'			{$$ = $1}
+					|	return_statement ';'		{$$ = $1}
 					|	compound_statement
 					|	if_statement
 					;
 
-dec_statement		:	dotted_name id '=' expression {$$ = makeNode("DeclarationStatement", $2.node, $4, $1);}
+return_statement	:	'return'				{$$ = makeLeaf("ReturnStatement")}
+					|	'return' expression	{$$ = makeNode("ReturnStatement", $2)}
+					;
+
+dec_statement		:	dotted_name id '=' expression {$$ = makeNode("DeclarationStatement", $2.node, $1, $4);}
+					|	dotted_name id				{$$ = makeNode("DeclarationStatement", $2.node, $1)}  
 					;
 
 assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1.node, $3)}
@@ -129,17 +135,17 @@ if_statement		:	'if' '(' expression ')'	statement	{$$ = makeNode("IfStatement", 
 call_statement		:	dotted_name '(' parameter_list ')' {$$ = makeNode("Call", $1, $3)}
 					;
 
-parameter_list		: parameter_list ',' expression		{addChild($1, $3); $$ = $1}
-					| expression					{$$ = makeNode("ParameterList", $1)}
+parameter_list		:	parameter_list ',' expression		{addChild($1, $3); $$ = $1}
+					|	expression					{$$ = makeNode("ParameterList", $1)}
 					|								{$$ = makeNode("ParameterList")}
 					;
 
-parameter_dec_list	: parameter_dec_list ',' parameter_dec		{addChild($1, $3); $$ = $1}
-					| parameter_dec								{$$ = makeNode("ParameterDecList", $1)}
+parameter_dec_list	:	parameter_dec_list ',' parameter_dec		{addChild($1, $3); $$ = $1}
+					|	parameter_dec								{$$ = makeNode("ParameterDecList", $1)}
 					|											{$$ = makeNode("ParameterDecList")}
 					;
 
-parameter_dec		: dotted_name id	{$$ = makeNode("ParameterDec", $1, $2.node)}
+parameter_dec		:	dotted_name id	{$$ = makeNode("ParameterDec", $1, $2.node)}
 					;
 
 expression			:	Digit							{$$ = makeLeaf("NumericalLiteral", $1);}
@@ -148,6 +154,7 @@ expression			:	Digit							{$$ = makeLeaf("NumericalLiteral", $1);}
 					|	id								{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression		{$$ = makeNode("BinaryExpression", $1, $3, $2);}
 					|	'(' expression ')'				{$$ = $2;}
+					|	call_statement					{$$ = makeNode("CallExpression", $1)}
 					;
 
 dotted_name			: dotted_name '.' id	{$$.name = concat($1.name, concat(".", $3); $$ = makeLeaf("DottedName", $$.name))}

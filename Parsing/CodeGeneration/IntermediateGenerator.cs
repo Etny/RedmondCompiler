@@ -23,7 +23,7 @@ namespace Redmond.Parsing.CodeGeneration
         public IntermediateGenerator(SyntaxTreeNode tree)
         {
             _tree = tree;
-            builder = new IntermediateBuilder();
+            builder = new IntermediateBuilder(Tables);
 
             if (_codeGenFunctions.Count <= 0)
                 _InitCodeGenFunctions();

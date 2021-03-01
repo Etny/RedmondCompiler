@@ -13,8 +13,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public readonly string Op;
 
-        public CodeType ConvertTail = null;
-
         public InterBinOp(string op, InterInstOperand op1, InterInstOperand op2)
         {
             Op = op;
@@ -22,31 +20,30 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _op1 = op1;
             _op2 = op2;
 
-            CheckTypes();
         }
 
-        public override void Emit(IlBuilder builder, IntermediateBuilder context)
+        public override void Emit(IlBuilder builder)
         {
+            CheckTypes();
+
             CodeType wideType = GetResultType();
 
-            if (_op1.IsValue)
-            {
-                //builder.PushValue(_op1.Value);
-                if (_op1.Value.Type != wideType) 
-                    builder.EmitOpCode(wideType.ConvCode); //These conversions are for loading variables, not constants
-            }
+            _op1.Emit(builder);
+            if (_op1.Type != wideType) 
+                builder.EmitOpCode(wideType.ConvCode);
 
-            if (_op2.IsValue)
-            {
-                //builder.PushValue(_op2.Value);
-                if (_op2.Value.Type != wideType)
-                    builder.EmitOpCode(wideType.ConvCode);
-            }
+            _op2.Emit(builder);
+            if (_op2.Type != wideType)
+                builder.EmitOpCode(wideType.ConvCode);
 
             builder.EmitLine(Op);
-            if (ConvertTail != null) builder.EmitOpCode(ConvertTail.ConvCode);
         }
 
+        public override void Bind(IntermediateBuilder context)
+        {
+            _op1.Bind(context);
+            _op2.Bind(context);
+        }
         private void CheckTypes()
         {
             CodeType t1 = _op1.Type;
@@ -55,14 +52,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (t1 != t)
             {
-                if (!_op1.IsValue) _op1.Op.AddConvertTail(t);
-                else if (!(_op1.Value is CodeSymbol)) _op1.Value.Type = t; //Change the type of constants instead of emitting conversions
+                if (!(_op1.Value is CodeSymbol)) _op1.Value.Type = t; //Change the type of constants instead of emitting conversions
             }
 
             if (t2 != t)
             {
-                if (!_op2.IsValue) _op2.Op.AddConvertTail(t);
-                else if (!(_op2.Value is CodeSymbol)) _op2.Value.Type = t;
+                 if (!(_op2.Value is CodeSymbol)) _op2.Value.Type = t;
             }
         }
 
@@ -71,7 +66,5 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             return _op1.Type.GetWiderType(_op2.Type);
         }
 
-        public override void AddConvertTail(CodeType type)
-            => ConvertTail = type;
     }
 }

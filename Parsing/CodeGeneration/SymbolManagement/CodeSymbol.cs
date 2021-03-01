@@ -14,17 +14,33 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public CodeSymbolLocation Location;
 
 
-        public CodeSymbol(string id, string type, CodeSymbolLocation location, object value = null) : base(type, value)
+        public CodeSymbol(string id, string typeName, object value = null) : this(id, typeName, CodeSymbolLocation.Default, value) { }
+
+
+        public CodeSymbol(string id, string typeName, CodeSymbolLocation location, object value = null) : base(typeName, value)
         {
             ID = id;
             Location = location;
             Value = "ID with name " + id;
         }
 
+        public CodeSymbol(string id, CodeType type, CodeSymbolLocation location, object value = null) : base(type, value)
+        {
+            ID = id;
+            Location = location;
+            Value = "ID with name " + id;
+        }
+
+
         public override string ToString()
             => ID + " of type " + Type.Name;
 
-        public override OpCode PushCode => Location.GetPushOpcode();
+        public override void Push(IlBuilder builder)
+            => Location.Push(builder);
+
+        public void Store(IlBuilder builder)
+            => Location.Store(builder);
+
 
 
     }
@@ -34,17 +50,29 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeSymbolLocationType LocationType;
         public readonly int Index;
 
+        public static CodeSymbolLocation Default = new CodeSymbolLocation(CodeSymbolLocationType.Local, 0);
+
         public CodeSymbolLocation(CodeSymbolLocationType type, int index)
         {
             LocationType = type;
             Index = index;
         }
 
-        public OpCode GetPushOpcode()
-            => OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix + '_' + Index);
+        internal void Push(IlBuilder builder)
+        {
+            if (Index <= 3)
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix + '_' + Index));
+            else
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix), Index);
+        }
 
-        public OpCode GetStoreOpcode()
-            => OpCodeUtil.GetOpcode("St" + OpCodeSuffix + '_' + Index);
+        internal void Store(IlBuilder builder)
+        {
+            if (Index <= 3)
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("St" + OpCodeSuffix + '_' + Index));
+            else
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("St" + OpCodeSuffix), Index);
+        }
 
         public string OpCodeSuffix 
             => LocationType switch {

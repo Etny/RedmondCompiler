@@ -7,7 +7,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 {
     abstract class InterOp : InterInst
     { 
-        public abstract void AddConvertTail(CodeType type);
         public abstract CodeType GetResultType();
     }
 }

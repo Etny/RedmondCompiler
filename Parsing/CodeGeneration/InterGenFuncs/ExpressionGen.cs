@@ -1,4 +1,5 @@
-﻿using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
+﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
@@ -11,10 +12,10 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class IntermediateGenerator
     {
 
-        [CodeGenFunction("StringLiteral")]
-        [CodeGenFunction("NumericalLiteral")]
-        [CodeGenFunction("IdentiferExpression")]
-            public void CompileValueExpression(SyntaxTreeNode node) { }
+        //[CodeGenFunction("StringLiteral")]
+        //[CodeGenFunction("NumericalLiteral")]
+        //[CodeGenFunction("IdentiferExpression")]
+        //    public void CompileValueExpression(SyntaxTreeNode node) { }
 
 
         private bool IsValue(SyntaxTreeNode node)
@@ -39,24 +40,30 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
         private InterInstOperand ToIntermediateExpression(SyntaxTreeNode node)
-        {
-            if (IsValue(node))
-            {
-                var val = ToValue(node);
-                builder.AddInstruction(new InterPush(val));
-                return new InterInstOperand(val);
-            }
-            else
-            {
-                object o = CompileNode(node);
-                return new InterInstOperand(o as InterOp);
-            }
-        }
+            => IsValue(node) ? new InterInstOperand(ToValue(node)) : new InterInstOperand(CompileNode(node) as InterOp);
+
+        public void PushExpression(SyntaxTreeNode node)
+            => builder.AddInstruction(CompileNode(node) as InterInst);
 
         [CodeGenFunction("BinaryExpression")]
         public InterOp CompileBinaryExpression(SyntaxTreeNode node)
+            => new InterBinOp(node[2].ValueString, ToIntermediateExpression(node.Children[0]), ToIntermediateExpression(node.Children[1]));
+
+        [CodeGenFunction("CallExpression")]
+        public InterOp CompileCallExpression(SyntaxTreeNode node)
         {
-            return (InterOp)builder.AddInstruction(new InterBinOp(node[2].ValueString, ToIntermediateExpression(node.Children[0]), ToIntermediateExpression(node.Children[1])));
+            InterInstOperand[] parameters = new InterInstOperand[node[0][1].Children.Length];
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                parameters[i] = ToIntermediateExpression(node[0][1][i]);
+            }
+
+            var ret = new InterCall(node[0][0].ValueString, parameters, true);
+            ret.SetOwner(builder.CurrentMethod);
+
+            return ret;
         }
+
     }
 }

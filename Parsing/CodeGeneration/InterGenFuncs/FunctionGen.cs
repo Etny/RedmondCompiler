@@ -27,7 +27,6 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Call")]
         public void CompileFunctionCall(SyntaxTreeNode node)
         {
-            string targetName = node[0].ValueString;
 
             InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
 
@@ -59,8 +58,8 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileFunctionDeclaration(SyntaxTreeNode node)
         {
             string name = "error";
-            string[] argTypes = new string[1];
-            string[] argNames = new string[1];
+            string retType = null;
+            CodeSymbol[] args = null;
             List<string> functionKeywords = new List<string>();
 
             foreach(var child in node.Children)
@@ -68,6 +67,8 @@ namespace Redmond.Parsing.CodeGeneration
                 switch (child.Op)
                 {
                     case "AccessKeyword":
+                        functionKeywords.Add(child.ValueString);
+                        break;
 
                     case "FunctionKeywords":
                         foreach (var kw in child.Children)
@@ -75,9 +76,7 @@ namespace Redmond.Parsing.CodeGeneration
                         break;
 
                     case "ParameterDecList":
-                        var args = CompileParameterDecList(child);
-                        argTypes = args.Item1;
-                        argNames = args.Item2;
+                        args = CompileParameterDecList(child);
                         break;
 
                     case "IdentifierName":
@@ -85,29 +84,27 @@ namespace Redmond.Parsing.CodeGeneration
                         //if (Tables.Peek().Contains(name)) throw new Exception("Already exists :(");
                         //Tables.Peek().AddSymbol(new SymbolManagement.CodeSymbol(name, "function"));
                         break;
+
+                    case "DottedName":
+                        retType = child.ValueString;
+                        break;
                 }
             }
             PushNewTable();
 
-            InterMethod method = builder.AddMethod(name, "void", argTypes);
+            InterMethod method = builder.AddMethod(name, retType, args);
             foreach (string k in functionKeywords) method.AddFlag(k);
-            for (int i = 0; i < argNames.Length; i++) builder.AddArguments(CurrentTable, argNames[i], argTypes[i], i);
         }
 
         //TODO: Improve this
-        private (string[], string[]) CompileParameterDecList(SyntaxTreeNode node)
+        private CodeSymbol[] CompileParameterDecList(SyntaxTreeNode node)
         {
-            string[] types = new string[node.Children.Length];
-            string[] names = new string[node.Children.Length];
+            CodeSymbol[] args = new CodeSymbol[node.Children.Length];
 
+            for (int i = 0; i < args.Length; i++)
+                args[i] = new CodeSymbol(node[i][1].ValueString, node[i][0].ValueString);
 
-            for (int i = 0; i < types.Length; i++)
-            {
-                types[i] = CodeType.ByName(node[i][0].ValueString).Name;
-                names[i] = node[i][1].ValueString;
-            }
-
-            return (types, names);
+            return args;
         }
 
     }

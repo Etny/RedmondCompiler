@@ -16,7 +16,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _val = value;
         }
 
-        public override void Emit(IlBuilder builder, IntermediateBuilder context)
+        public override void Emit(IlBuilder builder)
         {
             builder.PushValue(_val);
         }

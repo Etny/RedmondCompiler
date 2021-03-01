@@ -15,21 +15,14 @@ namespace Redmond.Output
             Buffer = new byte[size];
         }
 
-        public override void WriteByte(byte b)
-            => Buffer[Index++] = b;
-
         public override void WriteString(string s = "")
         {
             foreach (char c in s)
             {
-                WriteByte((byte)(c & 0xFF));
-                WriteByte((byte)(c >> 8));
+                //WriteByte((byte)(c & 0xFF));
+                //WriteByte((byte)(c >> 8));
             }
         }
-
-        public void WriteToStream(OutputStream stream)
-            => stream.WriteBytes(Buffer, 0, Index);
-
 
     }
 }

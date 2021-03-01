@@ -12,7 +12,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void SetOwner(InterMethod method)
             => Owner = method;
 
-        public abstract void Emit(IlBuilder builder, IntermediateBuilder context);
+        public abstract void Emit(IlBuilder builder);
+
+        public virtual void Bind(IntermediateBuilder context) { }
 
     }
 }

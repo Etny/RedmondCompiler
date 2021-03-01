@@ -6,6 +6,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 {
     interface IInterMember
     {
-        void Emit(IlBuilder builder, IntermediateBuilder context);
+        void Emit(IlBuilder builder);
+        void Bind(IntermediateBuilder builder);
+
     }
 }

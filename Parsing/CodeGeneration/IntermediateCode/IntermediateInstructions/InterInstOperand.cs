@@ -38,5 +38,21 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             }
         }
 
+        public void Bind(IntermediateBuilder builder)
+        {
+            if (IsValue)
+                Value.BindType(builder);
+            else
+                Op.Bind(builder);
+        }
+
+        public void Emit(IlBuilder builder)
+        {
+            if (IsValue)
+                builder.PushValue(Value);
+            else
+                Op.Emit(builder);
+        }
+
     }
 }

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
-    class CodeType
+    public class CodeType
     {
         private static Dictionary<string, CodeType> _types = new Dictionary<string, CodeType>();
 
@@ -19,27 +19,29 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public static CodeType Int64 = new CodeType("I8", 2, "int64", "long");
         public static CodeType NativeInt = new CodeType("I", 3, "native");
         public static CodeType Real = new CodeType(4, "real");
-        public static CodeType Object = new CodeType(-1, "object");
+        public static CodeType Object = new UserType(typeof(object));
 
 
         //Define derived types
-        public static DerivedType Int8 = new DerivedType("I1", .5f, Int32, "byte", "int8");
-        public static DerivedType Bool = new DerivedType("I1", .5f, Int32, "bool");
-        public static DerivedType Int16 = new DerivedType("I2", .7f, Int32, "short", "int16", "char");
-        public static DerivedType Real4 = new DerivedType("R4", Real, "float", "real4");
-        public static DerivedType Real8 = new DerivedType("R8", 4.5f, Real, "double", "decimal", "real8");
-        public static DerivedType String = new DerivedType("str", Object, "string");
+        public static DerivedType Int8 = new DerivedType(.5f, Int32, "byte", "int8");
+        public static DerivedType Bool = new DerivedType(.5f, Int32, "bool");
+        public static DerivedType Int16 = new DerivedType(.7f, Int32, "short", "int16", "char");
+        public static DerivedType Real4 = new DerivedType("R4", Real, "float32", "float", "real4");
+        public static DerivedType Real8 = new DerivedType("R8", 4.5f, Real, "float64", "double", "decimal", "real8");
+        public static StringType String = new StringType();
+
+        public static VoidType Void = new VoidType();
 
         //public static DerivedType String = new DerivedType(OpCodes.Ldstr, "string", "char*");
         //public static CodeType Function = new CodeType(OpCodes.Nop, "function");
 
-        public readonly string OpName;
-        public readonly string Name;
+        public string OpName { get; protected set; }
+        public string Name { get; protected set; }
 
         protected float wideness;
 
-        public OpCode PushCode { get => OpCodeUtil.GetOpcode("Ldc_" + OpName); }
-        public OpCode ConvCode { get => OpCodeUtil.GetOpcode("Conv_" + OpName); }
+        public virtual OpCode PushCode { get => OpCodeUtil.GetOpcode("Ldc_" + OpName); }
+        public virtual OpCode ConvCode { get => OpCodeUtil.GetOpcode("Conv_" + OpName); }
 
 
         protected CodeType(int wide, params string[] names) : this(null, wide, names) { }
@@ -62,6 +64,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             return this;
         }
 
+        public override bool Equals(object obj)
+            => obj is CodeType type && type.Name == Name;
+
+        public static bool operator ==(CodeType lhs, object rhs) => rhs == null ? lhs is null : lhs.Equals(rhs);
+        public static bool operator !=(CodeType lhs, object rhs) => rhs == null ? lhs is object : lhs is null || !lhs.Equals(rhs);
+
+
         public class DerivedType : CodeType
         {
             public readonly CodeType UnderlyingType;
@@ -76,6 +85,23 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             {
                 UnderlyingType = underlying;
             }
+
+        }
+
+        public class StringType : CodeType
+        {
+            public StringType() : base("str", -1, "string") { }
+
+            public override OpCode PushCode => OpCodes.Ldstr;
+            public override OpCode ConvCode => OpCodes.Conv_U; //TODO: fix this
+        }
+
+        public class VoidType : CodeType
+        {
+            public VoidType() : base("void", -1, "void") { }
+
+            public override OpCode ConvCode => throw new NotSupportedException();
+            public override OpCode PushCode => throw new NotSupportedException();
 
         }
     }

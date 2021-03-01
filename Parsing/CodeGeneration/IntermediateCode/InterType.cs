@@ -13,7 +13,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly string Name, BaseType;
 
         //TODO: add interface support
-        public InterType(string name, string baseType = "Systsem.Object")
+        public InterType(string name, string baseType = "[System.Runtime]System.Object")
         {
             Name = name;
             BaseType = baseType;
@@ -28,19 +28,25 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void AddMember(IInterMember member)
             => Members = Members.Add(member);
 
-        public void Emit(IlBuilder builder, IntermediateBuilder context)
+        public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class {Name} ");
+            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType}");
             builder.EmitLine("{");
             builder.EmitLine("");
             builder.Output.AddIndentation();
 
             foreach (var member in Members)
-                member.Emit(builder, context);
+                member.Emit(builder);
 
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
             builder.EmitLine("");
+        }
+
+        public void Bind(IntermediateBuilder builder)
+        {
+            foreach (var member in Members)
+                member.Bind(builder);
         }
     }
 }

@@ -1,20 +1,19 @@
 ﻿using System.Console;
-
+using System.Reflection.Emit;
 
 class TestClass {
 
 	public static virtual void FunctionTest(){
 		float First = 10; 
+		OpCode op;
 		int second = 7 + First / 2;
-		string third = "Text test";
-		string fourth = third;
-		AnotherFunction(1+3, 2);
-		int fifth = 20;
-		Console.WriteLine();
+		int third = AnotherFunction(1+3, 2);
+		Console.WriteLine(third / 2);
+		Console.ReadLine();
 	}
 
-	private void AnotherFunction(int i, int p){
-		bool b = true;
+	static int AnotherFunction(int i, int p){
+		return i + p;
 	}
 
 }

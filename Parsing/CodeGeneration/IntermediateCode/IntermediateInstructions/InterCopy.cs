@@ -18,26 +18,29 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _target = target;
             _source = source;
 
-            if(source.Type != target.Type)
-            {
-                if (source.IsValue)
-                {
-                    emitConv = source.Value is CodeSymbol;
-                    if (!emitConv) source.Value.Type = target.Type;
-                }
-                else
-                {
-                    source.Op.AddConvertTail(target.Type);
-                }
-            }
+            
                 
         }
 
-        public override void Emit(IlBuilder builder, IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
+            => _source.Bind(context);
+
+        public override void Emit(IlBuilder builder)
         {
-            //if(_source.IsValue) builder.PushValue(_source.Value);
+            if (_source.Type != _target.Type)
+            {
+                if (_source.IsValue)
+                {
+                    emitConv = _source.Value is CodeSymbol;
+                    if (!emitConv) _source.Value.Type = _target.Type;
+                }
+            }
+
+            _source.Emit(builder);
+            if (_source.Type != _target.Type) builder.EmitOpCode(_target.Type.ConvCode);
             if (emitConv) builder.EmitOpCode(_target.Type.ConvCode);
-            builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
+            _target.Store(builder);
+            //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }
     }
 }

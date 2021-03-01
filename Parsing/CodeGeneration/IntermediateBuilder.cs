@@ -17,10 +17,19 @@ namespace Redmond.Parsing.CodeGeneration
 
         private Dictionary<string, InterMethod> _localFunctions = new Dictionary<string, InterMethod>();
         private List<Assembly> imports = new List<Assembly>();
+        private Stack<SymbolTable> _tables;
 
-        public IntermediateBuilder()
+        private string assemblyName = "Redmond";
+
+        public IntermediateBuilder(Stack<SymbolTable> tables)
         {
-            
+            AddImport(Assembly.Load("System.Runtime"));
+
+            var t = Assembly.Load("System.Reflection.Primitives");
+            var ts = t.GetType("OpCode");
+            var type = typeof(System.Reflection.Emit.OpCode);
+
+            _tables = tables;
         }
 
         public InterType AddType(InterType type)
@@ -31,12 +40,19 @@ namespace Redmond.Parsing.CodeGeneration
             return type;
         }
 
-        public InterMethod AddMethod(string name, string returnType, string[] vars)
+        public InterMethod AddMethod(string name, string returnType, CodeSymbol[] vars)
         {
             var method = new InterMethod(name, returnType, vars, CurrentType);
             CurrentMethod = method;
             CurrentType.AddMember(method);
             _localFunctions.Add(method.Signature, method);
+
+            for (int i = 0; i < vars.Length; i++)
+            {
+                vars[i].Location = new CodeSymbolLocation(CodeSymbolLocationType.Argument, i);
+                _tables.Peek().AddSymbol(vars[i]);
+            }
+
             return method;
         }
 
@@ -48,20 +64,13 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
         //TODO: Add field support
-        public CodeSymbol AddSymbol(SymbolTable table, string name, string type, object value = null)
+
+        public CodeSymbol AddLocalSymbol(string name, string type, object value = null)
         {
-            CodeSymbol sym = new CodeSymbol(name, type, new CodeSymbolLocation(CodeSymbolLocationType.Local, CurrentMethod.Locals++), value);
+            CodeSymbol sym = new CodeSymbol(name, type, new CodeSymbolLocation(CodeSymbolLocationType.Local, CurrentMethod.Locals.Count), value);
+            CurrentMethod.Locals.Add(sym);
 
-            table.AddSymbol(sym);
-
-            return sym;
-        }
-
-        public CodeSymbol AddArguments(SymbolTable table, string name, string type, int index, object value = null)
-        {
-            CodeSymbol sym = new CodeSymbol(name, type, new CodeSymbolLocation(CodeSymbolLocationType.Argument, index), value);
-
-            table.AddSymbol(sym);
+            _tables.Peek().AddSymbol(sym);
 
             return sym;
         }
@@ -69,34 +78,55 @@ namespace Redmond.Parsing.CodeGeneration
         public void AddImport(Assembly assembly)
             => imports.Add(assembly);
 
+        public CodeType ResolveType(string name)
+        {
+            var ctype = CodeType.ByName(name);
+            if (ctype != null) return ctype;
+
+            foreach(var a in imports)
+            {
+                var type = a.GetType(name);
+                if (type != null) return new UserType(type);
+            }
+
+            return null;
+        }
+
+        public CodeType ResolveType(Type type)
+        {
+            if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
+
+            return new UserType(type);
+        }
+
         public InterMethod FromSignature(string sig)
             => _localFunctions[sig];
 
-        public IMethodWrapper FindClosestWithSignature(string sig, InterType owner)
+        public IMethodWrapper FindClosestFunction(string name, InterType owner, params CodeType[] args)
         {
-            if (_localFunctions.ContainsKey(owner.FullName + "." + sig))
-                return new InterMethodWrapper(_localFunctions[owner.FullName + "." + sig]);
+            if (_localFunctions.ContainsKey(owner.FullName + "." + name))
+                return new InterMethodWrapper(_localFunctions[owner.FullName + "." + name], this);
 
             //TODO: improve this
-            if (sig.Contains(".")) {
-                string typeName = sig[0..sig.LastIndexOf('.')];
-                string funcName = sig[(sig.LastIndexOf('.')+1)..sig.LastIndexOf('(')];
+            if (name.Contains(".")) {
+                string typeName = name[0..name.LastIndexOf('.')];
+                string funcName = name[(name.LastIndexOf('.')+1)..];
 
                 foreach (var a in imports)
                     foreach (Type t in (from type in a.GetTypes() where type.Name == typeName select type).ToArray())
                         foreach(var m in t.GetMethods())
                             if (m.Name == funcName)
-                                return new MethodInfoWrapper(m);
+                                return new MethodInfoWrapper(m, this);
             }
             else
             {
-                string funcName = sig[(sig.LastIndexOf('.')+1)..sig.LastIndexOf('(')];
+                string funcName = name[(name.LastIndexOf('.')+1)..name.LastIndexOf('(')];
 
                 foreach (var a in imports)
                     foreach (Type t in a.GetTypes())
                         foreach (var m in t.GetMethods())
                             if (m.Name == funcName)
-                                return new MethodInfoWrapper(m);
+                                return new MethodInfoWrapper(m, this);
             }
 
             return null;
@@ -106,7 +136,28 @@ namespace Redmond.Parsing.CodeGeneration
         public void Emit(IlBuilder builder)
         {
             foreach (InterType t in Types)
-                t.Emit(builder, this);
+                t.Bind(this);
+
+            EmitCLRHeader(builder);
+
+            foreach (InterType t in Types)
+                t.Emit(builder);
+        }
+
+        private void EmitCLRHeader(IlBuilder builder)
+        {
+            builder.EmitLine($".assembly {assemblyName} {{}}");
+
+            builder.EmitLine();
+
+            foreach(var import in imports)
+                builder.EmitLine($".assembly extern {import.ManifestModule.Name.Replace(".dll", "")} {{}}");
+
+            builder.EmitLine(".module TestModule");
+
+            builder.EmitLine();
+
+
         }
 
     }

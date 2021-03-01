@@ -1,7 +1,12 @@
-﻿using System;
+﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Linq;
+using System.Reflection.Emit;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
+using Redmond.Output;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 {
@@ -11,22 +16,28 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public ImmutableList<InterInst> Instructions = ImmutableList<InterInst>.Empty;
 
-        public readonly string Name, ReturnType;
-        public readonly string[] VarTypes;
+        public readonly string Name, ReturnTypeName;
+        public CodeType ReturnType;
+        public readonly CodeSymbol[] Arguments;
         public readonly InterType Owner;
 
-        public int Locals = 0;
-        public int Args => VarTypes.Length;
+        public List<CodeSymbol> Locals = new List<CodeSymbol>();
+        public int Args => Arguments.Length;
 
-        public InterMethod(string name, string returnType, string[] varTypes, InterType owner)
+        public InterMethod(string name, string returnTypeName, CodeSymbol[] args, InterType owner)
         {
             Name = name;
-            ReturnType = returnType;
-            VarTypes = varTypes;
+            ReturnTypeName = returnTypeName;
+            Arguments = args;
             Owner = owner;
         }
 
-        public string Signature => Owner.FullName + "." + Name + "(" + string.Join(',', VarTypes) + ")";
+
+        private string ArgList => string.Join(',', from a in Arguments select a.Type.Name);
+
+        public string Signature => $"{Owner.FullName}.{Name}";
+
+        public string CallSignature => $"{(IsInstance ? "instance " : "")}{ReturnType.Name} {Owner.FullName}::{Name}({ArgList})";
         public bool IsInstance => !Flags.Contains("static");
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override");
 
@@ -37,20 +48,45 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void AddInstruction(InterInst inst)
             => Instructions = Instructions.Add(inst);
 
-        public void Emit(IlBuilder builder, IntermediateBuilder context)
+        public void Emit(IlBuilder builder)
         {
             builder.EmitString(".method");
             foreach (string flag in Flags) builder.EmitString(" " + flag);
-            builder.EmitLine($" {ReturnType} {Name}");
+            builder.EmitLine($" {ReturnType.Name} {Name}({ArgList}) cil managed");
             builder.EmitLine("{");
+
             builder.Output.AddIndentation();
+            int startLoc = builder.Output.ReserveLocation();
+
+            if(Locals.Count > 0)
+            {
+                string types = "";
+                foreach (var t in Locals) types += t.Type.Name + ",";
+                builder.EmitLine(".locals init (" + types[..^1] + ")");
+            }
 
             foreach (var inst in Instructions)
-                inst.Emit(builder, context);
+                inst.Emit(builder);
 
+            if(!(Instructions[^1] is InterRet)) builder.EmitOpCode(OpCodes.Ret);
+            builder.Output.WriteStringAtLocation(startLoc, ".maxstack " + builder.GetMaxStack());
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
             builder.EmitLine("");
+        }
+
+        public void Bind(IntermediateBuilder builder)
+        {
+            ReturnType = builder.ResolveType(ReturnTypeName);
+
+            foreach (var a in Arguments)
+                a.BindType(builder);
+
+            foreach (var l in Locals)
+                l.BindType(builder);
+
+            foreach (var inst in Instructions)
+                inst.Bind(builder);
         }
     }
 }

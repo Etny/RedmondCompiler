@@ -1,44 +1,71 @@
-﻿using System;
+﻿using Redmond.Output;
+using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterCall : InterInst
+    class InterCall : InterOp
     {
-        private string _target;
+        private string _targetName;
         private InterInstOperand[] _parameters;
-        public InterCall(string name, InterInstOperand[] parameters)
-        {
-            _target = name;
-            _parameters = parameters;
+        private bool _expression;
 
-            _target += '(';
-            foreach (var p in parameters)
-                _target += p.Type.Name + ",";
-            if(parameters.Length > 0)
-                _target = _target[..^1];
-            _target += ')';
+        private IMethodWrapper _method = null;
+        private CodeType _return = null;
+
+        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false)
+        { 
+            _targetName = name;
+            _parameters = parameters;
+            _expression = isExpression;
+
+           
  
-            CheckTypes();
         }
+
+
         private void CheckTypes()
         {
             //TODO: Add implicit type coercion for function calls
         }
 
-        public override void Emit(IlBuilder builder, IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
-            var target = context.FindClosestWithSignature(_target, Owner.Owner);
+            CodeType[] paramTypes = new CodeType[_parameters.Length];
 
-            if (target.IsInstance)
+            for(int i = 0; i < _parameters.Length; i++)
+            {
+                _parameters[i].Bind(context);
+                paramTypes[i] = _parameters[i].Type;
+            }
+
+            
+            _method = context.FindClosestFunction(_targetName, Owner.Owner, paramTypes);
+            _return = _method.ReturnType;
+        }
+
+        public override void Emit(IlBuilder builder)
+        {
+            if (_method.IsInstance)
                 builder.EmitLine("Push this pointer");
 
-            if (target.IsVirtual)
-                builder.EmitOpCode(OpCodes.Callvirt, target.FullSignature);
+            foreach (var p in _parameters)
+                p.Emit(builder);
+
+            if (_method.IsVirtual)
+                builder.EmitOpCode(OpCodes.Callvirt, _method.FullSignature);
             else
-                builder.EmitOpCode(OpCodes.Call, target.FullSignature);
+                builder.EmitOpCode(OpCodes.Call, _method.FullSignature);
+
+            if (_return != CodeType.Void && !_expression) builder.EmitOpCode(OpCodes.Pop);
+        }
+
+        public override CodeType GetResultType()
+        {
+            return _return;
         }
     }
 }

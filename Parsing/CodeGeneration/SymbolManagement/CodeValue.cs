@@ -9,17 +9,20 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
     class CodeValue
     {
-        public CodeType Type;
+        public CodeType Type = null;
+        public string TypeName = "";
         public object Value { get; protected set; }
 
         [LexFunction("makeValue")]
         [SyntaxFunction("makeValue")]
         public static CodeValue MakeValue(string type, object value)
-            => new CodeValue(type, value);
+          => new CodeValue(type, value);
 
-        public CodeValue(string type, object value = null)
-            : this(CodeType.ByName(type), value) { }
-
+        public CodeValue(string typeName, object value = null)
+        {
+            TypeName = typeName;
+            Value = value;
+        }
 
         public CodeValue(CodeType type, object value = null)
         {
@@ -27,10 +30,17 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Value = value;
         }
 
-        public override string ToString()
-            => Type.Name + " => " + Value;
+        public void BindType(IntermediateBuilder context)
+        {
+            if(Type == null)
+                Type = context.ResolveType(TypeName);
+        }
 
-        public virtual OpCode PushCode => Type.PushCode;
+        public override string ToString()
+            => TypeName + " => " + Value;
+
+        public virtual void Push(IlBuilder builder)
+            => builder.EmitOpCode(Type.PushCode, Value);
 
     }
 }
