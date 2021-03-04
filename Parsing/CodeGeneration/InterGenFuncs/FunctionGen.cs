@@ -27,7 +27,11 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Call")]
         public void CompileFunctionCall(SyntaxTreeNode node)
         {
+            builder.AddInstruction(CompileCall(node, false));
+        }
 
+        public InterCall CompileCall(SyntaxTreeNode node, bool exp)
+        {
             InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
 
             for (int i = 0; i < parameters.Length; i++)
@@ -35,7 +39,20 @@ namespace Redmond.Parsing.CodeGeneration
                 parameters[i] = ToIntermediateExpression(node[1][i]);
             }
 
-            builder.AddInstruction(new InterCall(node[0].ValueString, parameters));
+            CodeValue thisPtr = null;
+
+            if (node.Children.Length > 2)
+            {
+                var s = GetFirst(node[2].ValueString);
+                if (s == null)
+                {
+                    CodeType c = builder.ResolveType(node[2].ValueString);
+                    if (c != null)
+                        return new InterCall(node[0].ValueString, parameters, exp, c);
+                }
+            }
+
+            return new InterCall(node[0].ValueString, parameters, exp, thisPtr);
         }
 
         [CodeGenFunction("Function")]

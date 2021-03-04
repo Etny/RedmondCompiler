@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -10,13 +11,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public ImmutableList<string> Flags = ImmutableList<string>.Empty;
         public ImmutableList<IInterMember> Members = ImmutableList<IInterMember>.Empty;
 
-        public readonly string Name, BaseType;
+        public readonly string Name;
+        public readonly CodeType BaseType;
 
         //TODO: add interface support
-        public InterType(string name, string baseType = "[System.Runtime]System.Object")
+        public InterType(string name, CodeType baseType = null)
         {
             Name = name;
-            BaseType = baseType;
+            BaseType = baseType ?? CodeType.Object;
         }
 
         public string FullName => Name;
@@ -30,7 +32,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType}");
+            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.Name}");
             builder.EmitLine("{");
             builder.EmitLine("");
             builder.Output.AddIndentation();

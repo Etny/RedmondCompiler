@@ -1,4 +1,5 @@
 ﻿using Redmond.Output;
+using Redmond.Output.Error;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
@@ -11,19 +12,29 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     {
         private string _targetName;
         private InterInstOperand[] _parameters;
-        private bool _expression;
+        private bool _expression, _staticCall;
+        private CodeValue _thisPtr;
+        private CodeType _staticType;
 
         private IMethodWrapper _method = null;
         private CodeType _return = null;
 
-        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false)
+        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, CodeValue thisPtr = null)
         { 
             _targetName = name;
             _parameters = parameters;
             _expression = isExpression;
+            _staticCall = false;
+            _thisPtr = thisPtr;
+        }
 
-           
- 
+        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, CodeType type = null)
+        {
+            _targetName = name;
+            _parameters = parameters;
+            _expression = isExpression;
+            _staticCall = true;
+            _staticType = type;
         }
 
 
@@ -42,15 +53,19 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 paramTypes[i] = _parameters[i].Type;
             }
 
-            
-            _method = context.FindClosestFunction(_targetName, Owner.Owner, paramTypes);
+            CodeType type = _staticCall ? _staticType : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
+
+            _method = context.FindClosestFunction(_targetName, type, paramTypes);
             _return = _method.ReturnType;
         }
 
         public override void Emit(IlBuilder builder)
         {
             if (_method.IsInstance)
-                builder.EmitLine("Push this pointer");
+            {
+                if (Owner.IsStatic || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
+                builder.PushValue(_thisPtr ?? _parameters[0].Value);
+            }
 
             foreach (var p in _parameters)
                 p.Emit(builder);

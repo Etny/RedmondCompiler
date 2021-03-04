@@ -41,6 +41,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsInstance => !Flags.Contains("static");
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override");
 
+        public bool IsStatic => Flags.Contains("static");
 
         public void AddFlag(string flag)
             => Flags = Flags.Add(flag);

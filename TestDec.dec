@@ -132,7 +132,8 @@ assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1.node, 
 if_statement		:	'if' '(' expression ')'	statement	{$$ = makeNode("IfStatement", $3, $5)}
 					;
 
-call_statement		:	dotted_name '(' parameter_list ')' {$$ = makeNode("Call", $1, $3)}
+call_statement		:	id '(' parameter_list ')' {$$ = makeNode("Call", $1.node, $3)}
+					|   dotted_name '.' id '(' parameter_list ')' {$$ = makeNode("Call", $3.node, $5, $1)}
 					;
 
 parameter_list		:	parameter_list ',' expression		{addChild($1, $3); $$ = $1}

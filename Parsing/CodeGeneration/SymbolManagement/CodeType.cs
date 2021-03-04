@@ -53,7 +53,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Name = names[0];
 
             foreach (string s in names)
-                _types.Add(s, this);
+                if (s != "") _types.Add(s, this);
         }
 
 

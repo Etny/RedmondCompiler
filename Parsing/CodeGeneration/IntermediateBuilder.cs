@@ -5,6 +5,9 @@ using System.Reflection;
 using System.Text;
 using System.Linq;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using Redmond.Parsing.CodeGeneration.References;
+using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Redmond.Parsing.CodeGeneration
 {
@@ -16,14 +19,17 @@ namespace Redmond.Parsing.CodeGeneration
         public InterMethod CurrentMethod = null;
 
         private Dictionary<string, InterMethod> _localFunctions = new Dictionary<string, InterMethod>();
-        private List<Assembly> imports = new List<Assembly>();
         private Stack<SymbolTable> _tables;
+
+        public ImmutableList<IAssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<IAssemblyReference>.Empty;
+        public ImmutableList<string> ImportedNamespaces { get; protected set; } = ImmutableList<string>.Empty;
+
 
         private string assemblyName = "Redmond";
 
         public IntermediateBuilder(Stack<SymbolTable> tables)
         {
-            AddImport(Assembly.Load("System.Runtime"));
+            AddReference(new CoreAssemblyReference());  
 
             var t = Assembly.Load("System.Reflection.Primitives");
             var ts = t.GetType("OpCode");
@@ -75,18 +81,25 @@ namespace Redmond.Parsing.CodeGeneration
             return sym;
         }
 
-        public void AddImport(Assembly assembly)
-            => imports.Add(assembly);
+        public void AddImport(string nameSpace)
+            => ImportedNamespaces = ImportedNamespaces.Add(nameSpace);
+
+        public void AddReference(IAssemblyReference reference)
+            => AssemblyReferences = AssemblyReferences.Add(reference);
 
         public CodeType ResolveType(string name)
         {
             var ctype = CodeType.ByName(name);
             if (ctype != null) return ctype;
 
-            foreach(var a in imports)
+            foreach (string ns in ImportedNamespaces)
             {
-                var type = a.GetType(name);
-                if (type != null) return new UserType(type);
+                foreach (var a in AssemblyReferences)
+                {
+                    var type = a.ResolveType(ns + "." + name);
+                    if (type == null) type = a.ResolveType(name);
+                    if(type != null) return new UserType(type);
+                }
             }
 
             return null;
@@ -102,34 +115,20 @@ namespace Redmond.Parsing.CodeGeneration
         public InterMethod FromSignature(string sig)
             => _localFunctions[sig];
 
-        public IMethodWrapper FindClosestFunction(string name, InterType owner, params CodeType[] args)
+        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeType[] args)
         {
-            if (_localFunctions.ContainsKey(owner.FullName + "." + name))
-                return new InterMethodWrapper(_localFunctions[owner.FullName + "." + name], this);
+            var type = owner as UserType;
+            Debug.Assert(owner is UserType);
 
-            //TODO: improve this
-            if (name.Contains(".")) {
-                string typeName = name[0..name.LastIndexOf('.')];
-                string funcName = name[(name.LastIndexOf('.')+1)..];
+            List<IMethodWrapper> applicableFunctions = new List<IMethodWrapper>();
 
-                foreach (var a in imports)
-                    foreach (Type t in (from type in a.GetTypes() where type.Name == typeName select type).ToArray())
-                        foreach(var m in t.GetMethods())
-                            if (m.Name == funcName)
-                                return new MethodInfoWrapper(m, this);
-            }
-            else
-            {
-                string funcName = name[(name.LastIndexOf('.')+1)..name.LastIndexOf('(')];
+            foreach (var f in type.GetFunctions(this))
+                if (f.Name == name)
+                    applicableFunctions.Add(f);
 
-                foreach (var a in imports)
-                    foreach (Type t in a.GetTypes())
-                        foreach (var m in t.GetMethods())
-                            if (m.Name == funcName)
-                                return new MethodInfoWrapper(m, this);
-            }
+            Debug.Assert(applicableFunctions.Count > 0);
 
-            return null;
+            return applicableFunctions[0];
         }
 
 
@@ -150,8 +149,8 @@ namespace Redmond.Parsing.CodeGeneration
 
             builder.EmitLine();
 
-            foreach(var import in imports)
-                builder.EmitLine($".assembly extern {import.ManifestModule.Name.Replace(".dll", "")} {{}}");
+            foreach(var reference in AssemblyReferences)
+                builder.EmitLine($".assembly extern {reference.Name} {{}}");
 
             builder.EmitLine(".module TestModule");
 

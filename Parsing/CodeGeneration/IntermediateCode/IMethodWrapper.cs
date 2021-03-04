@@ -13,6 +13,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         string FullSignature { get; }
 
+        string Name { get; }
+
         CodeType ReturnType { get; }
     }
 
@@ -28,6 +30,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsInstance => _method.IsInstance;
 
         public string FullSignature => _method.CallSignature;
+
+        public string Name => _method.Name;
 
         public CodeType ReturnType => _method.ReturnType;
     }
@@ -47,6 +51,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string FullSignature 
             => $"{functionPrefixes}{_method.DeclaringType.FullName}::{_method.Name}()";
+
+        public string Name => _method.Name;
 
         private string functionPrefixes
         {

@@ -52,14 +52,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("CallExpression")]
         public InterOp CompileCallExpression(SyntaxTreeNode node)
         {
-            InterInstOperand[] parameters = new InterInstOperand[node[0][1].Children.Length];
-
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                parameters[i] = ToIntermediateExpression(node[0][1][i]);
-            }
-
-            var ret = new InterCall(node[0][0].ValueString, parameters, true);
+            var ret = CompileCall(node[0], true);
             ret.SetOwner(builder.CurrentMethod);
 
             return ret;

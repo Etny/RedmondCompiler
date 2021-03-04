@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.CodeAnalysis;
 using Redmond.Common;
 using Redmond.Lex;
 using Redmond.Lex.LexCompiler;
@@ -10,6 +11,8 @@ using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Redmond
 {
@@ -21,6 +24,8 @@ namespace Redmond
         //private static IStringStream Output = new ConsoleStream();
         static void Main()
         {
+            Console.WriteLine(typeof(Console).GetTypeInfo().Assembly.Location);
+
             CompileSettings.InitSettings(Dec.SettingsLines);
             TokenType.AddTypes(Dec.TokenLines);
             TokenStream Input = new TokenStream(InputString, Dec.LexLines, "\"\'.,[]{}12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=>*/:;() $\n\r\t");
@@ -29,6 +34,8 @@ namespace Redmond
             Console.WriteLine(tree.ToTreeString());
             Console.WriteLine("============\n");
             new IntermediateGenerator(tree);
+
+
         }
     }
 }

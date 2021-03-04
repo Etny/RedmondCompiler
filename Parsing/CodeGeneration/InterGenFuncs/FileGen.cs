@@ -16,7 +16,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("Import")]
         public void CompileImport(SyntaxTreeNode node)
         {
-            builder.AddImport(Assembly.Load(node.ValueString));
+            builder.AddImport(node.ValueString);
         }
 
     }
