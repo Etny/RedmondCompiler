@@ -36,13 +36,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _staticCall = true;
             _staticType = type;
         }
-
-
-        private void CheckTypes()
-        {
-            //TODO: Add implicit type coercion for function calls
-        }
-
         public override void Bind(IntermediateBuilder context)
         {
             CodeType[] paramTypes = new CodeType[_parameters.Length];
@@ -61,21 +54,33 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+
             if (_method.IsInstance)
             {
                 if (Owner.IsStatic || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
                 builder.PushValue(_thisPtr ?? _parameters[0].Value);
             }
 
-            foreach (var p in _parameters)
-                p.Emit(builder);
+
+            for(int i = 0; i < _parameters.Length; i++)
+            {
+                _parameters[i].Emit(builder);
+                if (_method.Arguments[i] != _parameters[i].Type) builder.EmitOpCode(_method.Arguments[i].ConvCode);
+            }
 
             if (_method.IsVirtual)
                 builder.EmitOpCode(OpCodes.Callvirt, _method.FullSignature);
             else
                 builder.EmitOpCode(OpCodes.Call, _method.FullSignature);
 
-            if (_return != CodeType.Void && !_expression) builder.EmitOpCode(OpCodes.Pop);
+            builder.ShrinkStack(_parameters.Length);
+
+            if (_return != CodeType.Void)
+            {
+                if (!_expression) builder.EmitOpCode(OpCodes.Pop);
+                else builder.ExpandStack(1);
+            }
+            
         }
 
         public override CodeType GetResultType()

@@ -24,8 +24,6 @@ namespace Redmond
         //private static IStringStream Output = new ConsoleStream();
         static void Main()
         {
-            Console.WriteLine(typeof(Console).GetTypeInfo().Assembly.Location);
-
             CompileSettings.InitSettings(Dec.SettingsLines);
             TokenType.AddTypes(Dec.TokenLines);
             TokenStream Input = new TokenStream(InputString, Dec.LexLines, "\"\'.,[]{}12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=>*/:;() $\n\r\t");

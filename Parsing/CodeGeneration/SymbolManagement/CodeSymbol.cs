@@ -13,9 +13,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public CodeSymbolLocation Location;
 
-
-        public CodeSymbol(string id, string typeName, object value = null) : this(id, typeName, CodeSymbolLocation.Default, value) { }
-
+        public CodeSymbol(string id, string typeName, object value = null) : this(id, typeName, IndexedSymbolLocation.Default, value) { }
 
         public CodeSymbol(string id, string typeName, CodeSymbolLocation location, object value = null) : base(typeName, value)
         {
@@ -43,50 +41,5 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
 
 
-    }
-
-    public struct CodeSymbolLocation
-    {
-        public readonly CodeSymbolLocationType LocationType;
-        public readonly int Index;
-
-        public static CodeSymbolLocation Default = new CodeSymbolLocation(CodeSymbolLocationType.Local, 0);
-
-        public CodeSymbolLocation(CodeSymbolLocationType type, int index)
-        {
-            LocationType = type;
-            Index = index;
-        }
-
-        internal void Push(IlBuilder builder)
-        {
-            if (Index <= 3)
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix + '_' + Index));
-            else
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("Ld" + OpCodeSuffix), Index);
-        }
-
-        internal void Store(IlBuilder builder)
-        {
-            if (Index <= 3)
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("St" + OpCodeSuffix + '_' + Index));
-            else
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("St" + OpCodeSuffix), Index);
-        }
-
-        public string OpCodeSuffix 
-            => LocationType switch {
-                    CodeSymbolLocationType.Local => "loc",
-                    CodeSymbolLocationType.Field => "fld",
-                    _ => "arg",
-                };
-            
-        
-
-    }
-
-    public enum CodeSymbolLocationType
-    {
-        Argument, Local, Field
     }
 }

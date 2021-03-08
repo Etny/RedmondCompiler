@@ -87,7 +87,7 @@ namespace Redmond.Parsing.CodeGeneration
                         functionKeywords.Add(child.ValueString);
                         break;
 
-                    case "FunctionKeywords":
+                    case "DeclarationKeywords":
                         foreach (var kw in child.Children)
                             functionKeywords.Add(kw.ValueString);
                         break;

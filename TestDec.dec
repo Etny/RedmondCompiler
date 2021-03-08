@@ -28,13 +28,13 @@ character = letter|number
 %%
 
 true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
-(letter|_) character* {Identifier}
+(letter|_)character* {Identifier}
 number+ {Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
 [=\*/+-] {Operator}
 [$,();:\{\}>.,] {Punctuation}
 //[\n\r]	{NewLine}
 [\w\t\r\n]	{Whitespace}
-"((letter|number)|[\w\t\r\n])*"	{StringLiteral; $$ = makeValue("string", $)}
+"((letter|number)|[\w\t\r\n:,])*"	{StringLiteral; $$ = makeValue("string", $)}
 
 #End
 
@@ -69,13 +69,24 @@ member_list			: member_list member	{addChild($1, $2); $$ = $1}
 					|						{$$ = makeNode("MemberList")}
 					;
 
-member				: function	{$$ = $1}
+member				: field
+					| function
 					;
+
+field				: access_dec dec_keywords dec_statement ';'	{$$ = makeNode("FieldDec", $3, $1)}
+					;
+
+
+field_keyword   	: 'readonly'		{$$ = makeLeaf("FieldKeyword", "initonly")}
+					| 'static'			{$$ = makeLeaf("FieldKeyword", $1)}
+					| 'const'			{$$ = makeLeaf("FieldKeyword", "literal")}
+					;
+
 
 function			: function_dec function_body	{$$ = makeNode("Function", $1, $2)}
 					;
 
-function_dec		: access_dec function_keywords dotted_name id '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $3, $4.node, $6)}
+function_dec		: access_dec dec_keywords dotted_name id '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $3, $4.node, $6)}
 					;
 
 access_dec			: 'public'		{$$ = makeLeaf("AccessKeyword", $1)}
@@ -85,15 +96,17 @@ access_dec			: 'public'		{$$ = makeLeaf("AccessKeyword", $1)}
 					|				{$$ = makeLeaf("AccessKeyword", "assembly")}
 					;
 
-function_keywords	: function_keywords function_keyword	{addChild($1, $2); $$ = $1}
-					| function_keyword						{$$ = makeNode("FunctionKeywords", $1)}
-					|										{$$ = makeNode("FunctionKeywords")}
+dec_keywords		: dec_keywords dec_keyword				{addChild($1, $2); $$ = $1}
+					| dec_keyword							{$$ = makeNode("DeclarationKeywords", $1)}
+					|										{$$ = makeNode("DeclarationKeywords")}
 					;
 
-function_keyword	: 'sealed'		{$$ = makeLeaf("FunctionKeyword", $1)}
-					| 'static'		{$$ = makeLeaf("FunctionKeyword", $1)}
-					| 'abstract'	{$$ = makeLeaf("FunctionKeyword", $1)}
-					| 'virtual'		{$$ = makeLeaf("FunctionKeyword", $1)}
+dec_keyword			: 'sealed'		{$$ = makeLeaf("DeclarationKeyword", $1)}
+					| 'static'		{$$ = makeLeaf("DeclarationKeyword", $1)}
+					| 'abstract'	{$$ = makeLeaf("DeclarationKeyword", $1)}
+					| 'virtual'		{$$ = makeLeaf("DeclarationKeyword", $1)}
+					| 'readonly'	{$$ = makeLeaf("DeclarationKeyword", "initonly")}
+					| 'const'		{$$ = makeLeaf("DeclarationKeyword", "literal")}
 					;
 
 function_body		: compound_statement				{$$ = makeNode("FunctionBody", $1)}
@@ -122,8 +135,8 @@ return_statement	:	'return'				{$$ = makeLeaf("ReturnStatement")}
 					|	'return' expression	{$$ = makeNode("ReturnStatement", $2)}
 					;
 
-dec_statement		:	dotted_name id '=' expression {$$ = makeNode("DeclarationStatement", $2.node, $1, $4);}
-					|	dotted_name id				{$$ = makeNode("DeclarationStatement", $2.node, $1)}  
+dec_statement		:	dotted_name id '=' expression	{$$ = makeNode("DeclarationStatement", $2.node, $1, $4);}
+					|	dotted_name id					{$$ = makeNode("DeclarationStatement", $2.node, $1)}  
 					;
 
 assign_statement	:	id '=' expression	{$$ = makeNode("AssignStatement", $1.node, $3)}

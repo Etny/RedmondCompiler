@@ -37,8 +37,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             }
 
             _source.Emit(builder);
-            if (_source.Type != _target.Type) builder.EmitOpCode(_target.Type.ConvCode);
-            if (emitConv) builder.EmitOpCode(_target.Type.ConvCode);
+            if (_source.Type != _target.Type | emitConv) builder.EmitOpCode(_target.Type.ConvCode);
             _target.Store(builder);
             //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }

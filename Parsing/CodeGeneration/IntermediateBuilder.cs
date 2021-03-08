@@ -18,7 +18,6 @@ namespace Redmond.Parsing.CodeGeneration
         public InterType CurrentType = null;
         public InterMethod CurrentMethod = null;
 
-        private Dictionary<string, InterMethod> _localFunctions = new Dictionary<string, InterMethod>();
         private Stack<SymbolTable> _tables;
 
         public ImmutableList<IAssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<IAssemblyReference>.Empty;
@@ -50,12 +49,11 @@ namespace Redmond.Parsing.CodeGeneration
         {
             var method = new InterMethod(name, returnType, vars, CurrentType);
             CurrentMethod = method;
-            CurrentType.AddMember(method);
-            _localFunctions.Add(method.Signature, method);
+            CurrentType.AddMethod(method);
 
             for (int i = 0; i < vars.Length; i++)
             {
-                vars[i].Location = new CodeSymbolLocation(CodeSymbolLocationType.Argument, i);
+                vars[i].Location = new IndexedSymbolLocation(IndexedSymbolLocation.IndexedSymbolLocationType.Argument, i);
                 _tables.Peek().AddSymbol(vars[i]);
             }
 
@@ -65,20 +63,24 @@ namespace Redmond.Parsing.CodeGeneration
         public InterInst AddInstruction(InterInst inst)
         {
             CurrentMethod.AddInstruction(inst);
-            inst.SetOwner(CurrentMethod);
             return inst;
         }
-
-        //TODO: Add field support
-
         public CodeSymbol AddLocalSymbol(string name, string type, object value = null)
         {
-            CodeSymbol sym = new CodeSymbol(name, type, new CodeSymbolLocation(CodeSymbolLocationType.Local, CurrentMethod.Locals.Count), value);
+            CodeSymbol sym = new CodeSymbol(name, type, new IndexedSymbolLocation(IndexedSymbolLocation.IndexedSymbolLocationType.Local, CurrentMethod.Locals.Count), value);
             CurrentMethod.Locals.Add(sym);
 
             _tables.Peek().AddSymbol(sym);
 
             return sym;
+        }
+
+        public InterField AddField(string name, string type)
+        {
+            InterField field = new InterField(name, type, new InterUserType(CurrentType));
+            _tables.Peek().AddSymbol(field.Symbol);
+            CurrentType.AddField(field);
+            return field;
         }
 
         public void AddImport(string nameSpace)
@@ -112,8 +114,6 @@ namespace Redmond.Parsing.CodeGeneration
             return new UserType(type);
         }
 
-        public InterMethod FromSignature(string sig)
-            => _localFunctions[sig];
 
         public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeType[] args)
         {
@@ -123,12 +123,40 @@ namespace Redmond.Parsing.CodeGeneration
             List<IMethodWrapper> applicableFunctions = new List<IMethodWrapper>();
 
             foreach (var f in type.GetFunctions(this))
-                if (f.Name == name)
+                if (f.Name == name && f.ArgumentCount == args.Length)
                     applicableFunctions.Add(f);
 
             Debug.Assert(applicableFunctions.Count > 0);
 
-            return applicableFunctions[0];
+            IMethodWrapper closest = null;
+            float lowestDifference = -1;
+
+            foreach(var f in applicableFunctions)
+            {
+                bool canConvert = true;
+                float diff = 0;
+                for (int i = 0; i < args.Length; i++)
+                {
+                    var argType = args[i];
+                    var funcType = f.Arguments[i];
+
+                    if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
+
+                    diff += funcType.Wideness - argType.Wideness;
+                }
+
+                if (!canConvert) continue;
+
+                if(lowestDifference < 0 || diff < lowestDifference)
+                {
+                    lowestDifference = diff;
+                    closest = f;
+                }
+            }
+
+            Debug.Assert(closest != null);
+
+            return closest;
         }
 
 

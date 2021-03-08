@@ -26,6 +26,16 @@ namespace Redmond.Parsing.CodeGeneration
             val.Push(this);
         }
 
+        public void ShrinkStack(int amount)
+            => _currentStack -= amount;
+
+        public void ExpandStack(int amount)
+        {
+            _currentStack += amount;
+            if (_currentStack > _maxStack)
+                _maxStack = _currentStack;
+        }
+
         public int GetMaxStack()
         {
             int temp = _maxStack;

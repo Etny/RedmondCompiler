@@ -47,9 +47,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             => Flags = Flags.Add(flag);
 
         public void AddInstruction(InterInst inst)
-            => Instructions = Instructions.Add(inst);
+        {
+            Instructions = Instructions.Add(inst);
+            inst.SetOwner(this);
+        }
 
-        public void Emit(IlBuilder builder)
+        public virtual void Emit(IlBuilder builder)
         {
             builder.EmitString(".method");
             foreach (string flag in Flags) builder.EmitString(" " + flag);
@@ -57,7 +60,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             builder.EmitLine("{");
 
             builder.Output.AddIndentation();
+
+            //TODO: Allow for selection of entrypoint
+            if (Name == "Main") builder.EmitLine(".entrypoint");
+
             int startLoc = builder.Output.ReserveLocation();
+
 
             if(Locals.Count > 0)
             {
@@ -69,7 +77,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             foreach (var inst in Instructions)
                 inst.Emit(builder);
 
-            if(!(Instructions[^1] is InterRet)) builder.EmitOpCode(OpCodes.Ret);
+            if(Instructions.Count == 0 || !(Instructions[^1] is InterRet)) builder.EmitOpCode(OpCodes.Ret);
             builder.Output.WriteStringAtLocation(startLoc, ".maxstack " + builder.GetMaxStack());
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
@@ -85,9 +93,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             foreach (var l in Locals)
                 l.BindType(builder);
+        }
 
+        public void BindSubMembers(IntermediateBuilder builder)
+        {
             foreach (var inst in Instructions)
                 inst.Bind(builder);
         }
+        
     }
 }

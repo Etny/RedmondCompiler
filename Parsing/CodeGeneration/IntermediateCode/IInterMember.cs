@@ -9,5 +9,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         void Emit(IlBuilder builder);
         void Bind(IntermediateBuilder builder);
 
+        void BindSubMembers(IntermediateBuilder builder);
+
     }
 }

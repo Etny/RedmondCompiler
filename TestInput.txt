@@ -1,18 +1,22 @@
 ﻿using System;
-using System.Reflection.Emit;
 
 class TestClass {
 
-	public static void FunctionTest(){
-		float First = 10; 
-		int second = 7 + First / 2;
-		OpCode opCode;
-		int third = AnotherFunction(1+3, 2);
-		Console.WriteLine(third / 2);
+	public static int TestField = 23;
+
+	public static void Main(){
+		Console.Write("First Number: ");		
+		int i1 = Int32.Parse(Console.ReadLine());
+		Console.Write("Second Number: ");		
+		int i2 = Int32.Parse(Console.ReadLine());
+		Console.Write("Result: ");
+		Console.WriteLine(AnotherFunction(i1, i2));
+		Console.Write("Stored in Field: ");
+		Console.WriteLine(TestField);
 		Console.ReadLine();
 	}
 
-	static int AnotherFunction(int i, int p){
+	static float AnotherFunction(float i, float p){
 		return i + p;
 	}
 

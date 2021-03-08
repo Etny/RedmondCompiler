@@ -38,7 +38,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public string OpName { get; protected set; }
         public string Name { get; protected set; }
 
-        protected float wideness;
+        public readonly float Wideness;
 
         public virtual OpCode PushCode { get => OpCodeUtil.GetOpcode("Ldc_" + OpName); }
         public virtual OpCode ConvCode { get => OpCodeUtil.GetOpcode("Conv_" + OpName); }
@@ -49,7 +49,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         protected CodeType(string opName, float wide, params string[] names)
         {
             OpName = opName ?? null;
-            wideness = wide;
+            Wideness = wide;
             Name = names[0];
 
             foreach (string s in names)
@@ -59,8 +59,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public virtual CodeType GetWiderType(CodeType otherType)
         {
-            if (otherType.wideness < 0 || wideness < 0) return null;
-            if (otherType.wideness > wideness) return otherType;
+            if (otherType.Wideness < 0 || Wideness < 0) return null;
+            if (otherType.Wideness > Wideness) return otherType;
             return this;
         }
 
@@ -75,10 +75,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             public readonly CodeType UnderlyingType;
 
-            internal DerivedType(CodeType underlying, params string[] names) : this(underlying.OpName, underlying.wideness, underlying, names) { }
+            internal DerivedType(CodeType underlying, params string[] names) : this(underlying.OpName, underlying.Wideness, underlying, names) { }
 
             internal DerivedType(float wide, CodeType underlying, params string[] names) : this(underlying.OpName, wide, underlying, names) { }
-            internal DerivedType(string opName, CodeType underlying, params string[] names) : this(opName, underlying.wideness, underlying, names) { }
+            internal DerivedType(string opName, CodeType underlying, params string[] names) : this(opName, underlying.Wideness, underlying, names) { }
 
 
             internal DerivedType(string opName, float wide, CodeType underlying, params string[] names) : base(opName, wide, names)

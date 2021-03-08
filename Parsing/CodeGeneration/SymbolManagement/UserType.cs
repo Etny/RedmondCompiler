@@ -9,6 +9,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
 
         private Type _type;
+        protected bool _valuetype;
 
         protected UserType() : base("", -1, "") {}
 
@@ -16,8 +17,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             _type = type;
 
-            Name = $"class [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+            _valuetype = type.IsValueType;
+
+            Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
         }
+
+        public virtual string SpecName => $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
 
         public virtual IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
         {
@@ -38,11 +43,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Name = $"class {_type.FullName}";
         }
 
+        public override string SpecName => $"{_type.FullName}";
+
         public override IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
         {
-            foreach (var f in _type.Members)
-                if (f is InterMethod)
-                    yield return new InterMethodWrapper(f as InterMethod, context);
+            foreach (var f in _type.Methods)
+                    yield return new InterMethodWrapper(f, context);
         }
     }
 

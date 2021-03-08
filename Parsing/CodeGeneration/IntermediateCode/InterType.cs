@@ -9,16 +9,26 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     class InterType
     {
         public ImmutableList<string> Flags = ImmutableList<string>.Empty;
-        public ImmutableList<IInterMember> Members = ImmutableList<IInterMember>.Empty;
+        public ImmutableList<InterMethod> Methods = ImmutableList<InterMethod>.Empty;
+        public ImmutableList<InterField> Fields = ImmutableList<InterField>.Empty;
+
 
         public readonly string Name;
-        public readonly CodeType BaseType;
+        public readonly UserType BaseType;
+
+        public readonly InterMethodSpecialName Constructor, Initializer;
+
 
         //TODO: add interface support
-        public InterType(string name, CodeType baseType = null)
+        public InterType(string name, UserType baseType = null)
         {
             Name = name;
-            BaseType = baseType ?? CodeType.Object;
+            BaseType = baseType ?? (UserType)CodeType.Object;
+
+            //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
+            Initializer = new InterMethodSpecialName(".cctor", new CodeSymbol[] { }, this);
+            AddMethod(Initializer);
+
         }
 
         public string FullName => Name;
@@ -27,18 +37,27 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             => Flags = Flags.Add(flag);
 
 
-        public void AddMember(IInterMember member)
-            => Members = Members.Add(member);
+        public void AddMethod(InterMethod method)
+            => Methods = Methods.Add(method);
+
+
+        public void AddField(InterField field)
+            => Fields = Fields.Add(field);
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.Name}");
+            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.SpecName}");
             builder.EmitLine("{");
-            builder.EmitLine("");
+            builder.EmitLine();
             builder.Output.AddIndentation();
 
-            foreach (var member in Members)
-                member.Emit(builder);
+            foreach (var field in Fields)
+                field.Emit(builder);
+
+            builder.EmitLine();
+
+            foreach (var method in Methods)
+                method.Emit(builder);
 
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
@@ -47,8 +66,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Bind(IntermediateBuilder builder)
         {
-            foreach (var member in Members)
-                member.Bind(builder);
+            foreach (var field in Fields)
+                field.Bind(builder);
+
+            foreach (var method in Methods)
+                method.Bind(builder);
+
+            foreach (var method in Methods)
+                method.BindSubMembers(builder);
         }
     }
 }
