@@ -148,9 +148,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         private void SetAction(ParserState state, ProductionEntry key, (ParserAction, Object) newAction)
         {
+            if (newAction.Item1 == ParserAction.Reduce && (newAction.Item2 as Production).IsEmpty)
+                Console.WriteLine("hhs");
+
             if (state.Action.ContainsKey(key))
             {
                 var oldAction = state.Action[key];
+
+                if (oldAction.Item1 == newAction.Item1 && oldAction.Item2 == newAction.Item2) return;
 
                 if (oldAction.Item1 != ParserAction.Accept && newAction.Item1 != ParserAction.Accept)
                 {
@@ -177,7 +182,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     {
                         //Reduce/Reduce conflict
                         var newProd = newAction.Item2 as Production;
-                        var oldProd = newAction.Item2 as Production;
+                        var oldProd = oldAction.Item2 as Production;
 
                         bool newFirst = false;
 

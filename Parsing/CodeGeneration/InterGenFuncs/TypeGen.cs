@@ -24,8 +24,14 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("FieldDec")]
         public void CompileFieldDecleration(SyntaxTreeNode node)
         {
+            string access = node[1].ValueString;
+            List<string> keywords = new List<string>();
+
+            foreach (var c in node[2].Children)
+                keywords.Add(c.ValueString);
+
             var dec = node[0];
-            var field = builder.AddField(dec[0].ValueString, dec[1].ValueString);
+            var field = builder.AddField(dec[0].ValueString, dec[1].ValueString, access, keywords);
 
             if(dec.Children.Length > 2)
                 builder.CurrentType.Initializer.AddInstruction(new InterCopy(field.Symbol, ToIntermediateExpression(dec[2])));

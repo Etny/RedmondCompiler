@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
@@ -18,7 +19,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override bool Equals(object obj) => obj is EmptyTerminal;
 
-        protected override IEnumerable<ProductionEntry> _calculateFirst() { yield return this; }
+        protected override IEnumerable<ProductionEntry> _calculateFirst(ImmutableList<NonTerminal> callers) { yield return this; }
 
     }
 }
