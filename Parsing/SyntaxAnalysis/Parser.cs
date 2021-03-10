@@ -44,6 +44,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             while (action.Item1 != ParserAction.Accept)
             {
+                if (input.NextToken.Text == "Console")
+                    Console.WriteLine("aaaa");
 
                 switch (action.Item1)
                 { 

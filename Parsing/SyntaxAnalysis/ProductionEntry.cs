@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
@@ -11,13 +13,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public bool IsEmptyTerminal { get => this is EmptyTerminal; }
         public bool CanBeEmpty { get => _canBeEmpty(); }
-        public bool CanFirstBeEmpty { get => _canFirstBeEmpty(); }
+        public bool CanFirstBeEmpty { get; protected set; } = false;
+
 
 
         public ProductionEntry[] First { get { if (_first == null) CalculateFirst(); return _first; } }
         protected ProductionEntry[] _first = null;
 
-        public ProductionEntry[] Follow { get { if (_follow == null) _finalizeFollow(); return _follow; } }
+        public ProductionEntry[] Follow { get { Debug.Assert(!IsTerminal); if (_follow == null) _finalizeFollow(); return _follow; } }
         protected ProductionEntry[] _follow = null;
         protected List<IEnumerable<ProductionEntry>> _followGroups = new List<IEnumerable<ProductionEntry>>();
         protected List<NonTerminal> _followFollow = new List<NonTerminal>();
@@ -34,8 +37,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public abstract override string ToString();
         public abstract override bool Equals(object obj);
         public abstract override int GetHashCode();
-        public bool _canFirstBeEmpty()
-            => First.ToList().Exists(e => e is EmptyTerminal);
 
         public static ProductionEntry[] GetFirstOfSet(ProductionEntry[] prods, int startIndex = 0)
         {
@@ -81,12 +82,16 @@ namespace Redmond.Parsing.SyntaxAnalysis
             _follow = follow.ToArray();
         }
 
-        protected abstract IEnumerable<ProductionEntry> _calculateFirst();
+        protected abstract IEnumerable<ProductionEntry> _calculateFirst(ImmutableList<NonTerminal> callers);
+
 
         public void CalculateFirst()
+            => CalculateFirst(ImmutableList<NonTerminal>.Empty);
+
+        public void CalculateFirst(ImmutableList<NonTerminal> callers)
         {
             if (_first == null)
-                _first = _calculateFirst().ToArray();
+                _first = _calculateFirst(callers).ToArray();
         }
         public virtual void CalculateFollows() { }
     }

@@ -1,4 +1,5 @@
 ﻿using Redmond.Common;
+using Redmond.Lex.LexCompiler;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -12,6 +13,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public static SyntaxTreeNode CurrentNode = null;
 
         [SyntaxFunction("makeLeaf")]
+        [LexFunction("makeLeaf")]
         public static SyntaxTreeNode MakeLeaf(string op, object val)
         {
             CurrentNode = new SyntaxTreeNode(op, val);

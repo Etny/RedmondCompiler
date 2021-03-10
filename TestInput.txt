@@ -2,22 +2,8 @@
 
 class TestClass {
 
-	public static int TestField = 23;
-
 	public static void Main(){
-		Console.Write("First Number: ");		
-		int i1 = Int32.Parse(Console.ReadLine());
-		Console.Write("Second Number: ");		
-		int i2 = Int32.Parse(Console.ReadLine());
-		Console.Write("Result: ");
-		Console.WriteLine(AnotherFunction(i1, i2));
 		Console.Write("Stored in Field: ");
-		Console.WriteLine(TestField);
 		Console.ReadLine();
 	}
-
-	static float AnotherFunction(float i, float p){
-		return i + p;
-	}
-
 }

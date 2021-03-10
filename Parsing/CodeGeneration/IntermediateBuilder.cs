@@ -75,9 +75,9 @@ namespace Redmond.Parsing.CodeGeneration
             return sym;
         }
 
-        public InterField AddField(string name, string type)
+        public InterField AddField(string name, string type, string access, List<string> keywords)
         {
-            InterField field = new InterField(name, type, new InterUserType(CurrentType));
+            InterField field = new InterField(name, type, access, keywords, new InterUserType(CurrentType));
             _tables.Peek().AddSymbol(field.Symbol);
             CurrentType.AddField(field);
             return field;

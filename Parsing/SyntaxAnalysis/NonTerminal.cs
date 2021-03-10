@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections.Immutable;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
@@ -75,8 +76,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
         }
 
 
-        protected override IEnumerable<ProductionEntry> _calculateFirst()
+        protected override IEnumerable<ProductionEntry> _calculateFirst(ImmutableList<NonTerminal> callers)
         {
+
             bool containsEmpty = false;
             List<ProductionEntry> first = new List<ProductionEntry>();
 
@@ -87,6 +89,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 containsEmpty = true;
                 break;
             }
+
+            CanFirstBeEmpty = containsEmpty;
 
             foreach(var prod in Productions)
             {
@@ -99,9 +103,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                     if (entry != this)
                     {
-                        foreach (var e in entry.First)
-                            if (!first.Contains(e) && !e.IsEmptyTerminal)
-                                first.Add(e);
+                        if (!callers.Contains(entry))
+                        {
+                            entry.CalculateFirst(callers.Add(this));
+                            foreach (var e in entry.First)
+                                if (!first.Contains(e) && !e.IsEmptyTerminal)
+                                    first.Add(e);
+                        }
                     }
                     else
                     {
