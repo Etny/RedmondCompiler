@@ -35,20 +35,19 @@ namespace Redmond.Parsing.CodeGeneration
             InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
 
             for (int i = 0; i < parameters.Length; i++)
-            {
                 parameters[i] = ToIntermediateExpression(node[1][i]);
-            }
 
             CodeValue thisPtr = null;
 
             if (node.Children.Length > 2)
             {
-                var s = GetFirst(node[2].ValueString);
-                if (s == null)
+                thisPtr = ToValue(node[2]);
+                if (thisPtr == null)
                 {
-                    CodeType c = builder.ResolveType(node[2].ValueString);
-                    if (c != null)
-                        return new InterCall(node[0].ValueString, parameters, exp, c);
+                    //CodeType c = builder.ResolveType(node[2].ValueString);
+                    //if (c != null)
+                    //    return new InterCall(node[0].ValueString, parameters, exp, c);
+
                 }
             }
 
@@ -87,7 +86,7 @@ namespace Redmond.Parsing.CodeGeneration
                         functionKeywords.Add(child.ValueString);
                         break;
 
-                    case "DeclarationKeywords":
+                    case "ModifierList":
                         foreach (var kw in child.Children)
                             functionKeywords.Add(kw.ValueString);
                         break;
@@ -96,13 +95,13 @@ namespace Redmond.Parsing.CodeGeneration
                         args = CompileParameterDecList(child);
                         break;
 
-                    case "IdentifierName":
+                    case "Identifier":
                         name = child.ValueString;
                         //if (Tables.Peek().Contains(name)) throw new Exception("Already exists :(");
                         //Tables.Peek().AddSymbol(new SymbolManagement.CodeSymbol(name, "function"));
                         break;
 
-                    case "DottedName":
+                    case "Name":
                         retType = child.ValueString;
                         break;
                 }

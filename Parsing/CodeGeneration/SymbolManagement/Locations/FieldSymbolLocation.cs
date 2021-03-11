@@ -15,6 +15,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Field = field;
         }
 
+        public FieldSymbolLocation(UserType type)
+        {
+
+        }
+
         public override void Push(IlBuilder builder)
         {
             builder.EmitLine($"ldfld {Field.Owner.Name}::{Field.Name}");

@@ -5,6 +5,7 @@ using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using Redmond.Common;
 
 namespace Redmond.Lex.LexCompiler
 {
@@ -26,7 +27,6 @@ namespace Redmond.Lex.LexCompiler
 
             return dfas;
         }
-
 
         public static DFA CompileDFA(RegexTreeNode tree, string alphabet, string name = "", LexAction action = null, bool optimize = false)
         {

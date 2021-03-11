@@ -19,8 +19,8 @@ namespace Redmond
     class Program
     {
 
-        private static readonly string InputString = File.ReadAllText(@"C:\Users\yveem\source\repos\Redmond\TestInput.txt")+'$';
-        private static readonly DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.dec");
+        private static readonly string InputString = File.ReadAllText(@"C:\Users\yveem\source\repos\Redmond\TestInputOld.txt")+GrammarConstants.EndChar;
+        private static readonly DecFile Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDecOld.dec");
         //private static IStringStream Output = new ConsoleStream();
         static void Main()
         {
