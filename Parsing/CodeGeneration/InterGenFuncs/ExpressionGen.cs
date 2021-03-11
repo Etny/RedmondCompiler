@@ -31,8 +31,15 @@ namespace Redmond.Parsing.CodeGeneration
                     return node.Val as CodeValue;
 
                 case "IdentifierExpression":
-                case "IdentifierName":
-                    return GetFirst(node.ValueString);
+                    return GetFirst((node.Val as SyntaxTreeNode).ValueString);
+
+                case "MemberAccessExpression":
+                    return ToValue(node[0]);
+
+                case "MemberAccess":
+                    var value = ToValue(node[1]);
+                    if (value == null) return null;
+                    return null;
 
                 default:
                     return null;

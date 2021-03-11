@@ -2,8 +2,14 @@
 
 class TestClass {
 
+	public static int TestField = 23;
+
 	public static void Main(){
-		Console.Write("Stored in Field: ");
-		Console.ReadLine();
+		AnotherFunction(2, 3);
 	}
+
+	static float AnotherFunction(float i, float p){
+		return i + p;
+	}
+
 }

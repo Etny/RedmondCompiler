@@ -148,9 +148,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         private void SetAction(ParserState state, ProductionEntry key, (ParserAction, Object) newAction)
         {
-            if (newAction.Item1 == ParserAction.Reduce && (newAction.Item2 as Production).IsEmpty)
-                Console.WriteLine("hhs");
-
             if (state.Action.ContainsKey(key))
             {
                 var oldAction = state.Action[key];
@@ -203,6 +200,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         //Resolve based on first appearance
                         if (newFirst)
                             state.Action[key] = newAction;
+
+                        return;
                     }
                     else
                         throw new Exception($"Conflict in state {state} on entry {key} between {state.Action[key].Item1} and {newAction.Item1}. Cannot resolve shift/shift conflict.");

@@ -26,6 +26,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
         
         public static void Init()
         {
+            if (syntaxFunctions.Count > 0) return;
+
             var syntaxFuncs = Assembly.GetExecutingAssembly().GetTypes()
                                 .SelectMany(t => t.GetMethods())
                                 .Where(m => m.IsStatic && m.GetCustomAttribute(typeof(SyntaxFunctionAttribute)) != null)

@@ -1,46 +1,4 @@
-﻿#Settings
-	
-PrecedenceSearchDepth: 1
-AutoValueInheritance: true
-
-#end
-
-#Tokens
-
-Identifier
-Operator
-Punctuation
-Digit
-Whitespace
-NewLine
-StringLiteral
-BoolLiteral
-Keyword
-Using
-
-#End
-
-#Lex
-
-letter = [a-zA-Z]
-number = [0-9]
-character = letter|number
-
-%%
-
-using {Using;}
-true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
-(letter|_)character* {Identifier; $$ = makeLeaf("id_nt", $)}
-number+ {Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
-[=\*/+-] {Operator}
-[$,();:\{\}>.,] {Punctuation}
-//[\n\r]	{NewLine}
-[\w\t\r\n]	{Whitespace}
-"((letter|number)|[\w\t\r\n:,])*"	{StringLiteral; $$ = makeValue("string", $)}
-
-#End
-
-#Grammar
+﻿#Grammar
 
 left + -
 left * /
@@ -55,15 +13,15 @@ import_list			:	import_list import_dec	{addChild($1, $2); $$ = $1}
 					|							{$$ = makeNode("ImportList")}
 					;
 
-import_dec			:	Using space_or_type_name ';'	{$$ = makeLeaf("Import", $2.name)}
+import_dec			:	USING space_or_type_name ';'	{$$ = makeLeaf("Import", $2.name)}
 					;
 
 class_list			:	class_list class_dec	{addChild($1, $2); $$ = $1}
 					|	class_dec				{$$ = makeNode("ClassList", $1)}
-					|						{$$ = makeNode("ClassList")}
+					|							{$$ = makeNode("ClassList")}
 					;
 
-class_dec			:	'class' id_nt '\{' member_list '\}'	{$$ = makeNode("Class", $2.node, $4)}
+class_dec			:	CLASS IDENTIFIER '\{' member_list '\}' {$$ = makeNode("Class", $2, $4)}
 					;
 
 member_list			:	member_list member	{addChild($1, $2); $$ = $1}
@@ -75,48 +33,42 @@ member				:	field
 					|	function
 					;
 
-field				:	access_dec dec_keywords dec_statement ';'	{$$ = makeNode("FieldDec", $3, $1, $2)}
-					;
-
-
-field_keyword   	:	'readonly'			{$$ = makeLeaf("FieldKeyword", "initonly")}
-					|	'static'			{$$ = makeLeaf("FieldKeyword", $1)}
-					|	'const'				{$$ = makeLeaf("FieldKeyword", "literal")}
+field				:	access_dec modifier_list dec_statement ';'	{$$ = makeNode("FieldDec", $3, $1, $2)}
 					;
 
 
 function			:	function_dec function_body	{$$ = makeNode("Function", $1, $2)}
 					;
 
-function_dec		:	access_dec dec_keywords space_or_type_name id_nt '(' parameter_dec_list ')' {$$ = makeNode("FunctionDec", $1, $2, $3, $4, $6)}
+function_dec		:	access_dec modifier_list space_or_type_name IDENTIFIER '\(' parameter_dec_list '\)' {$$ = makeNode("FunctionDec", $1, $2, $3, $4, $6)}
 					;
 
-access_dec			:	'public'		{$$ = makeLeaf("AccessKeyword", $1)}
-					|	'private'		{$$ = makeLeaf("AccessKeyword", $1)}	
-					|	'protected'		{$$ = makeLeaf("AccessKeyword", "family")}
-					|	'internal'		{$$ = makeLeaf("AccessKeyword", "assembly")}
-					|					{$$ = makeLeaf("AccessKeyword", "assembly")}
+access_dec			:	PUBLIC		{$$ = makeLeaf("AccessKeyword", "public")}
+					|	PRIVATE		{$$ = makeLeaf("AccessKeyword", "private")}	
+					|	PROTECTED	{$$ = makeLeaf("AccessKeyword", "family")}
+					|	INTERNAL	{$$ = makeLeaf("AccessKeyword", "assembly")}
+					|				{$$ = makeLeaf("AccessKeyword", "assembly")}
 					;
 
-dec_keywords		:	dec_keywords dec_keyword			{addChild($1, $2); $$ = $1}
-					|	dec_keyword							{$$ = makeNode("DeclarationKeywords", $1)}
-					|										{$$ = makeNode("DeclarationKeywords")}
+modifier_list		:	modifier_list modifier	{addChild($1, $2); $$ = $1}
+					|	modifier				{$$ = makeNode("ModifierList", $1)}
+					|							{$$ = makeNode("ModifierList")}
 					;
 
-dec_keyword			:	'sealed'		{$$ = makeLeaf("DeclarationKeyword", $1)}
-					|	'static'		{$$ = makeLeaf("DeclarationKeyword", $1)}
-					|	'abstract'		{$$ = makeLeaf("DeclarationKeyword", $1)}
-					|	'virtual'		{$$ = makeLeaf("DeclarationKeyword", $1)}
-					|	'readonly'		{$$ = makeLeaf("DeclarationKeyword", "initonly")}
-					|	'const'			{$$ = makeLeaf("DeclarationKeyword", "literal")}
+modifier			:	SEALED		{$$ = makeLeaf("Modifier", "sealed")}
+					|	STATIC		{$$ = makeLeaf("Modifier", "static")}
+					|	ABSTRACT	{$$ = makeLeaf("Modifier", "abstract")}
+					|	VIRTUAL		{$$ = makeLeaf("Modifier", "virtual")}
+					|	CONST		{$$ = makeLeaf("Modifier", "literal")}
+					|	READONLY	{$$ = makeLeaf("Modifier", "initonly")}
 					;
 
 function_body		:	compound_statement				{$$ = makeNode("FunctionBody", $1)}
-					|	'=' '>' statement					{$$ = makeNode("FunctionBody", $3)}
+					|	'=>' statement					{$$ = makeNode("FunctionBody", $3)}
 					;
 
 
-compound_statement	:	'\{' statement_list '\}'		{$$ = makeNode("CompoundStatement", $2);}
+compound_statement	:	'\{' statement_list '\}'	{$$ = makeNode("CompoundStatement", $2);}
 					;
 
 statement_list		:	statement_list statement	{addChild($1, $2); $$ = $1}
@@ -125,32 +77,30 @@ statement_list		:	statement_list statement	{addChild($1, $2); $$ = $1}
 					;
 
 
-statement			:	assign_statement ';'		{$$ = $1}
-					|	call_statement ';'			{$$ = $1}
-					|	dec_statement ';'			{$$ = $1}
-					|	return_statement ';'		{$$ = $1}
+statement			:	assign_statement ';'	{$$ = $1}
+					|	call_statement ';'	{$$ = $1}
+					|	dec_statement ';'		{$$ = $1}
+					|	return_statement ';'	{$$ = $1}
 					|	compound_statement
 					|	if_statement
 					;
 
-return_statement	:	'return'				{$$ = makeLeaf("ReturnStatement")}
-					|	'return' expression	{$$ = makeNode("ReturnStatement", $2)}
+return_statement	:	RETURN				{$$ = makeLeaf("ReturnStatement")}
+					|	RETURN expression	{$$ = makeNode("ReturnStatement", $2)}
 					;
 
-id_nt				:	Identifier {$$ = $1}
+dec_statement		:	space_or_type_name IDENTIFIER '=' expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
+					|	space_or_type_name IDENTIFIER					{$$ = makeNode("DeclarationStatement", $2, $1)}  
 					;
 
-dec_statement		:	space_or_type_name id_nt '=' expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
-					|	space_or_type_name id_nt					{$$ = makeNode("DeclarationStatement", $2, $1)}  
+assign_statement	:	IDENTIFIER '=' expression	{$$ = makeNode("AssignStatement", $1, $3)}
 					;
 
-assign_statement	:	id_nt '=' expression	{$$ = makeNode("AssignStatement", $1.node, $3)}
+if_statement		:	'if' '\(' expression '\)'	statement	{$$ = makeNode("IfStatement", $3, $5)}
 					;
 
-if_statement		:	'if' '(' expression ')'	statement	{$$ = makeNode("IfStatement", $3, $5)}
-					;
-
-call_statement		:	member_access '(' parameter_list ')' {$$ = makeNode("Call", $1.node, $3)}
+call_statement		:	expression '.' IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $3, $5, $1)}
+					|	 IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
 					;
 
 parameter_list		:	parameter_list ',' expression		{addChild($1, $3); $$ = $1}
@@ -163,25 +113,28 @@ parameter_dec_list	:	parameter_dec_list ',' parameter_dec		{addChild($1, $3); $$
 					|											{$$ = makeNode("ParameterDecList")}
 					;
 
-parameter_dec		:	space_or_type_name id_nt			{$$ = makeNode("ParameterDec", $1, $2)}
+parameter_dec		:	space_or_type_name IDENTIFIER			{$$ = makeNode("ParameterDec", $1, $2)}
 					;
 
 expression			:	Digit							{$$ = makeLeaf("NumericalLiteral", $1);}
 					|	StringLiteral					{$$ = makeLeaf("StringLiteral", $1)}
 					|	BoolLiteral						{$$ = makeLeaf("BoolLiteral", $1)}
-					|	id_nt						{$$ = makeLeaf("IdentifierExpression", $1)}
+					|	IDENTIFIER						{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression		{$$ = makeNode("BinaryExpression", $1, $3, $2);}
-					|	'(' expression ')'				{$$ = $2;}
+					|	'\(' expression '\)'				{$$ = $2;}
 					|	call_statement					{$$ = makeNode("CallExpression", $1)}
 					|	member_access					{$$ = makeNode("MemberAccessExpression", $1)}
 					;
 
 					
-member_access		:	expression '.' id_nt	{$$ = makeNode("MemberAccess", $3, $1)}
+member_access		:	expression '.' IDENTIFIER	{$$ = makeNode("MemberAccess", $3, $1)}
 					;
 
-space_or_type_name	: id_nt							{$$ = makeNode("Name", $1); $$.name = $1}
-					| space_or_type_name '.' id_nt		{$$.name = concat($1.name, concat(".", $3)); $$ = makeNode("Name", $$.name)}
+space_or_type_name	:	IDENTIFIER							{$$ = makeLeaf("Name", $1.text); $$.name = $1.text}
+					|	space_or_type_name '.' IDENTIFIER	{$$.name = concat($1.name, concat(".", $3.text)); $$ = makeLeaf("Name", $$.name)}
+					;
+
+type_name			:	space_or_type_name
 					;
 
 binop				:	'+' {$$ = makeLeaf("BinaryOperator", "add")}
@@ -191,5 +144,74 @@ binop				:	'+' {$$ = makeLeaf("BinaryOperator", "add")}
 					;
 
 
+
+#End
+
+#Settings
+	
+PrecedenceSearchDepth: 1
+AutoValueInheritance: true
+
+#end
+
+#Tokens
+
+IDENTIFIER
+Operator
+Punctuation
+Digit
+Whitespace
+NewLine
+StringLiteral
+BoolLiteral
+
+STATIC
+PUBLIC
+PRIVATE
+INTERNAL
+PROTECTED
+SEALED
+VIRTUAL
+ABSTRACT
+READONLY
+CONST
+CLASS
+USING
+RETURN
+
+
+'\{' '\}'
+'\(' '\)'
+
+#End
+
+#Lex
+
+letter = [a-zA-Z]
+number = [0-9]
+character = letter|number
+
+%%
+
+static		{STATIC}
+public		{PUBLIC}
+private		{PRIVATE}
+protected	{PROTECTED}
+sealed		{SEALED}
+virtual		{VIRTUAL}
+abstratc	{ABSTRACT}
+readonly	{READONLY}
+const		{CONST}
+class		{CLASS}
+using		{USING}
+return		{RETURN}
+
+true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
+(letter|_)character* {IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}
+number+ {Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
+[=\*/+-] {Operator}
+[,();:>.,\{\}] {Punctuation}
+[\w\t\r\n]	{Whitespace}
+"((letter|number)|[\w\t\r\n:,])*"	{StringLiteral; $$ = makeValue("string", $)}
 
 #End

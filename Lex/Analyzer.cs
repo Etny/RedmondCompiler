@@ -1,4 +1,5 @@
-﻿using Redmond.Lex.LexCompiler;
+﻿using Redmond.Common;
+using Redmond.Lex.LexCompiler;
 using Redmond.Output.Error;
 using Redmond.Output.Error.Exceptions;
 using System;
@@ -22,7 +23,12 @@ namespace Redmond.Lex
         {
             _input = input;
             _lines = input.Split("\n");
-            _dfas = DFACompiler.CompileFile(lexLines, alphabet == "" ? defaultAlphabet : alphabet);
+
+            List<string> lex = new List<string>();
+            lex.AddRange(lexLines);
+            lex.Add(GrammarConstants.EndChar + " {EndOfFile}");
+
+            _dfas = DFACompiler.CompileFile(lex.ToArray(), alphabet == "" ? defaultAlphabet : alphabet);
         }
 
         public Token GetNextToken()
@@ -38,6 +44,7 @@ namespace Redmond.Lex
 
             //DFACompiler.PrintDFA(_dfas[0]);
 
+            char sss = _input[_index];
             int i = 0;
             for(; i < _input.Length - _index; i++)
             {
@@ -54,9 +61,26 @@ namespace Redmond.Lex
                 if (living.Count == 1) break;
                 test = living;
             }
-            
-            
-            DFA final = living.Count >= 1 ? living[0] : null;
+
+
+            DFA final = null;
+
+            if (living.Count == 1) 
+                final = living[0];
+            else if(living.Count > 0)
+            {
+                foreach (var dfa in living)
+                {
+                    if (dfa.CurrentState.IsAcceptingState)
+                    {
+                        final = dfa;
+                        break;
+                    }
+                }
+
+                if (final == null) final = living[0];
+            }
+
             if (living.Count > 1) i--;
             bool accepted = false;
 

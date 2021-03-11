@@ -30,7 +30,8 @@ namespace Redmond.Lex
             for (int i = 0; i < Line.Length; i++)
             {
                 if (i == endIndex || i == LineIndex) under += "^";
-                else if(i > LineIndex && i < endIndex) under += "-";
+                else if (i > LineIndex && i < endIndex) under += "-";
+                else if (Line[i] == '\t') under += '\t';
                 else under += " ";
             }
 
@@ -63,8 +64,9 @@ namespace Redmond.Lex
 
         public static void AddTypes(params string[] names)
         {
-            foreach (string name in names)
-                AddType(name);
+            foreach (string line in names)
+                foreach(string name in line.Split(' '))
+                    AddType(name);
         }
 
         public override string ToString() => Name;
