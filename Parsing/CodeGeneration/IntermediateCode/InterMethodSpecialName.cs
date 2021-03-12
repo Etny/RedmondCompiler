@@ -8,7 +8,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     class InterMethodSpecialName : InterMethod
     {
 
-        public InterMethodSpecialName(string name, CodeSymbol[] args, InterType owner) : base(name, "void", args, owner) 
+        public InterMethodSpecialName(string name, ArgumentSymbol[] args, InterType owner) : base(name, "void", args, owner, new List<string>()) 
         {
             AddFlag("rtspecialname");
             AddFlag("specialname");

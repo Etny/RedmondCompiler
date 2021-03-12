@@ -18,18 +18,22 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public readonly string Name, ReturnTypeName;
         public CodeType ReturnType;
-        public readonly CodeSymbol[] Arguments;
+        public readonly ArgumentSymbol[] Arguments;
         public readonly InterType Owner;
 
         public List<CodeSymbol> Locals = new List<CodeSymbol>();
         public int Args => Arguments.Length;
 
-        public InterMethod(string name, string returnTypeName, CodeSymbol[] args, InterType owner)
+        public InterMethod(string name, string returnTypeName, ArgumentSymbol[] args, InterType owner, List<string> flags)
         {
             Name = name;
             ReturnTypeName = returnTypeName;
             Arguments = args;
             Owner = owner;
+
+            foreach (string flag in flags) AddFlag(flag);
+
+            if (IsInstance) foreach (var arg in args) arg.Index++;
         }
 
 
@@ -38,7 +42,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public string Signature => $"{Owner.FullName}.{Name}";
 
         public string CallSignature => $"{(IsInstance ? "instance " : "")}{ReturnType.Name} {Owner.FullName}::{Name}({ArgList})";
-        public bool IsInstance => !Flags.Contains("static");
+        public bool IsInstance => !IsStatic;
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override");
 
         public bool IsStatic => Flags.Contains("static");

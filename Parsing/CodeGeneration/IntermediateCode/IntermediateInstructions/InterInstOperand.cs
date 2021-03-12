@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    struct InterInstOperand
+    class InterInstOperand
     {
 
         public CodeValue Value { get; private set; }
