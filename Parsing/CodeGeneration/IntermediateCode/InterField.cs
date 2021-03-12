@@ -8,7 +8,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     class InterField
     {
 
-        public readonly CodeSymbol Symbol;
+        public readonly FieldSymbol Symbol;
         public readonly UserType Owner;
         public readonly string Name, Access;
         public readonly List<string> Keywords;
@@ -24,7 +24,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             Keywords = keywords;
             _typeName = typeName;
 
-            Symbol = new CodeSymbol(name, typeName, new FieldSymbolLocation(this));
+            Symbol = new FieldSymbol(this);
         }
 
         public bool IsStatic => Keywords.Contains("static");
@@ -38,7 +38,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".field {Access} {string.Join(" ", Keywords)} {Symbol.Type.Name} {Symbol.ID}");
+            builder.EmitLine($".field {Access} {string.Join(" ", Keywords)} {Type.Name} {Name}");
         }
     }
 }

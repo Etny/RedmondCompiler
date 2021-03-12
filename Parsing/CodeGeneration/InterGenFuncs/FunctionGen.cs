@@ -41,14 +41,13 @@ namespace Redmond.Parsing.CodeGeneration
 
             if (node.Children.Length > 2)
             {
-                thisPtr = ToValue(node[2]);
-                if (thisPtr == null)
-                {
-                    //CodeType c = builder.ResolveType(node[2].ValueString);
-                    //if (c != null)
-                    //    return new InterCall(node[0].ValueString, parameters, exp, c);
+                var member = ToIntermediateExpression(node[2]);
 
-                }
+                if (member == null)
+                    return new InterCall(node[0].ValueString, parameters, exp, new LateStaticReferenceResolver(node[2]));
+
+                thisPtr = new InterOpValue(member);
+
             }
 
             return new InterCall(node[0].ValueString, parameters, exp, thisPtr);
@@ -75,7 +74,7 @@ namespace Redmond.Parsing.CodeGeneration
         {
             string name = "error";
             string retType = null;
-            CodeSymbol[] args = null;
+            ArgumentSymbol[] args = null;
             List<string> functionKeywords = new List<string>();
 
             foreach(var child in node.Children)
@@ -108,17 +107,16 @@ namespace Redmond.Parsing.CodeGeneration
             }
             PushNewTable();
 
-            InterMethod method = builder.AddMethod(name, retType, args);
-            foreach (string k in functionKeywords) method.AddFlag(k);
+            InterMethod method = builder.AddMethod(name, retType, args, functionKeywords);
         }
 
         //TODO: Improve this
-        private CodeSymbol[] CompileParameterDecList(SyntaxTreeNode node)
+        private ArgumentSymbol[] CompileParameterDecList(SyntaxTreeNode node)
         {
-            CodeSymbol[] args = new CodeSymbol[node.Children.Length];
+            ArgumentSymbol[] args = new ArgumentSymbol[node.Children.Length];
 
             for (int i = 0; i < args.Length; i++)
-                args[i] = new CodeSymbol(node[i][1].ValueString, node[i][0].ValueString);
+                args[i] = new ArgumentSymbol(node[i][1].ValueString, node[i][0].ValueString, i);
 
             return args;
         }

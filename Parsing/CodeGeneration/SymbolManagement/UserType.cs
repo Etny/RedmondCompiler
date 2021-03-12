@@ -30,6 +30,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new MethodInfoWrapper(f, context);
         }
 
+        public virtual IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
+        {
+            foreach (var f in _type.GetFields())
+                yield return new FieldInfoWrapper(f, context);
+        }
+
     }
 
     class InterUserType : UserType
@@ -49,6 +55,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             foreach (var f in _type.Methods)
                     yield return new InterMethodWrapper(f, context);
+        }
+
+        public override IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
+        {
+            foreach (var f in _type.Fields)
+                yield return new InterFieldWrapper(f);
         }
     }
 

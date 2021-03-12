@@ -28,10 +28,10 @@ namespace Redmond.Parsing.CodeGeneration
             if (CurrentTable.Contains(name))
                 ErrorManager.ExitWithError(new Exception("Duplicate ID: " + name));
 
-            CodeSymbol symbol = builder.AddLocalSymbol(name, node[1].ValueString);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
+            CodeSymbol symbol = builder.AddLocal(name, node[1].ValueString);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
 
             if(node.Children.Length > 2)
-                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[2])));
+                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpressionOrLateStaticBind(node[2])));
         }
 
         [CodeGenFunction("ReturnStatement")]

@@ -26,7 +26,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             BaseType = baseType ?? (UserType)CodeType.Object;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
-            Initializer = new InterMethodSpecialName(".cctor", new CodeSymbol[] { }, this);
+            Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this);
             AddMethod(Initializer);
 
         }

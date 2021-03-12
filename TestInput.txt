@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Reflection.Emit;
 
 class TestClass {
 
-	public static int TestField = 23;
+	public static int TestField = 32;
 
 	public static void Main(){
-		AnotherFunction(2, 3);
+		OpCode op = OpCodes.Ldarg_0;
+		Console.WriteLine(op.OperandType.ToString());
+		Console.Write("TestField: ");
+		Console.WriteLine(TestField);
+		TestField = AnotherFunction(2, 3);
+		Console.Write("TestField Now: ");
+		Console.WriteLine(TestField);
+
+		System.Console.ReadLine();
 	}
 
 	static float AnotherFunction(float i, float p){

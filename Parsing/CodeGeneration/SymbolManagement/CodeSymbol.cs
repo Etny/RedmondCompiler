@@ -7,37 +7,18 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
-    class CodeSymbol : CodeValue
+    abstract class CodeSymbol : CodeValue
     {
         public string ID;
 
-        public CodeSymbolLocation Location;
-
-        public CodeSymbol(string id, string typeName, object value = null) : this(id, typeName, IndexedSymbolLocation.Default, value) { }
-
-        public CodeSymbol(string id, string typeName, CodeSymbolLocation location, object value = null) : base(typeName, value)
-        {
-            ID = id;
-            Location = location;
-            Value = "ID with name " + id;
-        }
-
-        public CodeSymbol(string id, CodeType type, CodeSymbolLocation location, object value = null) : base(type, value)
-        {
-            ID = id;
-            Location = location;
-            Value = "ID with name " + id;
-        }
+        protected CodeSymbol() { }
+        public CodeSymbol(string typeName, object value = null) : base(typeName, value) { }
+        public CodeSymbol(CodeType type, object value = null) : base(type, value) { }
 
 
-        public override string ToString()
-            => ID + " of type " + Type.Name;
+        public override abstract void Push(IlBuilder builder);
 
-        public override void Push(IlBuilder builder)
-            => Location.Push(builder);
-
-        public void Store(IlBuilder builder)
-            => Location.Store(builder);
+        public abstract void Store(IlBuilder builder);
 
 
 

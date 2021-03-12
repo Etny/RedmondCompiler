@@ -33,13 +33,11 @@ namespace Redmond.Parsing.CodeGeneration
                 case "IdentifierExpression":
                     return GetFirst((node.Val as SyntaxTreeNode).ValueString);
 
-                case "MemberAccessExpression":
-                    return ToValue(node[0]);
+                case "Identifier":
+                    return GetFirst(node.ValueString);
 
                 case "MemberAccess":
-                    var value = ToValue(node[1]);
-                    if (value == null) return null;
-                    return null;
+                    return CompileMemberAccess(node);
 
                 default:
                     return null;
@@ -47,7 +45,34 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
         private InterInstOperand ToIntermediateExpression(SyntaxTreeNode node)
-            => IsValue(node) ? new InterInstOperand(ToValue(node)) : new InterInstOperand(CompileNode(node) as InterOp);
+        {
+            if (IsValue(node))
+                return new InterInstOperand(ToValue(node));
+
+            if (!_codeGenFunctions.ContainsKey(node.Op.ToLower())) return null;
+            var op = CompileNode(node);
+
+            if (op is InterOp) return new InterInstOperand(op);
+
+            return null;
+        }
+
+        private InterInstOperand ToIntermediateExpressionOrLateStaticBind(SyntaxTreeNode node)
+        {
+            if (IsValue(node))
+                return new InterInstOperand(ToValue(node));
+
+            if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
+            {
+                return new InterInstOperand(new LateStaticReferenceResolver(node));
+            }
+
+            var op = CompileNode(node);
+
+            if (op is InterOp) return new InterInstOperand(op);
+
+            return null;
+        }
 
         public void PushExpression(SyntaxTreeNode node)
             => builder.AddInstruction(CompileNode(node) as InterInst);
@@ -64,6 +89,35 @@ namespace Redmond.Parsing.CodeGeneration
 
             return ret;
         }
+        //private FieldSymbol TryCompileMemberAccess(SyntaxTreeNode node)
+        //{
+        //    var name = node[0].ValueString;
 
+        //    if (node[1].Op == "MemberAccess")
+        //        return CompileNextMemberAccess(node[1], new InterOpValue(exp));
+        //    else {
+        //        var sym = GetFirst(node[1].ValueNode.ValueString);
+        //        if (sym == null) return null; //Not a local name, probably a type
+        //        return new FieldSymbol(sym, name);
+        //    }
+        //}
+
+        private FieldSymbol CompileMemberAccess(SyntaxTreeNode node)
+        {
+            var name = node[0].ValueString;
+
+            if (node[1].Op == "MemberAccess")
+            {
+                var next = CompileMemberAccess(node[1]);
+                if (next == null) return null;
+                return new FieldSymbol(next, name);
+            }
+            else
+            {
+                var final = GetFirst(node[1].ValueNode.ValueString);
+                if (final == null) return null;
+                return new FieldSymbol(final, name);
+            }
+        }
     }
 }

@@ -45,18 +45,15 @@ namespace Redmond.Parsing.CodeGeneration
             return type;
         }
 
-        public InterMethod AddMethod(string name, string returnType, CodeSymbol[] vars)
+        public InterMethod AddMethod(string name, string returnType, ArgumentSymbol[] vars, List<string> flags)
         {
-            var method = new InterMethod(name, returnType, vars, CurrentType);
+            var method = new InterMethod(name, returnType, vars, CurrentType, flags);
             CurrentMethod = method;
             CurrentType.AddMethod(method);
 
-            for (int i = 0; i < vars.Length; i++)
-            {
-                vars[i].Location = new IndexedSymbolLocation(IndexedSymbolLocation.IndexedSymbolLocationType.Argument, i);
-                _tables.Peek().AddSymbol(vars[i]);
-            }
-
+            foreach(var arg in vars)
+                _tables.Peek().AddSymbol(arg);
+            
             return method;
         }
 
@@ -65,9 +62,9 @@ namespace Redmond.Parsing.CodeGeneration
             CurrentMethod.AddInstruction(inst);
             return inst;
         }
-        public CodeSymbol AddLocalSymbol(string name, string type, object value = null)
+        public LocalSymbol AddLocal(string name, string type, object value = null)
         {
-            CodeSymbol sym = new CodeSymbol(name, type, new IndexedSymbolLocation(IndexedSymbolLocation.IndexedSymbolLocationType.Local, CurrentMethod.Locals.Count), value);
+            LocalSymbol sym = new LocalSymbol(name, type, CurrentMethod.Locals.Count, value);
             CurrentMethod.Locals.Add(sym);
 
             _tables.Peek().AddSymbol(sym);
@@ -89,10 +86,16 @@ namespace Redmond.Parsing.CodeGeneration
         public void AddReference(IAssemblyReference reference)
             => AssemblyReferences = AssemblyReferences.Add(reference);
 
+        //TODO: Improve this
         public CodeType ResolveType(string name)
         {
             var ctype = CodeType.ByName(name);
             if (ctype != null) return ctype;
+
+            foreach(InterType type in Types)
+            {
+                if (type.FullName == name) return new InterUserType(type);
+            }
 
             foreach (string ns in ImportedNamespaces)
             {

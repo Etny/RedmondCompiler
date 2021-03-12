@@ -3,6 +3,7 @@ using Redmond.Output.Error;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -14,7 +15,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private InterInstOperand[] _parameters;
         private bool _expression, _staticCall;
         private CodeValue _thisPtr;
-        private CodeType _staticType;
+        private LateStaticReferenceResolver _resolver;
 
         private IMethodWrapper _method = null;
         private CodeType _return = null;
@@ -28,13 +29,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _thisPtr = thisPtr;
         }
 
-        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, CodeType type = null)
+        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, LateStaticReferenceResolver resolver = null)
         {
             _targetName = name;
             _parameters = parameters;
             _expression = isExpression;
             _staticCall = true;
-            _staticType = type;
+            _resolver = resolver;
         }
         public override void Bind(IntermediateBuilder context)
         {
@@ -46,7 +47,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 paramTypes[i] = _parameters[i].Type;
             }
 
-            CodeType type = _staticCall ? _staticType : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
+            _thisPtr?.BindType(context);
+
+            if (_resolver != null)
+            {
+                _resolver.Bind(context);
+                _staticCall = _resolver.IsStatic;
+                if (!_staticCall)
+                    _thisPtr = _resolver.GetReferencedField();
+            }
+
+            CodeType type = _staticCall ? _resolver.Type : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
 
             _method = context.FindClosestFunction(_targetName, type, paramTypes);
             _return = _method.ReturnType;
@@ -58,7 +69,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             if (_method.IsInstance)
             {
                 if (Owner.IsStatic || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
-                builder.PushValue(_thisPtr ?? _parameters[0].Value);
+                builder.PushValue(_thisPtr ?? Owner.Arguments[0]);
             }
 
 

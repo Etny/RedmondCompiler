@@ -18,6 +18,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public static CodeValue MakeValue(string type, object value)
           => new CodeValue(type, value);
 
+        protected CodeValue() { }
+
         public CodeValue(string typeName, object value = null)
         {
             TypeName = typeName;
@@ -30,7 +32,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Value = value;
         }
 
-        public void BindType(IntermediateBuilder context)
+        public virtual void BindType(IntermediateBuilder context)
         {
             if(Type == null)
                 Type = context.ResolveType(TypeName);
