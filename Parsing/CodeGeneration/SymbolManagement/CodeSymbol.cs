@@ -18,7 +18,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override abstract void Push(IlBuilder builder);
 
-        public abstract void Store(IlBuilder builder);
+        public abstract void PushAddress(IlBuilder builder);
+
+        public abstract void Store(IlBuilder builder, CodeValue source);
 
 
 

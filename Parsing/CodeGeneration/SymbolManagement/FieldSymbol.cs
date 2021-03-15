@@ -3,6 +3,7 @@ using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
@@ -65,30 +66,36 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitLine($"ldfld {Type.Name} {_owningType.SpecName}::{ID}");
-                builder.ExpandStack(1);
+                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{_owningType.SpecName}::{ID}");
             }
             else
-            {
-                builder.EmitLine($"ldsfld {Type.Name} {_owningType.SpecName}::{ID}");
-                builder.ExpandStack(1);
-            }
-
+                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{_owningType.SpecName}::{ID}");
 
         }
 
-        public override void Store(IlBuilder builder)
+        public override void PushAddress(IlBuilder builder)
         {
             if (!IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitLine($"stfld {Type.Name} {_owningType.SpecName}::{ID}");
-                builder.ShrinkStack(2); //Shrink by 1 because this also removed the owner
+                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{_owningType.SpecName}::{ID}");
+            }
+            else
+                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{_owningType.SpecName}::{ID}");
+        }
+
+        public override void Store(IlBuilder builder, CodeValue store)
+        {
+            if (!IsStatic)
+            {
+                builder.PushValue(_owner);
+                builder.PushValue(store);
+                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{_owningType.SpecName}::{ID}");
             }
             else
             {
-                builder.EmitLine($"stssfld {Type.Name} {_owningType.SpecName}::{ID}");
-                builder.ShrinkStack(1);
+                builder.PushValue(store);
+                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{_owningType.SpecName}::{ID}");
             }
         }
 
