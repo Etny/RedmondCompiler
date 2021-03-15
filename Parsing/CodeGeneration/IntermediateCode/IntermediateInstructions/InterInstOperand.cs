@@ -54,5 +54,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 Op.Emit(builder);
         }
 
+        public CodeValue ToValue()
+        {
+            if (IsValue)
+                return Value;
+            else
+                return new InterOpValue(Op);
+        }
+
     }
 }

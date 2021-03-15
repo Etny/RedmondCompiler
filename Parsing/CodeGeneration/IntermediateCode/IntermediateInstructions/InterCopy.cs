@@ -36,9 +36,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 }
             }
 
-            _source.Emit(builder);
-            if (_source.Type != _target.Type | emitConv) builder.EmitOpCode(_target.Type.ConvCode);
-            _target.Store(builder);
+            var finalSource = _source.ToValue();
+
+            if (_source.Type != _target.Type | emitConv) 
+                finalSource = new ConvertedValue(finalSource, _target.Type);
+
+            _target.Store(builder, finalSource);
             //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }
     }

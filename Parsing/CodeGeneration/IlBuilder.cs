@@ -26,6 +26,11 @@ namespace Redmond.Parsing.CodeGeneration
             val.Push(this);
         }
 
+        public void PushAddress(CodeSymbol sym)
+        {
+            sym.PushAddress(this);
+        }
+
         public void ShrinkStack(int amount)
             => _currentStack -= amount;
 
@@ -44,13 +49,6 @@ namespace Redmond.Parsing.CodeGeneration
             return temp;
         }
 
-        public void PopValue(CodeSymbol sym = null)
-        {
-            if (sym == null)
-                EmitOpCode(OpCodes.Pop);
-            else
-                sym.Store(this);
-        }
 
         public void EmitOpCode(OpCode opCode, params object[] operands)
         {

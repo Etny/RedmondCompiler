@@ -7,8 +7,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
     class InterOpValue : CodeValue
     {
-        private InterInstOperand _op;
-        public InterOpValue(InterInstOperand op)
+        private InterOp _op;
+        public InterOpValue(InterOp op)
         {
             _op = op;
         }
@@ -18,7 +18,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (Type != null) return;
 
             _op.Bind(context);
-            Type = _op.Type;
+            Type = _op.GetResultType();
         }
 
         public override string ToString()

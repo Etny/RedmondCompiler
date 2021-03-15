@@ -9,6 +9,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
 
         private Type _type;
+        public bool ValueType => _valuetype;
         protected bool _valuetype;
 
         protected UserType() : base("", -1, "") {}

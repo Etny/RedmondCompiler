@@ -65,11 +65,20 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+            bool valueType = _thisPtr != null && 
+                             _thisPtr.Type is UserType && 
+                             (_thisPtr.Type as UserType).ValueType;
+
 
             if (_method.IsInstance)
             {
-                if (Owner.IsStatic || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
-                builder.PushValue(_thisPtr ?? Owner.Arguments[0]);
+                if ((Owner.IsStatic && _thisPtr == null) || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
+
+
+                if (!valueType)
+                    builder.PushValue(_thisPtr ?? Owner.Arguments[0]);
+                else
+                    builder.PushAddress(_thisPtr as CodeSymbol);
             }
 
 
@@ -80,7 +89,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             }
 
             if (_method.IsVirtual)
+            {
+                if (valueType)
+                    builder.EmitLine("constrained. " + _thisPtr.Type.Name);
+
                 builder.EmitOpCode(OpCodes.Callvirt, _method.FullSignature);
+            }
             else
                 builder.EmitOpCode(OpCodes.Call, _method.FullSignature);
 

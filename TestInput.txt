@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Reflection.Emit;
 
+class OtherClass{
+
+	public static string GlobalString = "Global String";
+}
+
 class TestClass {
 
 	public static int TestField = 32;
 
 	public static void Main(){
 		OpCode op = OpCodes.Ldarg_0;
-		Console.WriteLine(op.OperandType.ToString());
+		Console.WriteLine(op.ToString());
 		Console.Write("TestField: ");
 		Console.WriteLine(TestField);
 		TestField = AnotherFunction(2, 3);
 		Console.Write("TestField Now: ");
 		Console.WriteLine(TestField);
+
+		
+		Console.WriteLine(OtherClass.GlobalString);
 
 		System.Console.ReadLine();
 	}

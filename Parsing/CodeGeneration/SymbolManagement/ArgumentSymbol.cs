@@ -35,8 +35,18 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 builder.EmitOpCode(OpCodeUtil.GetOpcode("Ldarg"), Index);
         }
 
-        public override void Store(IlBuilder builder)
+        public override void PushAddress(IlBuilder builder)
         {
+            if (Index <= 255)
+                builder.EmitOpCode(OpCodes.Ldarga_S, Index);
+            else
+                builder.EmitOpCode(OpCodes.Ldarga, Index);
+        }
+
+
+        public override void Store(IlBuilder builder, CodeValue val)
+        {
+            builder.PushValue(val);
             if (Index <= 3)
                 builder.EmitOpCode(OpCodeUtil.GetOpcode("Starg_" + Index));
             else
