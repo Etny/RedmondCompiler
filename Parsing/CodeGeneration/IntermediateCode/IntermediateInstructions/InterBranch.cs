@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
@@ -8,10 +9,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterBranch : InterInst
     {
 
-        private InterInstOperand _op;
+        private CodeValue _op;
         private string _label = "ERROR";
 
-        public InterBranch(InterInstOperand exp)
+        public InterBranch(CodeValue exp)
         {
             _op = exp;
         }
@@ -29,7 +30,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
-            _op.Emit(builder);
+            _op.Push(builder);
             builder.EmitOpCode(OpCodes.Brfalse_S, _label);
         }
     }

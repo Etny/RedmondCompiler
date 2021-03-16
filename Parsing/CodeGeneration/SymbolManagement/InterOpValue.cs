@@ -13,7 +13,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _op = op;
         }
 
-        public override void BindType(IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
             if (Type != null) return;
 
@@ -27,6 +27,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override void Push(IlBuilder builder)
             => _op.Emit(builder);
 
+        public static CodeValue ToValue(object o)
+        {
+            if (o is CodeValue) return o as CodeValue;
+            return new InterOpValue(o as InterOp);
+        }
 
     }
 }

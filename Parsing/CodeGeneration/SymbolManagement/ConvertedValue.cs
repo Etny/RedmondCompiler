@@ -14,11 +14,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Type = convert;
         }
 
-        public override void BindType(IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
             if (Type != null) return;
 
-            Original.BindType(context);
+            Original.Bind(context);
         }
 
         public override string ToString()

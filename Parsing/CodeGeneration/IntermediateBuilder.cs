@@ -134,7 +134,7 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
 
-        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params InterInstOperand[] args)
+        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeValue[] args)
         {
             var type = owner as UserType;
             Debug.Assert(owner is UserType);
@@ -178,7 +178,7 @@ namespace Redmond.Parsing.CodeGeneration
             return closest;
         }
 
-        public IMethodWrapper FindMostApplicableConstructor(UserType type, params InterInstOperand[] args)
+        public IMethodWrapper FindMostApplicableConstructor(UserType type, params CodeValue[] args)
         {
             //TODO: Merge this part with FindClosestFunction
             IMethodWrapper closest = null;

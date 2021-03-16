@@ -9,13 +9,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterNew : InterOp
     {
 
-        private InterInstOperand[] _parameters;
+        private CodeValue[] _parameters;
         private string _typeName;
         private CodeType _type;
 
         private IMethodWrapper _constructor;
 
-        public InterNew(string typeName, InterInstOperand[] parameters)
+        public InterNew(string typeName, CodeValue[] parameters)
         {
             _typeName = typeName;
             _parameters = parameters;
@@ -37,7 +37,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             for (int i = 0; i < _parameters.Length; i++)
             {
-                _parameters[i].Emit(builder);
+                _parameters[i].Push(builder);
                 if (_constructor.Arguments[i] != _parameters[i].Type) builder.EmitOpCode(_constructor.Arguments[i].ConvCode);
             }
 

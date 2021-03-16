@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterCall : InterOp
     {
         private string _targetName;
-        private InterInstOperand[] _parameters;
+        private CodeValue[] _parameters;
         private bool _expression, _staticCall;
         private CodeValue _thisPtr;
         private LateStaticReferenceResolver _resolver;
@@ -20,7 +20,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private IMethodWrapper _method = null;
         private CodeType _return = null;
 
-        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, CodeValue thisPtr = null)
+        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
         { 
             _targetName = name;
             _parameters = parameters;
@@ -29,7 +29,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _thisPtr = thisPtr;
         }
 
-        public InterCall(string name, InterInstOperand[] parameters, bool isExpression = false, LateStaticReferenceResolver resolver = null)
+        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, LateStaticReferenceResolver resolver = null)
         {
             _targetName = name;
             _parameters = parameters;
@@ -38,7 +38,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _resolver = resolver;
         }
 
-        public InterCall(IMethodWrapper method, InterInstOperand[] parameters, bool isExpression = false, CodeValue thisPtr = null)
+        public InterCall(IMethodWrapper method, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
         {
             _method = method;
             _return = method.ReturnType;
@@ -54,7 +54,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             foreach (var p in _parameters)
                 p.Bind(context);
 
-            _thisPtr?.BindType(context);
+            _thisPtr?.Bind(context);
 
             if (_resolver != null)
             {
@@ -70,7 +70,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _return = _method.ReturnType;
         }
 
-        public void SetParameter(InterInstOperand val, int index = 0)
+        public void SetParameter(CodeValue val, int index = 0)
             => _parameters[index] = val;
 
         public override void Emit(IlBuilder builder)
@@ -96,7 +96,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             for(int i = 0; i < _parameters.Length; i++)
             {
-                _parameters[i].Emit(builder);
+                _parameters[i].Push(builder);
                 if (_method.Arguments[i] != _parameters[i].Type) builder.EmitOpCode(_method.Arguments[i].ConvCode);
             }
 

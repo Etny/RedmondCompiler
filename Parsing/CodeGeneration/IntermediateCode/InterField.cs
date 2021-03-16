@@ -33,7 +33,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void Bind(IntermediateBuilder builder)
         {
             Type = builder.ResolveType(_typeName);
-            Symbol.BindType(builder);
+            Symbol.Bind(builder);
         }
 
         public void Emit(IlBuilder builder)

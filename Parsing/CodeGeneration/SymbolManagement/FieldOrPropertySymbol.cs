@@ -75,14 +75,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 _property.SetOwner(owner);
         }
 
-        public override void BindType(IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
-            _field.BindType(context);
+            _field.Bind(context);
 
             if (_field.Type == null)
             {
                 IsProperty = true;
-                _property.BindType(context);
+                _property.Bind(context);
                 Type = _property.Type;
             }
             else

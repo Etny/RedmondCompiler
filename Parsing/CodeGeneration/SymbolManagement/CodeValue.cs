@@ -32,7 +32,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Value = value;
         }
 
-        public virtual void BindType(IntermediateBuilder context)
+        public virtual void Bind(IntermediateBuilder context)
         {
             if(Type == null)
                 Type = context.ResolveType(TypeName);

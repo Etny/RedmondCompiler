@@ -43,7 +43,7 @@ namespace Redmond.Parsing.CodeGeneration
 
         public InterCall CompileCall(SyntaxTreeNode node, bool exp)
         {
-            InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
+            CodeValue[] parameters = new CodeValue[node[1].Children.Length];
 
             for (int i = 0; i < parameters.Length; i++)
                 parameters[i] = ToIntermediateExpression(node[1][i]);
@@ -56,7 +56,7 @@ namespace Redmond.Parsing.CodeGeneration
                 if (member == null)
                     return new InterCall(node[0].ValueString, parameters, exp, new LateStaticReferenceResolver(node[2]));
 
-                thisPtr = member.ToValue();
+                thisPtr = member;
 
             }
 

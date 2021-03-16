@@ -37,9 +37,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _owner = owner;
         }
 
-        public override void BindType(IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
-            _owner?.BindType(context);
+            _owner?.Bind(context);
 
             if (Type != null) return;
 
@@ -59,13 +59,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             if (Property.CanRead)
             {
-                _get = new InterCall(Property.GetFunction, new InterInstOperand[0], true, _owner);
+                _get = new InterCall(Property.GetFunction, new CodeValue[0], true, _owner);
                 _get.SetOwner(context.CurrentMethod);
             }
 
             if (Property.CanWrite)
             {
-                _set = new InterCall(Property.SetFunction, new InterInstOperand[1], true, _owner);
+                _set = new InterCall(Property.SetFunction, new CodeValue[1], true, _owner);
                 _set.SetOwner(context.CurrentMethod);
             }
         }
@@ -81,7 +81,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Store(IlBuilder builder, CodeValue store)
         {
-            _set.SetParameter(new InterInstOperand(store));
+            _set.SetParameter(store);
             _set.Emit(builder);
         }
 

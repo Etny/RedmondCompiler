@@ -44,21 +44,21 @@ namespace Redmond.Parsing.CodeGeneration
             }
         }
 
-        private InterInstOperand ToIntermediateExpression(SyntaxTreeNode node)
+        private CodeValue ToIntermediateExpression(SyntaxTreeNode node)
         {
             var value = ToValue(node);
 
             if (value != null)
-                return new InterInstOperand(value);
+                return value;
 
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
             {
-                return new InterInstOperand(new LateStaticReferenceResolver(node));
+                return new InterOpValue(new LateStaticReferenceResolver(node));
             }
 
             var op = CompileNode(node);
 
-            if (op is InterOp) return new InterInstOperand(op);
+            if (op is InterOp) return new InterOpValue(op as InterOp);
 
             return null;
         }
@@ -82,7 +82,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("NewExpression")]
         public InterOp CompileNewExpression(SyntaxTreeNode node)
         {
-            InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
+            CodeValue[] parameters = new CodeValue[node[1].Children.Length];
 
             for (int i = 0; i < parameters.Length; i++)
                 parameters[i] = ToIntermediateExpression(node[1][i]);

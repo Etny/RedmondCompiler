@@ -112,10 +112,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             ReturnType = builder.ResolveType(ReturnTypeName);
 
             foreach (var a in Arguments)
-                a.BindType(builder);
+                a.Bind(builder);
 
             foreach (var l in Locals)
-                l.BindType(builder);
+                l.Bind(builder);
         }
 
         public void BindSubMembers(IntermediateBuilder builder)

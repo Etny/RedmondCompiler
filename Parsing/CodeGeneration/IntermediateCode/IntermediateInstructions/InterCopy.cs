@@ -10,18 +10,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     {
 
         private CodeSymbol _target = null;
-        private InterInstOperand _source;
+        private CodeValue _source;
         private LateStaticReferenceResolver _resolver;
 
         private bool emitConv = false;
 
-        public InterCopy(CodeSymbol target, InterInstOperand source)
+        public InterCopy(CodeSymbol target, CodeValue source)
         {
             _target = target;
             _source = source;                
         }
 
-        public InterCopy(LateStaticReferenceResolver resolver, InterInstOperand source)
+        public InterCopy(LateStaticReferenceResolver resolver, CodeValue source)
         {
             _resolver = resolver;
             _source = source;
@@ -38,26 +38,16 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 _target = _resolver.GetReferencedFieldOrProperty();
             }
             else
-                _target.BindType(context);
+                _target.Bind(context);
         }
 
+        //TODO: Add back pre-emit type conversion
         public override void Emit(IlBuilder builder)
         {
             base.Emit(builder);
 
-            if (_source.Type != _target.Type)
-            {
-                if (_source.IsValue)
-                {
-                    emitConv = _source.Value is CodeSymbol;
-                    if (!emitConv) _source.Value.Type = _target.Type;
-                }
-            }
-
-            var finalSource = _source.ToValue();
-
             if (_source.Type != _target.Type | emitConv) 
-                finalSource = new ConvertedValue(finalSource, _target.Type);
+                _source = new ConvertedValue(_source, _target.Type);
 
             if (!Owner.IsStatic && FieldOrPropertySymbol.IsFieldOrProperty(_target))
             {
@@ -66,7 +56,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 _target = forp;
             }
 
-            _target.Store(builder, finalSource);
+            _target.Store(builder, _source);
             //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }
     }

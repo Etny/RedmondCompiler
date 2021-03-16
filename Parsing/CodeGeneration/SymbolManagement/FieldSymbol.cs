@@ -39,9 +39,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _initFromInterField = true;
         }
 
-        public override void BindType(IntermediateBuilder context)
+        public override void Bind(IntermediateBuilder context)
         {
-            _owner?.BindType(context);
+            _owner?.Bind(context);
 
             if (Field != null) { Type = Field.Type; return; }
 

@@ -66,7 +66,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 for (int j = _fieldStart + 1; j < _ids.Length; j++)
                     _field = new FieldOrPropertySymbol(_field, _ids[j]);
 
-                _field.BindType(context);
+                _field.Bind(context);
                 Type = _field.Type;
             }
         }

@@ -29,7 +29,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             if (Name == ".ctor")
             {
                 if (Owner.BaseType == CodeType.Object)
-                    AddInstruction(new InterCall(new ConstructorInfoWrapper(typeof(object).GetConstructor(new Type[0]), builder), new InterInstOperand[0], false, ThisPointer), 0);
+                    AddInstruction(new InterCall(new ConstructorInfoWrapper(typeof(object).GetConstructor(new Type[0]), builder), new CodeValue[0], false, ThisPointer), 0);
             }
         }
 

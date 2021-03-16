@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
@@ -7,10 +8,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 {
     class InterRet : InterInst
     {
-        private InterInstOperand _exp;
+        private CodeValue _exp;
         private bool hasValue = true;
 
-        public InterRet(InterInstOperand exp ) { _exp = exp; }
+        public InterRet(CodeValue exp ) { _exp = exp; }
         public InterRet() { hasValue = false; }
 
         public override void Emit(IlBuilder builder)
@@ -18,7 +19,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             base.Emit(builder);
 
             if (hasValue)
-                _exp.Emit(builder);
+                _exp.Push(builder);
 
             builder.EmitOpCode(OpCodes.Ret);
         }
