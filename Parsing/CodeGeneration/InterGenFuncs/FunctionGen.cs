@@ -82,69 +82,31 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("FunctionDec")]
         public void CompileFunctionDeclaration(SyntaxTreeNode node)
         {
-            string name = "error";
+            string name = node[1].ValueString;
             string retType = null;
-            ArgumentSymbol[] args = null;
+            ArgumentSymbol[] args = CompileParameterDecList(node[2]);
             List<string> functionKeywords = new List<string>();
 
-            foreach(var child in node.Children)
-            {
-                switch (child.Op)
-                {
-                    case "AccessKeyword":
-                        functionKeywords.Add(child.ValueString);
-                        break;
-
-                    case "ModifierList":
-                        foreach (var kw in child.Children)
-                            functionKeywords.Add(kw.ValueString);
-                        break;
-
-                    case "ParameterDecList":
-                        args = CompileParameterDecList(child);
-                        break;
-
-                    case "Identifier":
-                        name = child.ValueString;
-                        //if (Tables.Peek().Contains(name)) throw new Exception("Already exists :(");
-                        //Tables.Peek().AddSymbol(new SymbolManagement.CodeSymbol(name, "function"));
-                        break;
-
-                    case "Name":
-                        retType = child.ValueString;
-                        break;
-                }
-            }
+            var decHeader = node[0];
+            functionKeywords.Add(decHeader[0].ValueString);
+            foreach (var mod in decHeader[1].Children) functionKeywords.Add(mod.ValueString);
+            retType = decHeader[2].ValueString;
+            
             PushNewTable();
 
-            InterMethod method = builder.AddMethod(name, retType, args, functionKeywords);
+            builder.AddMethod(name, retType, args, functionKeywords);
         }
 
         [CodeGenFunction("ConstructorDec")]
         public void CompileConstructorDeclaration(SyntaxTreeNode node)
-        {
-            string name = "error";
-            string retType = null;
-            ArgumentSymbol[] args = null;
+        {  
             List<string> functionKeywords = new List<string>();
+            ArgumentSymbol[] args = CompileParameterDecList(node[1]);
+            var decHeader = node[0];
 
-            foreach (var child in node.Children)
-            {
-                switch (child.Op)
-                {
-                    case "AccessKeyword":
-                        functionKeywords.Add(child.ValueString);
-                        break;
-
-                    case "ParameterDecList":
-                        args = CompileParameterDecList(child);
-                        break;
-
-                    case "Name":
-                        Debug.Assert(child.ValueString == builder.CurrentType.Name);
-                        break;
-                }
-            }
+            functionKeywords.Add(decHeader[0].ValueString);
+            Debug.Assert(decHeader[1].Children.Length < 1);
+            Debug.Assert(decHeader[2].ValueString == builder.CurrentType.Name);
             PushNewTable();
 
             builder.AddConstructor(args, functionKeywords);

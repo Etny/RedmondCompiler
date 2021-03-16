@@ -1,5 +1,41 @@
-﻿
+﻿using System;
+using System.Reflection.Emit;
+
 class OtherClass{
 
 	public int Field;
+
+	public OtherClass(int i)
+	{
+		Field = i;
+	}
+
+	public void Double()
+	{
+		Field = Field * 2;
+	}
+
+}
+
+class TestClass {
+
+	public static void Main(){
+		OtherClass o1 = new OtherClass(10);
+		OtherClass o2 = new OtherClass(12);
+
+		Console.WriteLine(o1.Field);
+		Console.WriteLine(o2.Field);
+		o1.Double();
+		o2.Double();
+		Console.WriteLine(o1.Field);
+		Console.WriteLine(o2.Field);
+
+
+		System.Console.ReadLine();
+	}
+
+	static float AnotherFunction(float i, float p){
+		return i + p;
+	}
+
 }

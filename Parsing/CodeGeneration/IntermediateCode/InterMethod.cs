@@ -61,6 +61,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             inst.SetOwner(this);
         }
 
+        public void AddInstruction(InterInst inst, int index)
+        {
+            Instructions = Instructions.Insert(index, inst);
+            inst.SetOwner(this);
+        }
+
         public virtual void Emit(IlBuilder builder)
         {
             builder.EmitString(".method");
@@ -93,7 +99,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             builder.EmitLine("");
         }
 
-        public void Bind(IntermediateBuilder builder)
+        public virtual void Bind(IntermediateBuilder builder)
         {
             ReturnType = builder.ResolveType(ReturnTypeName);
 

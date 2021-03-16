@@ -31,12 +31,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             _source.Bind(context);
 
-            if(_target == null)
+            if (_target == null)
             {
                 _resolver.Bind(context);
                 Debug.Assert(_resolver.IsFieldOrProperty);
                 _target = _resolver.GetReferencedFieldOrProperty();
             }
+            else
+                _target.BindType(context);
         }
 
         public override void Emit(IlBuilder builder)
