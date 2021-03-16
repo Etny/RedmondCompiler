@@ -37,15 +37,22 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _staticCall = true;
             _resolver = resolver;
         }
+
+        public InterCall(IMethodWrapper method, InterInstOperand[] parameters, bool isExpression = false, CodeValue thisPtr = null)
+        {
+            _method = method;
+            _return = method.ReturnType;
+            _parameters = parameters;
+            _expression = isExpression;
+            _thisPtr = thisPtr;
+        }
+
         public override void Bind(IntermediateBuilder context)
         {
-            CodeType[] paramTypes = new CodeType[_parameters.Length];
+            if (_method != null) return;
 
-            for(int i = 0; i < _parameters.Length; i++)
-            {
-                _parameters[i].Bind(context);
-                paramTypes[i] = _parameters[i].Type;
-            }
+            foreach (var p in _parameters)
+                p.Bind(context);
 
             _thisPtr?.BindType(context);
 
@@ -54,14 +61,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 _resolver.Bind(context);
                 _staticCall = _resolver.IsStatic;
                 if (!_staticCall)
-                    _thisPtr = _resolver.GetReferencedField();
+                    _thisPtr = _resolver.GetReferencedFieldOrProperty();
             }
 
             CodeType type = _staticCall ? _resolver.Type : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
 
-            _method = context.FindClosestFunction(_targetName, type, paramTypes);
+            _method = context.FindClosestFunction(_targetName, type, _parameters);
             _return = _method.ReturnType;
         }
+
+        public void SetParameter(InterInstOperand val, int index = 0)
+            => _parameters[index] = val;
 
         public override void Emit(IlBuilder builder)
         {
@@ -76,7 +86,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
 
                 if (!valueType)
-                    builder.PushValue(_thisPtr ?? Owner.Arguments[0]);
+                    builder.PushValue(_thisPtr ?? Owner.ThisPointer);
                 else
                     builder.PushAddress(_thisPtr as CodeSymbol);
             }

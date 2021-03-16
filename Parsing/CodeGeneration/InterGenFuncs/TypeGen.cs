@@ -30,11 +30,10 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var c in node[2].Children)
                 keywords.Add(c.ValueString);
 
-            var dec = node[0];
-            var field = builder.AddField(dec[0].ValueString, dec[1].ValueString, access, keywords);
+            var field = builder.AddField(node[3].ValueString, node[0].ValueString, access, keywords);
 
-            if(dec.Children.Length > 2)
-                builder.CurrentType.Initializer.AddInstruction(new InterCopy(field.Symbol, ToIntermediateExpression(dec[2])));
+            if(node.Children.Length > 4)
+                builder.CurrentType.Initializer.AddInstruction(new InterCopy(field.Symbol, ToIntermediateExpression(node[4])));
            
         }
 

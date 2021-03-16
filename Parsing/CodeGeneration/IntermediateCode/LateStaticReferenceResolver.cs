@@ -14,8 +14,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public CodeType Type;
         public bool IsStatic = false;
+        public bool IsFieldOrProperty => !IsStatic;
 
-        private FieldSymbol _field = null;
+        private FieldOrPropertySymbol _field = null;
 
         public LateStaticReferenceResolver(SyntaxTreeNode node)
         {
@@ -60,17 +61,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             if (!IsStatic)
             {
                 int _fieldStart = i + 1;
-                _field = new FieldSymbol(Type as UserType, _ids[_fieldStart]);
+                _field = new FieldOrPropertySymbol(Type as UserType, _ids[_fieldStart]);
 
                 for (int j = _fieldStart + 1; j < _ids.Length; j++)
-                    _field = new FieldSymbol(_field, _ids[j]);
+                    _field = new FieldOrPropertySymbol(_field, _ids[j]);
 
                 _field.BindType(context);
                 Type = _field.Type;
             }
         }
 
-        public FieldSymbol GetReferencedField()
+        public FieldOrPropertySymbol GetReferencedFieldOrProperty()
         {
             if (IsStatic) return null;
             return _field;
@@ -80,7 +81,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             if (IsStatic) return;
 
-            builder.PushValue(GetReferencedField());
+            builder.PushValue(GetReferencedFieldOrProperty());
         }
 
         public override CodeType GetResultType()

@@ -59,8 +59,10 @@ namespace Redmond.Parsing.CodeGeneration
 
         private InterInstOperand ToIntermediateExpressionOrLateStaticBind(SyntaxTreeNode node)
         {
-            if (IsValue(node))
-                return new InterInstOperand(ToValue(node));
+            var value = ToValue(node);
+
+            if (value != null)
+                return new InterInstOperand(value);
 
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
             {
@@ -89,20 +91,18 @@ namespace Redmond.Parsing.CodeGeneration
 
             return ret;
         }
-        //private FieldSymbol TryCompileMemberAccess(SyntaxTreeNode node)
-        //{
-        //    var name = node[0].ValueString;
 
-        //    if (node[1].Op == "MemberAccess")
-        //        return CompileNextMemberAccess(node[1], new InterOpValue(exp));
-        //    else {
-        //        var sym = GetFirst(node[1].ValueNode.ValueString);
-        //        if (sym == null) return null; //Not a local name, probably a type
-        //        return new FieldSymbol(sym, name);
-        //    }
-        //}
+        [CodeGenFunction("NewExpression")]
+        public InterOp CompileNewExpression(SyntaxTreeNode node)
+        {
+            InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
 
-        private FieldSymbol CompileMemberAccess(SyntaxTreeNode node)
+            for (int i = 0; i < parameters.Length; i++)
+                parameters[i] = ToIntermediateExpressionOrLateStaticBind(node[1][i]);
+
+            return new InterNew(node[0].ValueString, parameters);
+        }
+        private FieldOrPropertySymbol CompileMemberAccess(SyntaxTreeNode node)
         {
             var name = node[0].ValueString;
 
@@ -110,13 +110,13 @@ namespace Redmond.Parsing.CodeGeneration
             {
                 var next = CompileMemberAccess(node[1]);
                 if (next == null) return null;
-                return new FieldSymbol(next, name);
+                return new FieldOrPropertySymbol(next, name);
             }
             else
             {
                 var final = GetFirst(node[1].ValueNode.ValueString);
                 if (final == null) return null;
-                return new FieldSymbol(final, name);
+                return new FieldOrPropertySymbol(final, name);
             }
         }
     }

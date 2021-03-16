@@ -8,6 +8,7 @@ using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using Redmond.Parsing.CodeGeneration.References;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 
 namespace Redmond.Parsing.CodeGeneration
 {
@@ -53,7 +54,22 @@ namespace Redmond.Parsing.CodeGeneration
 
             foreach(var arg in vars)
                 _tables.Peek().AddSymbol(arg);
-            
+
+            if(method.IsInstance)
+                _tables.Peek().AddSymbol(method.ThisPointer);
+
+            return method;
+        }
+
+        public InterMethod AddConstructor(ArgumentSymbol[] vars, List<string> flags)
+        {
+            var method = new InterMethodSpecialName(".ctor", vars, CurrentType, flags);
+            CurrentMethod = method;
+            CurrentType.AddConstructor(method);
+
+            foreach (var arg in vars)
+                _tables.Peek().AddSymbol(arg);
+
             return method;
         }
 
@@ -118,7 +134,7 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
 
-        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeType[] args)
+        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params InterInstOperand[] args)
         {
             var type = owner as UserType;
             Debug.Assert(owner is UserType);
@@ -140,7 +156,7 @@ namespace Redmond.Parsing.CodeGeneration
                 float diff = 0;
                 for (int i = 0; i < args.Length; i++)
                 {
-                    var argType = args[i];
+                    var argType = args[i].Type;
                     var funcType = f.Arguments[i];
 
                     if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
@@ -162,7 +178,41 @@ namespace Redmond.Parsing.CodeGeneration
             return closest;
         }
 
+        public IMethodWrapper FindMostApplicableConstructor(UserType type, params InterInstOperand[] args)
+        {
+            //TODO: Merge this part with FindClosestFunction
+            IMethodWrapper closest = null;
+            float lowestDifference = -1;
 
+            foreach (var f in type.GetConstructors(this))
+            {
+                if (f.ArgumentCount != args.Length) continue;
+
+                bool canConvert = true;
+                float diff = 0;
+                for (int i = 0; i < args.Length; i++)
+                {
+                    var argType = args[i].Type;
+                    var funcType = f.Arguments[i];
+
+                    if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
+
+                    diff += funcType.Wideness - argType.Wideness;
+                }
+
+                if (!canConvert) continue;
+
+                if (lowestDifference < 0 || diff < lowestDifference)
+                {
+                    lowestDifference = diff;
+                    closest = f;
+                }
+            }
+
+            Debug.Assert(closest != null);
+
+            return closest;
+        }
         public void Emit(IlBuilder builder)
         {
             foreach (InterType t in Types)
