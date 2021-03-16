@@ -81,8 +81,53 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 string s = "";
 
                 if (IsInstance) s += "instance ";
-                s += _method.ReturnType.Name.ToLower() + " ";
+                s += ReturnType.Name + " ";
                 s += $"[{_method.Module.Name[.._method.Module.Name.LastIndexOf(".dll")]}]";
+
+                return s;
+            }
+        }
+
+    }
+
+    class ConstructorInfoWrapper : IMethodWrapper
+    {
+
+        private ConstructorInfo _constructor;
+        private IntermediateBuilder _context;
+
+        public ConstructorInfoWrapper(ConstructorInfo constructor, IntermediateBuilder context)
+        {
+            _constructor = constructor;
+            _context = context;
+
+            ReturnType = CodeType.Void;
+        }
+
+        public bool IsVirtual => _constructor.IsVirtual;
+
+        public bool IsInstance => !_constructor.IsStatic;
+
+        public CodeType ReturnType { get; }
+
+        public string FullSignature
+            => $"{functionPrefixes}{_constructor.DeclaringType.FullName}::{_constructor.Name}({string.Join(',', from a in Arguments select a.Name)})";
+
+        public string Name => _constructor.Name;
+
+        public int ArgumentCount => _constructor.GetParameters().Length;
+
+        public CodeType[] Arguments => (from p in _constructor.GetParameters() select _context.ResolveType(p.ParameterType)).ToArray();
+
+        private string functionPrefixes
+        {
+            get
+            {
+                string s = "";
+
+                if (IsInstance) s += "instance ";
+                s += ReturnType.Name + " ";
+                s += $"[{_constructor.Module.Name[.._constructor.Module.Name.LastIndexOf(".dll")]}]";
 
                 return s;
             }

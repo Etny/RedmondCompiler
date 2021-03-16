@@ -31,10 +31,22 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new MethodInfoWrapper(f, context);
         }
 
+        public virtual IEnumerable<IMethodWrapper> GetConstructors(IntermediateBuilder context)
+        {
+            foreach (var f in _type.GetConstructors())
+                yield return new ConstructorInfoWrapper(f, context);
+        }
+
         public virtual IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
         {
             foreach (var f in _type.GetFields())
                 yield return new FieldInfoWrapper(f, context);
+        }
+
+        public virtual IEnumerable<IPropertyWrapper> GetProperties(IntermediateBuilder context)
+        {
+            foreach (var f in _type.GetProperties())
+                yield return new PropertyInfoWrapper(f, context);
         }
 
     }
@@ -62,6 +74,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             foreach (var f in _type.Fields)
                 yield return new InterFieldWrapper(f);
+        }
+
+        public override IEnumerable<IMethodWrapper> GetConstructors(IntermediateBuilder context)
+        {
+            foreach (var f in _type.Constructors)
+                yield return new InterMethodWrapper(f, context);
         }
     }
 

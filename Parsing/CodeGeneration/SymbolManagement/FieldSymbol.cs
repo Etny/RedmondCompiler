@@ -15,8 +15,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         private UserType _owningType = null;
         private InterField _field = null;
 
-        public bool IsStatic = false;
+        private bool _initFromInterField = false;
 
+        public IFieldWrapper Field { get; protected set; }
         public FieldSymbol(CodeValue owner, string name) : base()
         {
             _owner = owner;
@@ -32,38 +33,43 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             _field = field;
             _owningType = field.Owner;
+            Field = new InterFieldWrapper(field);
             ID = field.Name;
+
+            _initFromInterField = true;
         }
 
         public override void BindType(IntermediateBuilder context)
         {
             _owner?.BindType(context);
 
-            if (Type != null) return;
+            if (Field != null) { Type = Field.Type; return; }
 
             UserType type = (_owner != null ? _owner.Type : _owningType) as UserType;
 
             if (_owningType == null) _owningType = type;
 
-            IFieldWrapper match = null;
+            IFieldWrapper matchField = null;
 
-            if (_field == null)
-            {
-                foreach (var f in type.GetFields(context))
-                    if (f.Name == ID) { match = f; break; }
-            }
-            else
-                match = new InterFieldWrapper(_field);
+            foreach (var f in type.GetFields(context))
+                if (f.Name == ID) { matchField = f; break; }
 
-            Debug.Assert(match != null);
+            //Debug.Assert(matchField != null);
 
-            Type = match.Type;
-            IsStatic = match.IsStatic;
+            if (matchField == null) return;
+
+            Type = matchField.Type;
+            Field = matchField;
         }
 
+        public void SetOwner(CodeValue owner)
+        {
+            if (Field.IsStatic) return;
+            _owner = owner;
+        }
         public override void Push(IlBuilder builder)
         {
-            if (!IsStatic)
+            if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
                 builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{_owningType.SpecName}::{ID}");
@@ -75,7 +81,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void PushAddress(IlBuilder builder)
         {
-            if (!IsStatic)
+            if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
                 builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{_owningType.SpecName}::{ID}");
@@ -86,7 +92,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Store(IlBuilder builder, CodeValue store)
         {
-            if (!IsStatic)
+            if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
                 builder.PushValue(store);

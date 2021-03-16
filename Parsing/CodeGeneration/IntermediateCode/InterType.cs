@@ -16,7 +16,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly string Name;
         public readonly UserType BaseType;
 
-        public readonly InterMethodSpecialName Constructor, Initializer;
+        public readonly InterMethodSpecialName Initializer;
+        public readonly List<InterMethodSpecialName> Constructors = new List<InterMethodSpecialName>();
 
 
         //TODO: add interface support
@@ -26,9 +27,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             BaseType = baseType ?? (UserType)CodeType.Object;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
-            Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this);
-            AddMethod(Initializer);
-
+            Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this, new List<string>());
         }
 
         public string FullName => Name;
@@ -39,6 +38,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void AddMethod(InterMethod method)
             => Methods = Methods.Add(method);
+
+        public void AddConstructor(InterMethodSpecialName method)
+            => Constructors.Add(method);
 
 
         public void AddField(InterField field)
@@ -56,6 +58,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             builder.EmitLine();
 
+            Initializer.Emit(builder);
+
+            foreach (var c in Constructors)
+                c.Emit(builder);
+
             foreach (var method in Methods)
                 method.Emit(builder);
 
@@ -69,8 +76,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             foreach (var field in Fields)
                 field.Bind(builder);
 
+            Initializer.Bind(builder);
+
+            foreach (var constructor in Constructors)
+                constructor.Bind(builder);
+
             foreach (var method in Methods)
                 method.Bind(builder);
+
+            Initializer.BindSubMembers(builder);
+
+            foreach (var constructor in Constructors)
+                constructor.BindSubMembers(builder);
 
             foreach (var method in Methods)
                 method.BindSubMembers(builder);

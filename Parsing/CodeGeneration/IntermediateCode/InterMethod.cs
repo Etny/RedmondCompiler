@@ -18,6 +18,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public readonly string Name, ReturnTypeName;
         public CodeType ReturnType;
+        public readonly ArgumentSymbol ThisPointer = null;
         public readonly ArgumentSymbol[] Arguments;
         public readonly InterType Owner;
 
@@ -33,7 +34,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             foreach (string flag in flags) AddFlag(flag);
 
-            if (IsInstance) foreach (var arg in args) arg.Index++;
+            if (IsInstance)
+            {
+                foreach (var arg in args) arg.Index++;
+                ThisPointer = new ArgumentSymbol("this", new InterUserType(owner), 0);
+            }
         }
 
 

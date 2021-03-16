@@ -4,6 +4,7 @@ using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -36,7 +37,6 @@ namespace Redmond.Parsing.CodeGeneration
 
             for (int i = 0; i < parameters.Length; i++)
                 parameters[i] = ToIntermediateExpressionOrLateStaticBind(node[1][i]);
-
             CodeValue thisPtr = null;
 
             if (node.Children.Length > 2)
@@ -57,6 +57,16 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileFunction(SyntaxTreeNode node)
         {
             MatchNode(node.Children[0], "FunctionDec");
+
+            MatchNode(node.Children[1], "FunctionBody");
+
+            Tables.Pop();
+        }
+
+        [CodeGenFunction("Constructor")]
+        public void CompileConstructor(SyntaxTreeNode node)
+        {
+            MatchNode(node.Children[0], "ConstructorDec");
 
             MatchNode(node.Children[1], "FunctionBody");
 
@@ -110,7 +120,36 @@ namespace Redmond.Parsing.CodeGeneration
             InterMethod method = builder.AddMethod(name, retType, args, functionKeywords);
         }
 
-        //TODO: Improve this
+        [CodeGenFunction("ConstructorDec")]
+        public void CompileConstructorDeclaration(SyntaxTreeNode node)
+        {
+            string name = "error";
+            string retType = null;
+            ArgumentSymbol[] args = null;
+            List<string> functionKeywords = new List<string>();
+
+            foreach (var child in node.Children)
+            {
+                switch (child.Op)
+                {
+                    case "AccessKeyword":
+                        functionKeywords.Add(child.ValueString);
+                        break;
+
+                    case "ParameterDecList":
+                        args = CompileParameterDecList(child);
+                        break;
+
+                    case "Name":
+                        Debug.Assert(child.ValueString == builder.CurrentType.Name);
+                        break;
+                }
+            }
+            PushNewTable();
+
+            builder.AddConstructor(args, functionKeywords);
+        }
+
         private ArgumentSymbol[] CompileParameterDecList(SyntaxTreeNode node)
         {
             ArgumentSymbol[] args = new ArgumentSymbol[node.Children.Length];

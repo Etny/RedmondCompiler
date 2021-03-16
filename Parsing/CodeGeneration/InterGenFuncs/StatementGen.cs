@@ -1,9 +1,11 @@
 ﻿using Redmond.Output.Error;
+using Redmond.Parsing.CodeGeneration.IntermediateCode;
 using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration
@@ -14,10 +16,20 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("AssignStatement")]
         public void CompileAssignStatement(SyntaxTreeNode node)
         {
-            string name = node[0].ValueString;
-            CodeSymbol symbol = GetFirst(name);//?? CurrentTable.AddSymbol(new CodeSymbol(name, "int32"));
+            CodeSymbol symbol = null;
 
-            builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
+            if (node[0].Op == "Identifier")
+                symbol = GetFirst(node[0].ValueString);
+            else if (node[0].Op == "MemberAccess")
+                symbol = CompileMemberAccess(node[0]);
+            else
+                Debug.Assert(false);
+
+            if(symbol == null)
+                builder.AddInstruction(new InterCopy(new LateStaticReferenceResolver(node[0]), ToIntermediateExpression(node[1])));
+            else
+                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
+
         }
 
         [CodeGenFunction("DeclarationStatement")]
