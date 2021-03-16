@@ -75,6 +75,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+            base.Emit(builder);
+
             bool valueType = _thisPtr != null && 
                              _thisPtr.Type is UserType && 
                              (_thisPtr.Type as UserType).ValueType;

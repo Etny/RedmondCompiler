@@ -20,16 +20,14 @@ class OtherClass{
 class TestClass {
 
 	public static void Main(){
-		OtherClass o1 = new OtherClass(10);
-		OtherClass o2 = new OtherClass(12);
+		int i = Int32.Parse(Console.ReadLine());
 
-		Console.WriteLine(o1.Field);
-		Console.WriteLine(o2.Field);
-		o1.Double();
-		o2.Double();
-		Console.WriteLine(o1.Field);
-		Console.WriteLine(o2.Field);
-
+		if(i == 0){
+			Console.WriteLine("Its 0");
+			Console.WriteLine("Really");
+		}
+		if(i == 1)
+			Console.WriteLine("Its 1");
 
 		System.Console.ReadLine();
 	}

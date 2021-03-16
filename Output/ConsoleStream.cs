@@ -27,7 +27,9 @@ namespace Redmond.Output
             Console.WriteLine(s);
             wroteIndent = false;
             currentLoc++;
+            currentIndent = nextIndent;
         }
+
 
         public override int ReserveLocation()
         {

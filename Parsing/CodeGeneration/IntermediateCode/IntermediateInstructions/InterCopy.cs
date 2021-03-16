@@ -43,6 +43,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+            base.Emit(builder);
+
             if (_source.Type != _target.Type)
             {
                 if (_source.IsValue)

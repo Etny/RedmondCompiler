@@ -108,7 +108,7 @@ assign_statement	:	IDENTIFIER '=' expression		{$$ = makeNode("AssignStatement", 
 					|	member_access '=' expression	{$$ = makeNode("AssignStatement", $1, $3)}
 					;
 
-if_statement		:	'if' '\(' expression '\)'	statement	{$$ = makeNode("IfStatement", $3, $5)}
+if_statement		:	IF '\(' expression '\)'	statement	{$$ = makeNode("IfStatement", $3, $5)}
 					;
 
 call_statement		:	expression '.' IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $3, $5, $1)}
@@ -150,10 +150,11 @@ space_or_type_name	:	IDENTIFIER							{$$ = makeLeaf("Name", $1.text); $$.name =
 type_name			:	space_or_type_name
 					;
 
-binop				:	'+' {$$ = makeLeaf("BinaryOperator", "add")}
-					|	'-' {$$ = makeLeaf("BinaryOperator", "sub")}
-					|	'/' {$$ = makeLeaf("BinaryOperator", "div")}
-					|	'*' {$$ = makeLeaf("BinaryOperator", "mul")}
+binop				:	'+'		{$$ = makeLeaf("BinaryOperator", "add")}
+					|	'-'		{$$ = makeLeaf("BinaryOperator", "sub")}
+					|	'/'		{$$ = makeLeaf("BinaryOperator", "div")}
+					|	'*'		{$$ = makeLeaf("BinaryOperator", "mul")}
+					|	'=='	{$$ = makeLeaf("BinaryOperator", "ceq")}
 					;
 
 
@@ -192,9 +193,9 @@ CLASS
 USING
 RETURN
 NEW
+IF
 
-'\{' '\}'
-'\(' '\)'
+CEQ
 
 #End
 
@@ -219,6 +220,8 @@ class		{CLASS}
 using		{USING}
 return		{RETURN}
 new			{NEW}
+if			{IF}
+==			{CEQ}
 
 true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
 (letter|_)character* {IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}

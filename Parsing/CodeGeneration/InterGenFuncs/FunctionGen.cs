@@ -13,13 +13,23 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class IntermediateGenerator
     {
 
+        [CodeGenFunction("CompoundStatement")]
+        [CodeGenFunction("StatementList")]
+        public void CompileCompound(SyntaxTreeNode node)
+        {
+            PushNewTable();
+
+            foreach (var child in node.Children)
+                CompileNode(child);
+
+            Tables.Pop();
+        }
+
         [CodeGenFunction("File")]
         [CodeGenFunction("ImportList")]
         [CodeGenFunction("ClassList")]
         [CodeGenFunction("MemberList")]
-        [CodeGenFunction("CompoundStatement")]
-        [CodeGenFunction("StatementList")]
-        public void CompileCompound(SyntaxTreeNode node)
+        public void CompileChildren(SyntaxTreeNode node)
         {
             foreach (var child in node.Children)
                 CompileNode(child);
@@ -36,7 +46,7 @@ namespace Redmond.Parsing.CodeGeneration
             InterInstOperand[] parameters = new InterInstOperand[node[1].Children.Length];
 
             for (int i = 0; i < parameters.Length; i++)
-                parameters[i] = ToIntermediateExpressionOrLateStaticBind(node[1][i]);
+                parameters[i] = ToIntermediateExpression(node[1][i]);
             CodeValue thisPtr = null;
 
             if (node.Children.Length > 2)
@@ -91,7 +101,7 @@ namespace Redmond.Parsing.CodeGeneration
             functionKeywords.Add(decHeader[0].ValueString);
             foreach (var mod in decHeader[1].Children) functionKeywords.Add(mod.ValueString);
             retType = decHeader[2].ValueString;
-            
+
             PushNewTable();
 
             builder.AddMethod(name, retType, args, functionKeywords);
@@ -107,6 +117,7 @@ namespace Redmond.Parsing.CodeGeneration
             functionKeywords.Add(decHeader[0].ValueString);
             Debug.Assert(decHeader[1].Children.Length < 1);
             Debug.Assert(decHeader[2].ValueString == builder.CurrentType.Name);
+
             PushNewTable();
 
             builder.AddConstructor(args, functionKeywords);

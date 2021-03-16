@@ -33,6 +33,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+            base.Emit(builder);
+
             for (int i = 0; i < _parameters.Length; i++)
             {
                 _parameters[i].Emit(builder);

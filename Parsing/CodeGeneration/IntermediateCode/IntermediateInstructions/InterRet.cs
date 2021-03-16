@@ -15,6 +15,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Emit(IlBuilder builder)
         {
+            base.Emit(builder);
+
             if (hasValue)
                 _exp.Emit(builder);
 

@@ -25,6 +25,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public List<CodeSymbol> Locals = new List<CodeSymbol>();
         public int Args => Arguments.Length;
 
+        private LabelManager _labels = new LabelManager();
+        public string NextLabel { get { _labels.LabelNext = true; return _labels.CurrentLabel; } }
+
         public InterMethod(string name, string returnTypeName, ArgumentSymbol[] args, InterType owner, List<string> flags)
         {
             Name = name;
@@ -59,12 +62,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             Instructions = Instructions.Add(inst);
             inst.SetOwner(this);
+
+            if (!_labels.LabelNext) return;
+            inst.Label = _labels.NextLabel;
         }
 
         public void AddInstruction(InterInst inst, int index)
         {
             Instructions = Instructions.Insert(index, inst);
             inst.SetOwner(this);
+
+            if (!_labels.LabelNext) return;
+            inst.Label = _labels.NextLabel;
         }
 
         public virtual void Emit(IlBuilder builder)
@@ -92,7 +101,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             foreach (var inst in Instructions)
                 inst.Emit(builder);
 
-            if(Instructions.Count == 0 || !(Instructions[^1] is InterRet)) builder.EmitOpCode(OpCodes.Ret);
             builder.Output.WriteStringAtLocation(startLoc, ".maxstack " + builder.GetMaxStack());
             builder.Output.ReduceIndentation();
             builder.EmitLine("}");
@@ -112,9 +120,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void BindSubMembers(IntermediateBuilder builder)
         {
+            if (Instructions.Count == 0 || !(Instructions[^1] is InterRet)) AddInstruction(new InterRet());
+
             foreach (var inst in Instructions)
                 inst.Bind(builder);
         }
-        
+
     }
 }

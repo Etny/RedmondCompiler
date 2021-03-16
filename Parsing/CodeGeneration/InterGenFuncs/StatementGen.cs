@@ -43,7 +43,7 @@ namespace Redmond.Parsing.CodeGeneration
             CodeSymbol symbol = builder.AddLocal(name, node[1].ValueString);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
 
             if(node.Children.Length > 2)
-                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpressionOrLateStaticBind(node[2])));
+                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[2])));
         }
 
         [CodeGenFunction("ReturnStatement")]
@@ -58,10 +58,10 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("IfStatement")]
         public void CompileIfStatement(SyntaxTreeNode node)
         {
-            CompileNode(node.Children[0]);
-
-
-            CompileNode(node.Children[1]);
+            InterBranch branch = new InterBranch(ToIntermediateExpression(node[0]));
+            builder.AddInstruction(branch);
+            CompileNode(node[1]);
+            branch.SetLabel(builder.CurrentMethod.NextLabel);
         }
     }
 }
