@@ -110,7 +110,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         for(int i = 1; i < split.Length; i++)
                         {
-                            var term = new Terminal(split[i], false)
+                            var term = new Terminal(split[i], TokenType.IsTokenType(split[i]))
                             {
                                 Precedence = currentPrecedence,
                                 Associativity = split[0] == "left" ? OperatorAssociativity.Left : (split[0] == "right" ? OperatorAssociativity.Right : OperatorAssociativity.None)
@@ -151,7 +151,6 @@ namespace Redmond.Parsing.SyntaxAnalysis
             if (state.Action.ContainsKey(key))
             {
                 var oldAction = state.Action[key];
-
                 if (oldAction.Item1 == newAction.Item1 && oldAction.Item2 == newAction.Item2) return;
 
                 if (oldAction.Item1 != ParserAction.Accept && newAction.Item1 != ParserAction.Accept)

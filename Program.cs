@@ -26,7 +26,7 @@ namespace Redmond
         {
             CompileSettings.InitSettings(Dec.SettingsLines);
             TokenType.AddTypes(Dec.TokenLines);
-            TokenStream Input = new TokenStream(InputString, Dec.LexLines, "\"\'.,[]{}12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=>*/:;() $\n\r\t");
+            TokenStream Input = new TokenStream(InputString, Dec.LexLines, "\"\'.,<>[]{}!12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=*/:;() $\n\r\t");
             //Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input).ToTreeString());
             var tree = new Grammar(Dec.GrammarLines).Parse(Input);
             Console.WriteLine(tree.ToTreeString());

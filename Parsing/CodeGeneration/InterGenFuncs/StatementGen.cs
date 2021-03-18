@@ -58,10 +58,92 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("IfStatement")]
         public void CompileIfStatement(SyntaxTreeNode node)
         {
-            InterBranch branch = new InterBranch(ToIntermediateExpression(node[0]));
+            InterBranch branch = new InterBranch(ToIntermediateExpression(node[0]), InterBranch.BranchCondition.OnFalse);
+
+            PushNewTable();
+
             builder.AddInstruction(branch);
             CompileNode(node[1]);
             branch.SetLabel(builder.CurrentMethod.NextLabel);
+
+            Tables.Pop();
+        }
+
+        [CodeGenFunction("IfElseStatement")]
+        public void CompileIfElseStatement(SyntaxTreeNode node)
+        {
+            InterBranch branchOnFalse = new InterBranch(ToIntermediateExpression(node[0]), InterBranch.BranchCondition.OnFalse);
+            InterBranch branchAfterTrue = new InterBranch();
+
+            PushNewTable();
+
+            builder.AddInstruction(branchOnFalse);
+            CompileNode(node[1]);
+            builder.AddInstruction(branchAfterTrue);
+            branchOnFalse.SetLabel(builder.CurrentMethod.NextLabel);
+            CompileNode(node[2]);
+            branchAfterTrue.SetLabel(builder.CurrentMethod.NextLabel);
+
+            Tables.Pop();
+        }
+
+        [CodeGenFunction("WhileStatement")]
+        public void CompileWhileStatement(SyntaxTreeNode node)
+        {
+            InterBranch initialBranch = new InterBranch();
+
+            PushNewTable();
+
+            builder.AddInstruction(initialBranch);
+
+            string beginLabel = builder.CurrentMethod.NextLabel;
+            CompileNode(node[1]);
+            initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
+
+            InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[0]), InterBranch.BranchCondition.OnTrue);
+            checkBranch.SetLabel(beginLabel);
+            builder.AddInstruction(checkBranch);
+
+            Tables.Pop();
+        }
+
+        [CodeGenFunction("DoWhileStatement")]
+        public void CompileDoWhileStatement(SyntaxTreeNode node)
+        {
+            string beginLabel = builder.CurrentMethod.NextLabel;
+
+            PushNewTable();
+
+            CompileNode(node[1]);
+
+            InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[0]), InterBranch.BranchCondition.OnTrue);
+            checkBranch.SetLabel(beginLabel);
+            builder.AddInstruction(checkBranch);
+
+            Tables.Pop();
+        }
+
+        [CodeGenFunction("ForStatement")]
+        public void CompileForStatement(SyntaxTreeNode node)
+        {
+            PushNewTable();
+
+            CompileNode(node[0]);
+
+            InterBranch initialBranch = new InterBranch();
+
+            builder.AddInstruction(initialBranch);
+
+            string beginLabel = builder.CurrentMethod.NextLabel;
+            CompileNode(node[3]);
+            CompileNode(node[2]);
+            initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
+
+            InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[1]), InterBranch.BranchCondition.OnTrue);
+            checkBranch.SetLabel(beginLabel);
+            builder.AddInstruction(checkBranch);
+
+            Tables.Pop();
         }
     }
 }

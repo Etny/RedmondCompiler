@@ -3,6 +3,7 @@
 left + -
 left * /
 none precToken
+none ELSE
 
 %%
 
@@ -38,7 +39,7 @@ member				:	field
 member_header		:	access_dec modifier_list type_name	{$$ = makeNode("DecHeader", $1, $2, $3)}
 					;
 
-field				:	member_header IDENTIFIER '=' expression ';'		{$$ = makeNode("FieldDec", $1, $2, $4)}
+field				:	member_header IDENTIFIER EQ expression ';'		{$$ = makeNode("FieldDec", $1, $2, $4)}
 					|	member_header IDENTIFIER ';'					{$$ = makeNode("FieldDec", $1, $2)}
 					;
 
@@ -94,21 +95,31 @@ statement			:	assign_statement ';'	{$$ = $1}
 					|	return_statement ';'	{$$ = $1}
 					|	compound_statement
 					|	if_statement
+					|	while_statement
+					|	for_statement
 					;
 
 return_statement	:	RETURN				{$$ = makeLeaf("ReturnStatement")}
 					|	RETURN expression	{$$ = makeNode("ReturnStatement", $2)}
 					;
 
-dec_statement		:	space_or_type_name IDENTIFIER '=' expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
+dec_statement		:	space_or_type_name IDENTIFIER EQ expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
 					|	space_or_type_name IDENTIFIER					{$$ = makeNode("DeclarationStatement", $2, $1)}  
 					;
 
-assign_statement	:	IDENTIFIER '=' expression		{$$ = makeNode("AssignStatement", $1, $3)}
-					|	member_access '=' expression	{$$ = makeNode("AssignStatement", $1, $3)}
+assign_statement	:	IDENTIFIER EQ expression		{$$ = makeNode("AssignStatement", $1, $3)}
+					|	member_access EQ expression	{$$ = makeNode("AssignStatement", $1, $3)}
 					;
 
-if_statement		:	IF '\(' expression '\)'	statement	{$$ = makeNode("IfStatement", $3, $5)}
+if_statement		:	IF parenthesized_exp statement ELSE statement	{$$ = makeNode("IfElseStatement", $2, $3, $5)}
+					|	IF parenthesized_exp statement					{$$ = makeNode("IfStatement", $2, $3)}
+					;
+
+while_statement		:	WHILE parenthesized_exp statement	{$$ = makeNode("WhileStatement", $2, $3)}
+					|	DO statement WHILE parenthesized_exp	{$$ = makeNode("DoWhileStatement", $4, $2)}
+					;
+
+for_statement		:	FOR	'\(' dec_statement ';' expression ';' assign_statement '\)' statement	{$$ = makeNode("ForStatement", $3, $5, $7, $9)}
 					;
 
 call_statement		:	expression '.' IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $3, $5, $1)}
@@ -133,10 +144,13 @@ expression			:	Digit									{$$ = makeLeaf("NumericalLiteral", $1);}
 					|	BoolLiteral								{$$ = makeLeaf("BoolLiteral", $1)}
 					|	IDENTIFIER								{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression				{$$ = makeNode("BinaryExpression", $1, $3, $2);}
-					|	'\(' expression '\)'					{$$ = $2;}
+					|	parenthesized_exp						{$$ = $1}
 					|	call_statement							{$$ = makeNode("CallExpression", $1)}
 					|	member_access							{$$ = $1}
 					|   NEW type_name '\(' parameter_list '\)'	{$$ = makeNode("NewExpression", $2, $4)}
+					;
+
+parenthesized_exp	:	'\(' expression '\)'	{$$ = $2}
 					;
 
 					
@@ -154,7 +168,9 @@ binop				:	'+'		{$$ = makeLeaf("BinaryOperator", "add")}
 					|	'-'		{$$ = makeLeaf("BinaryOperator", "sub")}
 					|	'/'		{$$ = makeLeaf("BinaryOperator", "div")}
 					|	'*'		{$$ = makeLeaf("BinaryOperator", "mul")}
-					|	'=='	{$$ = makeLeaf("BinaryOperator", "ceq")}
+					|	CEQ		{$$ = makeLeaf("BinaryOperator", "ceq")}
+					|	CGT		{$$ = makeLeaf("BinaryOperator", "cgt")}
+					|	CLT		{$$ = makeLeaf("BinaryOperator", "clt")}
 					;
 
 
@@ -194,8 +210,16 @@ USING
 RETURN
 NEW
 IF
+ELSE
+WHILE
+DO
+FOR
 
+EQ
 CEQ
+CLT
+CGT
+NEQ
 
 #End
 
@@ -221,7 +245,16 @@ using		{USING}
 return		{RETURN}
 new			{NEW}
 if			{IF}
+else		{ELSE}
+while		{WHILE}
+do			{DO}
+for			{FOR}
+
 ==			{CEQ}
+!=			{NEQ}
+>			{CGT}
+<			{CLT}
+=			{EQ}
 
 true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
 (letter|_)character* {IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}

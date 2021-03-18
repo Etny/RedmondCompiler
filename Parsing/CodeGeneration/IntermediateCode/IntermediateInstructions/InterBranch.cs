@@ -9,12 +9,19 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterBranch : InterInst
     {
 
-        private CodeValue _op;
+        private CodeValue _op = null;
         private string _label = "ERROR";
+        public BranchCondition Condition ;
 
-        public InterBranch(CodeValue exp)
+        public InterBranch(CodeValue exp, BranchCondition condition = BranchCondition.Always)
         {
             _op = exp;
+            Condition = condition;
+        }
+
+        public InterBranch(BranchCondition condition = BranchCondition.Always)
+        {
+            Condition = condition;
         }
 
         public void SetLabel(string label)
@@ -23,15 +30,25 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         public override void Bind(IntermediateBuilder context)
         {
             base.Bind(context);
-            _op.Bind(context);
+            _op?.Bind(context);
         }
 
         public override void Emit(IlBuilder builder)
         {
             base.Emit(builder);
 
-            _op.Push(builder);
-            builder.EmitOpCode(OpCodes.Brfalse_S, _label);
+            _op?.Push(builder);
+
+            OpCode op = Condition switch
+            {
+                BranchCondition.Always => OpCodes.Br_S,
+                BranchCondition.OnFalse => OpCodes.Brfalse_S,
+                _ => OpCodes.Brtrue_S
+            };
+
+            builder.EmitOpCode(op, _label);
         }
+
+        public enum BranchCondition { OnTrue, OnFalse, Always}
     }
 }
