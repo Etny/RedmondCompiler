@@ -16,9 +16,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Bind(IntermediateBuilder context)
         {
-            if (Type != null) return;
-
             Original.Bind(context);
+            Type.BindConversion(context, Original);
         }
 
         public override string ToString()
@@ -26,8 +25,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Push(IlBuilder builder)
         {
-            Original.Push(builder);
-            builder.EmitOpCode(Type.ConvCode);
+            Type.Convert(Original, builder);
         }
     }
 }

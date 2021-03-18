@@ -7,12 +7,19 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
     class UserType : CodeType
     {
+        public static UserType ToUserType(CodeType type)
+        {
+            var user = type as UserType;
+            if (type != null) return user;
+            return user; //TODO: add boxing;
+        }
+
 
         private Type _type;
         public bool ValueType => _valuetype;
         protected bool _valuetype;
 
-        protected UserType() : base("", -1, "") {}
+        protected UserType() : base("", "") {}
 
         public UserType(Type type) : this()
         {
@@ -24,6 +31,19 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         }
 
         public virtual string SpecName => $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+
+        public override bool Equals(object obj)
+           => obj is UserType type && type.Name == Name;
+
+        public override CodeType GetWiderType(CodeType otherType)
+        {
+            var other = otherType as UserType;
+
+            if (other == null) return null;
+
+            //TODO: check inheritance
+            return null;
+        }
 
         public virtual IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
         {
@@ -49,6 +69,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new PropertyInfoWrapper(f, context);
         }
 
+        public override void Convert(CodeValue val, IlBuilder builder)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class InterUserType : UserType

@@ -26,15 +26,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
-            CodeType wideType = GetResultType();
-
-            _op1.Push(builder);
-            if (_op1.Type != wideType) 
-                builder.EmitOpCode(wideType.ConvCode);
-
-            _op2.Push(builder);
-            if (_op2.Type != wideType)
-                builder.EmitOpCode(wideType.ConvCode);
+            builder.PushValue(_op1);
+            builder.PushValue(_op2);
 
             builder.EmitLine(Op);
         }
@@ -43,6 +36,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             _op1.Bind(context);
             _op2.Bind(context);
+
+            CodeType wideType = GetResultType();
+
+            if (_op1.Type != wideType) { _op1 = new ConvertedValue(_op1, wideType); _op1.Bind(context); }
+
+            if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType); _op2.Bind(context); }
+
         }
 
         public override CodeType GetResultType()

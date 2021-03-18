@@ -1,18 +1,12 @@
 ﻿using System;
+using System.Reflection.Emit;
 
 class TestClass {
 
 	public static void Main(){
-		int i = Int32.Parse(Console.ReadLine());
-
-		for(int j = 0; j < i; j=j+1)
-		{
-			Console.Write("J: ");
-			Console.WriteLine(j);
-		}
-
-		Console.Write("You entered: ");
-		Console.WriteLine(i);
+		OpCode op = OpCodes.Ldarg_0;
+		string s = "2" + op;
+		Console.WriteLine(s);
 
 		System.Console.ReadLine();
 	}

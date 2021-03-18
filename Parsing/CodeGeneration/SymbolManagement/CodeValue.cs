@@ -42,7 +42,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             => TypeName + " => " + Value;
 
         public virtual void Push(IlBuilder builder)
-            => builder.EmitOpCode(Type.PushCode, Value);
+            => builder.EmitOpCode(Type.GetPushCode(), Value);
 
     }
 }

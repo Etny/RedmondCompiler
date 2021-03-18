@@ -59,13 +59,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             if (Property.CanRead)
             {
-                _get = new InterCall(Property.GetFunction, new CodeValue[0], true, _owner);
+                _get = new InterCall(Property.GetFunction, true, _owner);
                 _get.SetOwner(context.CurrentMethod);
             }
 
             if (Property.CanWrite)
             {
-                _set = new InterCall(Property.SetFunction, new CodeValue[1], true, _owner);
+                _set = new InterCall(Property.SetFunction, true, _owner);
                 _set.SetOwner(context.CurrentMethod);
             }
         }

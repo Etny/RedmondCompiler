@@ -26,6 +26,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             foreach (var p in _parameters)
                 p.Bind(context);
 
+            for (int i = 0; i < _parameters.Length; i++)
+            {
+                if (_constructor.Arguments[i] == _parameters[i].Type) continue;
+
+                _parameters[i] = new ConvertedValue(_parameters[i], _constructor.Arguments[i]);
+                _parameters[i].Bind(context);
+            }
+
             _type = context.ResolveType(_typeName);
 
             _constructor = context.FindMostApplicableConstructor(_type as UserType, _parameters);
@@ -35,11 +43,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
-            for (int i = 0; i < _parameters.Length; i++)
-            {
-                _parameters[i].Push(builder);
-                if (_constructor.Arguments[i] != _parameters[i].Type) builder.EmitOpCode(_constructor.Arguments[i].ConvCode);
-            }
+            foreach (var p in _parameters)
+                builder.PushValue(p);
 
             builder.EmitOpCode(OpCodes.Newobj, _constructor.FullSignature);
 

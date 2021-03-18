@@ -161,7 +161,7 @@ namespace Redmond.Parsing.CodeGeneration
 
                     if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
 
-                    diff += funcType.Wideness - argType.Wideness;
+                    if (funcType != argType) diff++;
                 }
 
                 if (!canConvert) continue;
@@ -197,7 +197,7 @@ namespace Redmond.Parsing.CodeGeneration
 
                     if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
 
-                    diff += funcType.Wideness - argType.Wideness;
+                    if (funcType != argType) diff++;
                 }
 
                 if (!canConvert) continue;

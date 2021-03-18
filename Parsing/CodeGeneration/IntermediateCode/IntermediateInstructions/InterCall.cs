@@ -38,12 +38,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _resolver = resolver;
         }
 
-        public InterCall(IMethodWrapper method, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
+        public InterCall(IMethodWrapper method, bool expression = false, CodeValue thisPtr = null)
         {
             _method = method;
             _return = method.ReturnType;
-            _parameters = parameters;
-            _expression = isExpression;
+            _parameters = new CodeValue[0];
+            _expression = expression;
             _thisPtr = thisPtr;
         }
 
@@ -68,6 +68,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             _method = context.FindClosestFunction(_targetName, type, _parameters);
             _return = _method.ReturnType;
+
+            for (int i = 0; i < _parameters.Length; i++)
+            {
+                if (_method.Arguments[i] == _parameters[i].Type) continue;
+
+                _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i]);
+                _parameters[i].Bind(context);
+            }
+
         }
 
         public void SetParameter(CodeValue val, int index = 0)
@@ -84,7 +93,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_method.IsInstance)
             {
-                if ((Owner.IsStatic && _thisPtr == null) || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
+                if (((Owner == null || Owner.IsStatic) && _thisPtr == null) || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
 
 
                 if (!valueType)
@@ -93,12 +102,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                     builder.PushAddress(_thisPtr as CodeSymbol);
             }
 
-
-            for(int i = 0; i < _parameters.Length; i++)
-            {
-                _parameters[i].Push(builder);
-                if (_method.Arguments[i] != _parameters[i].Type) builder.EmitOpCode(_method.Arguments[i].ConvCode);
-            }
+            foreach (var p in _parameters)
+                builder.PushValue(p);
 
             if (_method.IsVirtual)
             {
