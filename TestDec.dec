@@ -164,13 +164,14 @@ space_or_type_name	:	IDENTIFIER							{$$ = makeLeaf("Name", $1.text); $$.name =
 type_name			:	space_or_type_name
 					;
 
-binop				:	'+'		{$$ = makeLeaf("BinaryOperator", "add")}
-					|	'-'		{$$ = makeLeaf("BinaryOperator", "sub")}
-					|	'/'		{$$ = makeLeaf("BinaryOperator", "div")}
-					|	'*'		{$$ = makeLeaf("BinaryOperator", "mul")}
-					|	CEQ		{$$ = makeLeaf("BinaryOperator", "ceq")}
-					|	CGT		{$$ = makeLeaf("BinaryOperator", "cgt")}
-					|	CLT		{$$ = makeLeaf("BinaryOperator", "clt")}
+binop				:	'+'		{$$ = makeLeaf("BinaryOperator", "Add")}
+					|	'-'		{$$ = makeLeaf("BinaryOperator", "Sub")}
+					|	'/'		{$$ = makeLeaf("BinaryOperator", "Div")}
+					|	'*'		{$$ = makeLeaf("BinaryOperator", "Mul")}
+					|	CEQ		{$$ = makeLeaf("BinaryOperator", "Ceq")}
+					|	CGT		{$$ = makeLeaf("BinaryOperator", "Cgt")}
+					|	CLT		{$$ = makeLeaf("BinaryOperator", "Clt")}
+					|	NEQ		{$$ = makeLeaf("BinaryOperator", "Neq")}
 					;
 
 

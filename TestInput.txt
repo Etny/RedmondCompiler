@@ -5,8 +5,8 @@ class TestClass {
 
 	public static void Main(){
 		OpCode op = OpCodes.Ldarg_0;
-		string s = "2" + op;
-		Console.WriteLine(s);
+		Console.WriteLine("opcode " + op);
+		Console.WriteLine("string" == "strung");
 
 		System.Console.ReadLine();
 	}

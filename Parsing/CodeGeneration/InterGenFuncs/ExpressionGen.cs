@@ -1,4 +1,5 @@
-﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
+﻿
+using Redmond.Parsing.CodeGeneration.IntermediateCode;
 using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using Redmond.Parsing.SyntaxAnalysis;
@@ -17,9 +18,6 @@ namespace Redmond.Parsing.CodeGeneration
         //[CodeGenFunction("IdentiferExpression")]
         //    public void CompileValueExpression(SyntaxTreeNode node) { }
 
-
-        private bool IsValue(SyntaxTreeNode node)
-            => ToValue(node) != null;
 
         private CodeValue ToValue(SyntaxTreeNode node)
         {
@@ -68,7 +66,12 @@ namespace Redmond.Parsing.CodeGeneration
 
         [CodeGenFunction("BinaryExpression")]
         public InterOp CompileBinaryExpression(SyntaxTreeNode node)
-            => new InterBinOp(node[2].ValueString, ToIntermediateExpression(node.Children[0]), ToIntermediateExpression(node.Children[1]));
+        {
+            return new InterBinOp(
+                new Operator((Operator.OperatorType)Enum.Parse(typeof(Operator.OperatorType), node[2].ValueString)), 
+                ToIntermediateExpression(node.Children[0]), 
+                ToIntermediateExpression(node.Children[1]));
+        }
 
         [CodeGenFunction("CallExpression")]
         public InterOp CompileCallExpression(SyntaxTreeNode node)

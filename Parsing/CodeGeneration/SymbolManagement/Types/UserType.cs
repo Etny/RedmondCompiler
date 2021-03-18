@@ -14,12 +14,16 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             return user; //TODO: add boxing;
         }
 
+        private static List<string> _userTypes = new List<string>();
 
         private Type _type;
         public bool ValueType => _valuetype;
         protected bool _valuetype;
 
-        protected UserType() : base("", "") {}
+        protected UserType() : base("") {}
+
+        protected UserType(params string[] names) : base(names) { }
+
 
         public UserType(Type type) : this()
         {
@@ -34,6 +38,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override bool Equals(object obj)
            => obj is UserType type && type.Name == Name;
+
+        public override int GetHashCode()
+        {
+            if (!_userTypes.Contains(Name)) _userTypes.Add(Name);
+            return _userTypes.IndexOf(Name);
+        }
 
         public override CodeType GetWiderType(CodeType otherType)
         {
@@ -67,6 +77,15 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             foreach (var f in _type.GetProperties())
                 yield return new PropertyInfoWrapper(f, context);
+        }
+
+        public virtual IMethodWrapper GetOperatorOverload(Operator op, IntermediateBuilder context)
+        {
+            foreach (var w in GetFunctions(context))
+                if (w.Name == op.GetOverloadName())
+                    return w;
+
+            return null;
         }
 
         public override void Convert(CodeValue val, IlBuilder builder)

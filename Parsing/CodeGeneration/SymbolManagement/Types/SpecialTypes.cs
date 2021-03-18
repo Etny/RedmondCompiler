@@ -8,11 +8,12 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
-    class StringType : CodeType
+    class StringType : UserType
     {
         private static Dictionary<CodeType, IMethodWrapper> convCalls = new Dictionary<CodeType, IMethodWrapper>();
 
-        public StringType() : base("string") { }
+        public StringType() : base("string") {
+        }
 
         public override void Convert(CodeValue val, IlBuilder builder)
         {
@@ -42,7 +43,20 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             convCalls.Add(from.Type, match);
         }
+        public override IMethodWrapper GetOperatorOverload(Operator op, IntermediateBuilder context)
+        {
+            if (op.Type == Operator.OperatorType.Add)
+                return new MethodInfoWrapper(typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string)}), context);
+            else
+                return base.GetOperatorOverload(op, context);
+        }
 
+
+        public override IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
+        {
+            foreach (var f in typeof(string).GetMethods())
+                yield return new MethodInfoWrapper(f, context);
+        }
 
         public override OpCode GetPushCode() => OpCodes.Ldstr;
         public override CodeType GetWiderType(CodeType otherType)

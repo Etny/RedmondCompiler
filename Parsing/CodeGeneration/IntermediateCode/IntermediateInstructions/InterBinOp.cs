@@ -1,4 +1,5 @@
-﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
+﻿
+using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -11,9 +12,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         private CodeValue _op1, _op2;
 
-        public readonly string Op;
+        private InterCall _overload = null;
 
-        public InterBinOp(string op, CodeValue op1, CodeValue op2)
+        public readonly Operator Op;
+
+        public InterBinOp(Operator op, CodeValue op1, CodeValue op2)
         {
             Op = op;
 
@@ -26,10 +29,16 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
+            if(_overload != null)
+            {
+                _overload.Emit(builder);
+                return;
+            }
+
             builder.PushValue(_op1);
             builder.PushValue(_op2);
 
-            builder.EmitLine(Op);
+            Op.Emit(builder);
         }
 
         public override void Bind(IntermediateBuilder context)
@@ -43,11 +52,24 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType); _op2.Bind(context); }
 
+            if (_op1.Type is UserType)
+            {
+                var user = UserType.ToUserType(_op1.Type);
+                var overload = user.GetOperatorOverload(Op, context);
+
+                if(overload != null)
+                {
+                    _overload = new InterCall(overload, new CodeValue[]{ _op1, _op2 }, true);
+                    return;
+                }
+            }
+
+
         }
 
         public override CodeType GetResultType()
         {
-            return _op1.Type.GetWiderType(_op2.Type);
+            return _overload == null ? _op1.Type.GetWiderType(_op2.Type) : _overload.GetResultType();
         }
 
     }

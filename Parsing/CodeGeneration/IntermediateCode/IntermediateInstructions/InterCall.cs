@@ -47,6 +47,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _thisPtr = thisPtr;
         }
 
+        public InterCall(IMethodWrapper method, CodeValue[] parameters, bool expression)
+        {
+            _method = method;
+            _return = method.ReturnType;
+            _parameters = parameters;
+            _expression = expression;
+            _thisPtr = null;
+        }
+
         public override void Bind(IntermediateBuilder context)
         {
             if (_method != null) return;
