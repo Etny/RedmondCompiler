@@ -16,6 +16,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public readonly Operator Op;
 
+        public bool IsBooleanExpression = false;
+
         public InterBinOp(Operator op, CodeValue op1, CodeValue op2)
         {
             Op = op;
@@ -48,10 +50,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             CodeType wideType = GetResultType();
 
-            if (_op1.Type != wideType) { _op1 = new ConvertedValue(_op1, wideType); _op1.Bind(context); }
-
-            if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType); _op2.Bind(context); }
-
+           
             if (_op1.Type is UserType)
             {
                 var user = UserType.ToUserType(_op1.Type);
@@ -60,16 +59,21 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 if(overload != null)
                 {
                     _overload = new InterCall(overload, new CodeValue[]{ _op1, _op2 }, true);
+                    _overload.Bind(context);
                     return;
                 }
             }
+
+            if (_op1.Type != wideType) { _op1 = new ConvertedValue(_op1, wideType); _op1.Bind(context); }
+
+            if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType); _op2.Bind(context); }
 
 
         }
 
         public override CodeType GetResultType()
         {
-            return _overload == null ? _op1.Type.GetWiderType(_op2.Type) : _overload.GetResultType();
+            return IsBooleanExpression ? CodeType.Bool : (_overload == null ? _op1.Type.GetWiderType(_op2.Type) : _overload.GetResultType());
         }
 
     }

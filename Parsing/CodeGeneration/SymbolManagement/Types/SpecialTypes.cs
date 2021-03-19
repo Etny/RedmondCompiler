@@ -12,10 +12,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
         private static Dictionary<CodeType, IMethodWrapper> convCalls = new Dictionary<CodeType, IMethodWrapper>();
 
-        public StringType() : base("string") {
-        }
-
-        public override void Convert(CodeValue val, IlBuilder builder)
+        public StringType() : base("string") { _type = typeof(string); _specialCases.Add(typeof(string), this); }
+        public override void ConvertFrom(CodeValue val, IlBuilder builder)
         {
             var type = UserType.ToUserType(val.Type);
 
@@ -46,7 +44,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override IMethodWrapper GetOperatorOverload(Operator op, IntermediateBuilder context)
         {
             if (op.Type == Operator.OperatorType.Add)
-                return new MethodInfoWrapper(typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string)}), context);
+                return new MethodInfoWrapper(typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object)}), context);
             else
                 return base.GetOperatorOverload(op, context);
         }
@@ -69,14 +67,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
         public VoidType() : base("void") { }
 
-        public override void Convert(CodeValue val, IlBuilder builder)
+        public override AssignType CanAssignTo(CodeType fieldType) => AssignType.CannotAssign;
+
+        public override void ConvertFrom(CodeValue val, IlBuilder builder)
         {
             throw new NotImplementedException();
         }
 
-        public override CodeType GetWiderType(CodeType otherType)
-        {
-            throw new NotImplementedException();
-        }
+        public override CodeType GetWiderType(CodeType otherType) => otherType;
     }
 }

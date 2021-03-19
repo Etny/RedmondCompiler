@@ -127,7 +127,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public SyntaxTreeNode Parse(TokenStream input)
         {
-            new Parser(CreateLALRParsingTable()).Parse(input);
+            var table = CreateLALRParsingTable();
+            new Parser(table).Parse(input);
             return SyntaxTreeNode.CurrentNode;
         }
 

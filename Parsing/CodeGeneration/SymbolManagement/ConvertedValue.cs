@@ -25,7 +25,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Push(IlBuilder builder)
         {
-            Type.Convert(Original, builder);
+            Original.Type.ConvertTo(Original, builder, Type);
         }
     }
 }

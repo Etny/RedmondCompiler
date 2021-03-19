@@ -48,7 +48,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.SpecName}");
+            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.ShortName}");
             builder.EmitLine("{");
             builder.EmitLine();
             builder.Output.AddIndentation();

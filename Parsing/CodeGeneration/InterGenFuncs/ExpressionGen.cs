@@ -65,12 +65,17 @@ namespace Redmond.Parsing.CodeGeneration
             => builder.AddInstruction(CompileNode(node) as InterInst);
 
         [CodeGenFunction("BinaryExpression")]
+        [CodeGenFunction("BinaryBoolExpression")]
         public InterOp CompileBinaryExpression(SyntaxTreeNode node)
         {
-            return new InterBinOp(
+            var op = new InterBinOp(
                 new Operator((Operator.OperatorType)Enum.Parse(typeof(Operator.OperatorType), node[2].ValueString)), 
                 ToIntermediateExpression(node.Children[0]), 
                 ToIntermediateExpression(node.Children[1]));
+
+            if (node.Op == "BinaryBoolExpression") op.IsBooleanExpression = true;
+
+            return op;
         }
 
         [CodeGenFunction("CallExpression")]

@@ -13,8 +13,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private CodeValue _source;
         private LateStaticReferenceResolver _resolver;
 
-        private bool emitConv = false;
-
         public InterCopy(CodeSymbol target, CodeValue source)
         {
             _target = target;
@@ -39,6 +37,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             }
             else
                 _target.Bind(context);
+
+            if (_source.Type.CanAssignTo(_target.Type) != AssignType.CanAssign)
+                _source = new ConvertedValue(_source, _target.Type);
         }
 
         //TODO: Add back pre-emit type conversion
@@ -46,8 +47,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
-            if (_source.Type != _target.Type | emitConv) 
-                _source = new ConvertedValue(_source, _target.Type);
 
             if (!Owner.IsStatic && FieldOrPropertySymbol.IsFieldOrProperty(_target))
             {

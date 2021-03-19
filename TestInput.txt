@@ -4,11 +4,7 @@ using System.Reflection.Emit;
 class TestClass {
 
 	public static void Main(){
-		OpCode op = OpCodes.Ldarg_0;
-		Console.WriteLine("opcode " + op);
-		Console.WriteLine("string" == "strung");
-
-		System.Console.ReadLine();
+		Console.WriteLine("bool: " + (bool.Parse(Console.ReadLine())));
 	}
 
 }

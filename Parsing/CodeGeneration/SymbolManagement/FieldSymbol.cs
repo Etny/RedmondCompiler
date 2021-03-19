@@ -72,10 +72,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{_owningType.ShortName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{_owningType.ShortName}::{ID}");
 
         }
 
@@ -84,10 +84,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{_owningType.ShortName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{_owningType.ShortName}::{ID}");
         }
 
         public override void Store(IlBuilder builder, CodeValue store)
@@ -96,12 +96,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             {
                 builder.PushValue(_owner);
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{_owningType.ShortName}::{ID}");
             }
             else
             {
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{_owningType.SpecName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{_owningType.ShortName}::{ID}");
             }
         }
 

@@ -144,10 +144,15 @@ expression			:	Digit									{$$ = makeLeaf("NumericalLiteral", $1);}
 					|	BoolLiteral								{$$ = makeLeaf("BoolLiteral", $1)}
 					|	IDENTIFIER								{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression				{$$ = makeNode("BinaryExpression", $1, $3, $2);}
-					|	parenthesized_exp						{$$ = $1}
+					|	bool_expression							
+					|	parenthesized_exp						{$$ = $1}						
 					|	call_statement							{$$ = makeNode("CallExpression", $1)}
-					|	member_access							{$$ = $1}
+					|	member_access							
 					|   NEW type_name '\(' parameter_list '\)'	{$$ = makeNode("NewExpression", $2, $4)}
+					;
+
+bool_expression
+					:	expression bin_bool_op expression		{$$ = makeNode("BinaryBoolExpression", $1, $3, $2)}
 					;
 
 parenthesized_exp	:	'\(' expression '\)'	{$$ = $2}
@@ -164,14 +169,18 @@ space_or_type_name	:	IDENTIFIER							{$$ = makeLeaf("Name", $1.text); $$.name =
 type_name			:	space_or_type_name
 					;
 
-binop				:	'+'		{$$ = makeLeaf("BinaryOperator", "Add")}
+binop				
+					:	'+'		{$$ = makeLeaf("BinaryOperator", "Add")}
 					|	'-'		{$$ = makeLeaf("BinaryOperator", "Sub")}
 					|	'/'		{$$ = makeLeaf("BinaryOperator", "Div")}
 					|	'*'		{$$ = makeLeaf("BinaryOperator", "Mul")}
-					|	CEQ		{$$ = makeLeaf("BinaryOperator", "Ceq")}
-					|	CGT		{$$ = makeLeaf("BinaryOperator", "Cgt")}
-					|	CLT		{$$ = makeLeaf("BinaryOperator", "Clt")}
-					|	NEQ		{$$ = makeLeaf("BinaryOperator", "Neq")}
+					;
+
+bin_bool_op				
+					:	CEQ		{$$ = makeLeaf("BinaryBooleanOperator", "Ceq")}
+					|	CGT		{$$ = makeLeaf("BinaryBooleanOperator", "Cgt")}
+					|	CLT		{$$ = makeLeaf("BinaryBooleanOperator", "Clt")}
+					|	NEQ		{$$ = makeLeaf("BinaryBooleanOperator", "Neq")}
 					;
 
 
@@ -221,6 +230,9 @@ CEQ
 CLT
 CGT
 NEQ
+
+OPENBRACK
+CLOSEBRACK
 
 #End
 

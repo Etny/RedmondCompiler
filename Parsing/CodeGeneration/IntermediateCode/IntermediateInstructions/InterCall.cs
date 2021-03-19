@@ -58,29 +58,32 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         public override void Bind(IntermediateBuilder context)
         {
-            if (_method != null) return;
-
-            foreach (var p in _parameters)
-                p.Bind(context);
-
-            _thisPtr?.Bind(context);
-
-            if (_resolver != null)
+            if (_method == null)
             {
-                _resolver.Bind(context);
-                _staticCall = _resolver.IsStatic;
-                if (!_staticCall)
-                    _thisPtr = _resolver.GetReferencedFieldOrProperty();
+
+                foreach (var p in _parameters)
+                    p.Bind(context);
+
+                _thisPtr?.Bind(context);
+
+                if (_resolver != null)
+                {
+                    _resolver.Bind(context);
+                    _staticCall = _resolver.IsStatic;
+                    if (!_staticCall)
+                        _thisPtr = _resolver.GetReferencedFieldOrProperty();
+                }
+
+                CodeType type = _staticCall ? _resolver.Type : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
+
+                _method = context.FindClosestFunction(_targetName, type, _parameters);
             }
 
-            CodeType type = _staticCall ? _resolver.Type : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
-
-            _method = context.FindClosestFunction(_targetName, type, _parameters);
             _return = _method.ReturnType;
 
             for (int i = 0; i < _parameters.Length; i++)
             {
-                if (_method.Arguments[i] == _parameters[i].Type) continue;
+                if (_parameters[i].Type.CanAssignTo(_method.Arguments[i]) == AssignType.CanAssign) continue;
 
                 _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i]);
                 _parameters[i].Bind(context);

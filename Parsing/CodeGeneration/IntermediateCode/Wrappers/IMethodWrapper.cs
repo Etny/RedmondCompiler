@@ -38,7 +38,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string Name => _method.Name;
 
-        public CodeType ReturnType => _method.ReturnType;
+        public CodeType ReturnType => _method.ReturnType.StoredType;
 
         public int ArgumentCount => _method.Args;
 
@@ -56,7 +56,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             _method = method;
             _context = context;
 
-            ReturnType = context.ResolveType(method.ReturnType);
+            ReturnType = context.ResolveType(method.ReturnType).StoredType;
         }
 
         public bool IsVirtual => _method.IsVirtual;

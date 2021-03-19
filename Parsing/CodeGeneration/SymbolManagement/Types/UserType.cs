@@ -9,14 +9,16 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
         public static UserType ToUserType(CodeType type)
         {
-            var user = type as UserType;
-            if (type != null) return user;
-            return user; //TODO: add boxing;
+            if (type is UserType) return type as UserType;
+            if (type is BasicType) return (type as BasicType).BoxedType;
+            return null;
         }
+
+        protected static Dictionary<Type, UserType> _specialCases = new Dictionary<Type, UserType>();
 
         private static List<string> _userTypes = new List<string>();
 
-        private Type _type;
+        protected Type _type;
         public bool ValueType => _valuetype;
         protected bool _valuetype;
 
@@ -24,17 +26,22 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         protected UserType(params string[] names) : base(names) { }
 
+        public static UserType NewUserType(Type t)
+        {
+            if (_specialCases.ContainsKey(t)) return _specialCases[t];
+            else return new UserType(t);
+        }
 
-        public UserType(Type type) : this()
+        protected UserType(Type type) : this()
         {
             _type = type;
 
             _valuetype = type.IsValueType;
 
             Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+            ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
         }
-
-        public virtual string SpecName => $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+        
 
         public override bool Equals(object obj)
            => obj is UserType type && type.Name == Name;
@@ -51,8 +58,29 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             if (other == null) return null;
 
-            //TODO: check inheritance
-            return null;
+            return CanAssignTo(other) == AssignType.CanAssign ? this : other;
+        }
+
+        public override AssignType CanAssignTo(CodeType fieldType)
+        {
+            var other = fieldType as UserType;
+            if (other == null) return AssignType.CannotAssign; 
+
+            if (Equals(other)) return AssignType.CanAssign;
+
+            UserType t = this;
+
+
+            while (t != null && !t.Equals(other))
+                t = t.GetBaseType();
+
+            if (t != null) return AssignType.CanAssign;
+            else return AssignType.CannotAssign;
+        }
+        public virtual UserType GetBaseType()
+        {
+            if (_type == typeof(object)) return null;
+            return new UserType(_type.BaseType);
         }
 
         public virtual IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
@@ -88,7 +116,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             return null;
         }
 
-        public override void Convert(CodeValue val, IlBuilder builder)
+        public override void ConvertFrom(CodeValue val, IlBuilder builder)
         {
             throw new NotImplementedException();
         }
@@ -96,32 +124,31 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
     class InterUserType : UserType
     {
-        private InterType _type;
+        private InterType _intertype;
 
         public InterUserType(InterType type) : base()
         {
-            _type = type;
+            _intertype = type;
 
-            Name = $"class {_type.FullName}";
+            Name = $"class {_intertype.FullName}";
+            ShortName = $"{_intertype.FullName}";
         }
-
-        public override string SpecName => $"{_type.FullName}";
 
         public override IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
         {
-            foreach (var f in _type.Methods)
+            foreach (var f in _intertype.Methods)
                     yield return new InterMethodWrapper(f, context);
         }
 
         public override IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
         {
-            foreach (var f in _type.Fields)
+            foreach (var f in _intertype.Fields)
                 yield return new InterFieldWrapper(f);
         }
 
         public override IEnumerable<IMethodWrapper> GetConstructors(IntermediateBuilder context)
         {
-            foreach (var f in _type.Constructors)
+            foreach (var f in _intertype.Constructors)
                 yield return new InterMethodWrapper(f, context);
         }
     }

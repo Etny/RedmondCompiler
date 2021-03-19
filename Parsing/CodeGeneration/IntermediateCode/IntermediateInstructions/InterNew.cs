@@ -26,6 +26,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             foreach (var p in _parameters)
                 p.Bind(context);
 
+            _type = context.ResolveType(_typeName);
+
+            _constructor = context.FindMostApplicableConstructor(_type as UserType, _parameters);
+
+
             for (int i = 0; i < _parameters.Length; i++)
             {
                 if (_constructor.Arguments[i] == _parameters[i].Type) continue;
@@ -34,9 +39,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 _parameters[i].Bind(context);
             }
 
-            _type = context.ResolveType(_typeName);
-
-            _constructor = context.FindMostApplicableConstructor(_type as UserType, _parameters);
         }
 
         public override void Emit(IlBuilder builder)
@@ -49,6 +51,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             builder.EmitOpCode(OpCodes.Newobj, _constructor.FullSignature);
 
             builder.ShrinkStack(_parameters.Length);
+            builder.ExpandStack(1);
         }
 
         public override CodeType GetResultType()

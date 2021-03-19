@@ -119,7 +119,7 @@ namespace Redmond.Parsing.CodeGeneration
                 {
                     var type = a.ResolveType(ns + "." + name);
                     if (type == null) type = a.ResolveType(name);
-                    if(type != null) return new UserType(type);
+                    if (type != null) return UserType.NewUserType(type);
                 }
             }
 
@@ -130,14 +130,14 @@ namespace Redmond.Parsing.CodeGeneration
         {
             if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
 
-            return new UserType(type);
+            return UserType.NewUserType(type);
         }
 
 
         public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeValue[] args)
         {
-            var type = owner as UserType;
-            Debug.Assert(owner is UserType);
+            var type = UserType.ToUserType(owner);
+            Debug.Assert(type != null);
 
             List<IMethodWrapper> applicableFunctions = new List<IMethodWrapper>();
 
@@ -159,7 +159,7 @@ namespace Redmond.Parsing.CodeGeneration
                     var argType = args[i].Type;
                     var funcType = f.Arguments[i];
 
-                    if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
+                    if (argType != funcType && argType.CanAssignTo(funcType) == AssignType.CannotAssign) { canConvert = false; break; }
 
                     if (funcType != argType) diff++;
                 }
