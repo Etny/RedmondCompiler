@@ -37,6 +37,9 @@ namespace Redmond.Parsing.CodeGeneration
                 case "MemberAccess":
                     return CompileMemberAccess(node);
 
+                case "ArrayAccessExpression":
+                    return new ArrayEntryValue(ToIntermediateExpression(node[0]), ToIntermediateExpression(node[1]));
+
                 default:
                     return null;
             }
@@ -97,6 +100,15 @@ namespace Redmond.Parsing.CodeGeneration
 
             return new InterNew(node[0].ValueString, parameters);
         }
+
+        [CodeGenFunction("NewArrayExpression")]
+        public InterOp CompileNewArrayExpression(SyntaxTreeNode node)
+        {
+            string type = node[0].ValueString;
+
+            return new InterNewArray(type, ToIntermediateExpression(node[1]));
+        }
+
         private FieldOrPropertySymbol CompileMemberAccess(SyntaxTreeNode node)
         {
             var name = node[0].ValueString;

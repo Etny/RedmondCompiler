@@ -15,7 +15,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         //public static DerivedType String = new DerivedType(OpCodes.Ldstr, "string", "char*");
         //public static CodeType Function = new CodeType(OpCodes.Nop, "function");
 
-        public string OpName { get; protected set; }
+        
 
 
         public BoxedType BoxedType { get; protected set; } = null;

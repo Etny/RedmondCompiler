@@ -22,6 +22,8 @@ namespace Redmond.Parsing.CodeGeneration
                 symbol = GetFirst(node[0].ValueString);
             else if (node[0].Op == "MemberAccess")
                 symbol = CompileMemberAccess(node[0]);
+            else if (node[0].Op == "ArrayAccessExpression")
+                symbol = (CodeSymbol)ToValue(node[0]);
             else
                 Debug.Assert(false);
 
@@ -44,6 +46,8 @@ namespace Redmond.Parsing.CodeGeneration
 
             if(node.Children.Length > 2)
                 builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[2])));
+
+            int[   ] ik = new int[2];
         }
 
         [CodeGenFunction("ReturnStatement")]

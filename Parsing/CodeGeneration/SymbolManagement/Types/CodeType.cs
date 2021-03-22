@@ -10,6 +10,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public string Name { get; protected set; }
         public string ShortName { get; protected set; }
 
+        public string OpName { get; protected set; }
+
         public CodeType StoredType { get; protected set; }
 
 

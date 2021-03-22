@@ -20,6 +20,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return CurrentNode;
         }
 
+        [SyntaxFunction("makeLeaf")]
+        [LexFunction("makeLeaf")]
+        public static SyntaxTreeNode MakeLeaf(string op)
+        {
+            CurrentNode = new SyntaxTreeNode(op);
+            return CurrentNode;
+        }
+
         [SyntaxFunction("setNode")]
         public static SyntaxTreeNode SetNode(SyntaxTreeNode node)
         {

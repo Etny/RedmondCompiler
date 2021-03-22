@@ -22,17 +22,17 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public bool ValueType => _valuetype;
         protected bool _valuetype;
 
-        protected UserType() : base("") {}
+        protected UserType() : this("") {}
 
-        protected UserType(params string[] names) : base(names) { }
+        protected UserType(params string[] names) : base(names) { OpName = "Ref"; }
 
-        public static UserType NewUserType(Type t)
+        public static UserType NewUserType(Type t) 
         {
             if (_specialCases.ContainsKey(t)) return _specialCases[t];
             else return new UserType(t);
         }
 
-        protected UserType(Type type) : this()
+        protected UserType(Type type) : this("")
         {
             _type = type;
 

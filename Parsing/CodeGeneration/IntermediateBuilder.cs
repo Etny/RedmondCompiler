@@ -105,6 +105,9 @@ namespace Redmond.Parsing.CodeGeneration
         //TODO: Improve this
         public CodeType ResolveType(string name)
         {
+            if (name.Length > 2 && name[^2..] == "[]")
+                return new ArrayType(ResolveType(name[0..^2]));
+
             var ctype = CodeType.ByName(name);
             if (ctype != null) return ctype;
 
