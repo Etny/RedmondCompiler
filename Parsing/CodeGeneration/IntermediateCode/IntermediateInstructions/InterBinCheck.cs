@@ -34,7 +34,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             string label2 = Owner.LabelManager.NextLabel;
 
             builder.PushValue(_op1);
-            builder.EmitOpCode(or ? OpCodes.Brtrue_S : OpCodes.Brfalse_S, label1);
+            builder.EmitOpCode(or ? OpCodes.Brtrue : OpCodes.Brfalse, label1);
 
             builder.PushValue(_op2);
             builder.EmitOpCode(OpCodes.Br, label2);

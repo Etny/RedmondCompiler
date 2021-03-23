@@ -5,9 +5,10 @@ left * /
 left OR AND
 left CGT CLT CEQ NEQ
 none precToken
-none .
+left .
 none ELSE
 none [
+none RANK_SPECIFIER
 
 %%
 
@@ -22,7 +23,7 @@ import_list
 					;
 
 import_dec			
-					:	USING space_or_type_name ';'	{$$ = makeLeaf("Import", $2.name)}
+					:	USING qualified_identifier ';'	{$$ = makeLeaf("Import", $2)}
 					;
 
 class_list			
@@ -48,7 +49,7 @@ member
 					;
 
 member_header		
-					:	access_dec modifier_list type_or_array_name	{$$ = makeNode("DecHeader", $1, $2, $3)}
+					:	access_dec modifier_list type	{$$ = makeNode("DecHeader", $1, $2, $3)}
 					;
 
 field				
@@ -127,24 +128,22 @@ return_statement
 					|	RETURN expression	{$$ = makeNode("ReturnStatement", $2)}
 					;
 
-dec_statement		:	type_or_array_name IDENTIFIER EQ expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
-					|	type_or_array_name IDENTIFIER					{$$ = makeNode("DeclarationStatement", $2, $1)}  
+dec_statement		:	type IDENTIFIER EQ expression	{$$ = makeNode("DeclarationStatement", $2, $1, $4);}
+					|	type IDENTIFIER					{$$ = makeNode("DeclarationStatement", $2, $1)}  
 					;
 
 assign_statement	
-					:	IDENTIFIER EQ expression				{$$ = makeNode("AssignStatement", $1, $3)}
-					|	member_access EQ expression				{$$ = makeNode("AssignStatement", $1, $3)}
-					|	array_access_expression EQ expression	{$$ = makeNode("AssignStatement", $1, $3)}
+					: unary_expression EQ expression			{$$ = makeNode("AssignStatement", $1, $3)}
 					;
 
 if_statement		
-					:	IF parenthesized_exp statement ELSE statement	{$$ = makeNode("IfElseStatement", $2, $3, $5)}
-					|	IF parenthesized_exp statement					{$$ = makeNode("IfStatement", $2, $3)}
+					:	IF parenthesized_expression statement ELSE statement	{$$ = makeNode("IfElseStatement", $2, $3, $5)}
+					|	IF parenthesized_expression statement					{$$ = makeNode("IfStatement", $2, $3)}
 					;
 
 while_statement		
-					:	WHILE parenthesized_exp statement			{$$ = makeNode("WhileStatement", $2, $3)}
-					|	DO statement WHILE parenthesized_exp ';'	{$$ = makeNode("DoWhileStatement", $4, $2)}
+					:	WHILE parenthesized_expression statement			{$$ = makeNode("WhileStatement", $2, $3)}
+					|	DO statement WHILE parenthesized_expression ';'	{$$ = makeNode("DoWhileStatement", $4, $2)}
 					;
 
 for_statement		
@@ -152,8 +151,8 @@ for_statement
 					;
 
 call_statement		
-					:	expression '.' IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $3, $5, $1)}
-					|	IDENTIFIER '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
+					:	primary_expression_no_parenthesis '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
+					|	qualified_identifier '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
 					;
 
 parameter_list		
@@ -173,8 +172,8 @@ parameter_dec
 					;
 
 array_dec_expression
-					:	NEW type_name '[' expression ']'						{$$ = makeNode("NewArrayExpression", $2, $4)}
-					|	NEW type_name RANK_SPECIFIER array_init_expression		{$$ = makeNode("NewArrayExpression", $2, $4)}
+					:	NEW type '[' expression ']'						{$$ = makeNode("NewArrayExpression", $2, $4)}
+					|	NEW array_type array_init_expression		{$$ = makeNode("NewArrayExpression", $2, $3)}
 					|	array_init_expression									{$$ = makeNode("NewArrayExpression", $1)}
 					;
 
@@ -183,75 +182,106 @@ array_init_expression
 					;
 
 array_access_expression
-					:	expression '[' expression ']'	{$$ = makeNode("ArrayAccessExpression", $1, $3)}
+					:	qualified_identifier '[' expression ']'	{$$ = makeNode("ArrayAccessExpression", $1, $3)}
+					|	primary_expression '[' expression ']'	{$$ = makeNode("ArrayAccessExpression", $1, $3)}
 					;
 
-bool_expression
-					:	expression bin_bool_op expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, $2)}
-					|	expression check_bool_op expression				{$$ = makeNode("BoolCheckExpression", $1, $3, $2)}
-					;
-
-
-expression			
-					:	Digit									{$$ = makeLeaf("NumericalLiteral", $1}
-					|	call_statement							{$$ = makeNode("CallExpression", $1)}
-					|	StringLiteral							{$$ = makeLeaf("StringLiteral", $1)}
+literal_expression
+					:	StringLiteral							{$$ = makeLeaf("StringLiteral", $1)}
 					|	CharLiteral								{$$ = makeLeaf("CharLiteral", $1)}
 					|	BoolLiteral								{$$ = makeLeaf("BoolLiteral", $1)}
-					|	IDENTIFIER								{$$ = makeLeaf("IdentifierExpression", $1)}
-					|	expression binop expression				{$$ = makeNode("BinaryExpression", $1, $3, $2);}
-					|	bool_expression							
-					|	parenthesized_exp						{$$ = $1}						
-					|	member_access							
+					|	Digit									{$$ = makeLeaf("NumericalLiteral", $1}
+					;
+
+binary_expression	
+					:	binary_expression '+' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Add"));}
+					|	binary_expression '-' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Sub"));}
+					|	binary_expression '/' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Div"));}
+					|	binary_expression '*' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Mul"));}
+					|	unary_expression
+					;
+					
+relational_expression
+					:	relational_expression CEQ binary_expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, makeLeaf("BinaryBooleanOperator", "Ceq"))}
+					|	relational_expression NEQ binary_expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, makeLeaf("BinaryBooleanOperator", "Neq"))}
+					|	relational_expression CLT binary_expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, makeLeaf("BinaryBooleanOperator", "Clt"))}
+					|	relational_expression CGT binary_expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, makeLeaf("BinaryBooleanOperator", "Cgt"))}
+					|	binary_expression
+					;
+
+conditional_expression
+					:	conditional_expression AND relational_expression				{$$ = makeNode("BoolCheckExpression", $1, $3, makeLeaf("BooleanCheckOperator", "And"))}
+					|	conditional_expression OR relational_expression				{$$ = makeNode("BoolCheckExpression", $1, $3, makeLeaf("BooleanCheckOperator", "Or"))}
+					|	relational_expression
+					;
+
+primary_expression_no_parenthesis
+					:	literal_expression
 					|	array_dec_expression
+					|	member_access
+					|	call_statement							{$$ = makeNode("CallExpression", $1)}
 					|	array_access_expression
-					|   NEW type_name '\(' parameter_list '\)'	{$$ = makeNode("NewExpression", $2, $4)}
+					|   NEW non_array_type '\(' parameter_list '\)'	{$$ = makeNode("NewExpression", $2, $4)}
 					;
 
 
-parenthesized_exp	
+primary_expression	
+					:	parenthesized_expression
+					|	primary_expression_no_parenthesis
+					;
+
+expression
+					:	conditional_expression
+					|	assign_statement
+					;
+
+unary_expression	
+					:	postfix_expression
+					;
+
+postfix_expression	
+					:	qualified_identifier
+					|	primary_expression
+					;
+
+
+parenthesized_expression	
 					:	'\(' expression '\)'	{$$ = $2}
 					;
 
 					
 member_access		
-					:	expression '.' IDENTIFIER	{$$ = makeNode("MemberAccess", $3, $1)}
+					:	primary_expression '.' IDENTIFIER	{$$ = makeNode("MemberAccess", $3, $1)}
 					;
 
-space_or_type_name	
-					:	IDENTIFIER							{$$ = makeLeaf("Name", $1.text); $$.name = $1.text}
-					|	space_or_type_name '.' IDENTIFIER	{$$.name = concat($1.name, concat(".", $3.text)); $$ = makeLeaf("Name", $$.name)}
+
+type	
+					:	array_type
+					|	non_array_type
 					;
 
-					
-type_or_array_name			
+array_type	
+					:	qualified_identifier RANK_SPECIFIER	{$$ = makeNode("Array", $1)}
+					;
+
+non_array_type		
 					:	type_name
-					|	type_name RANK_SPECIFIER		{$$ = makeLeaf("Name", concat($1.name, "[]"))}
 					;
 
 type_name			
-					:	space_or_type_name	{$$ = $1; $$.name = $1.name}
+					:	qualified_identifier
+					;
+
+qualified_identifier
+					:	IDENTIFIER					{$$ = $1}
+					|	qualifier IDENTIFIER		{$$ = makeNode("QualifiedIdentifier", $2, $1)}
+					;
+qualifier
+					:	IDENTIFIER '.'			{$$ = makeNode("Qualifier", $1)}
+					|	qualifier IDENTIFIER '.'	{$$ = makeNode("Qualifier", $1, $2)}
 					;
 
 
-binop				
-					:	'+'		{$$ = makeLeaf("BinaryOperator", "Add")}
-					|	'-'		{$$ = makeLeaf("BinaryOperator", "Sub")}
-					|	'/'		{$$ = makeLeaf("BinaryOperator", "Div")}
-					|	'*'		{$$ = makeLeaf("BinaryOperator", "Mul")}
-					;
-
-bin_bool_op				
-					:	CEQ		{$$ = makeLeaf("BinaryBooleanOperator", "Ceq")}
-					|	CGT		{$$ = makeLeaf("BinaryBooleanOperator", "Cgt")}
-					|	CLT		{$$ = makeLeaf("BinaryBooleanOperator", "Clt")}
-					|	NEQ		{$$ = makeLeaf("BinaryBooleanOperator", "Neq")}
-					;
-
-check_bool_op
-					:	OR	{$$ = makeLeaf("BooleanCheckOperator", "Or")}
-					|	AND	{$$ = makeLeaf("BooleanCheckOperator", "And")}
-					;
 
 
 
@@ -353,6 +383,6 @@ number+												{Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue
 [,();:>.,\{\}\[\]]									{Punctuation}
 [\w\t\r\n]											{Whitespace}
 \'character\'										{CharLiteral; $$ = makeValue("char", $)}
-"((letter|number)|[\w\t\r\n:,!/\(\)?])*"			{StringLiteral; $$ = makeValue("string", $)}
+"((letter|number)|[\w\t\r\n:,!/\(\)?\'])*"			{StringLiteral; $$ = makeValue("string", $)}
 
 #End

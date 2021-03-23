@@ -93,14 +93,14 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileFunctionDeclaration(SyntaxTreeNode node)
         {
             string name = node[1].ValueString;
-            string retType = null;
+            string retType;
             ArgumentSymbol[] args = CompileParameterDecList(node[2]);
             List<string> functionKeywords = new List<string>();
 
             var decHeader = node[0];
             functionKeywords.Add(decHeader[0].ValueString);
             foreach (var mod in decHeader[1].Children) functionKeywords.Add(mod.ValueString);
-            retType = decHeader[2].ValueString;
+            retType = TypeNameFromNode(decHeader[2]);
 
             PushNewTable();
 

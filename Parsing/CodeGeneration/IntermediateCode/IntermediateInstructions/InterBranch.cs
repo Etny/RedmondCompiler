@@ -41,9 +41,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             OpCode op = Condition switch
             {
-                BranchCondition.Always => OpCodes.Br_S,
-                BranchCondition.OnFalse => OpCodes.Brfalse_S,
-                _ => OpCodes.Brtrue_S
+                BranchCondition.Always => OpCodes.Br,
+                BranchCondition.OnFalse => OpCodes.Brfalse,
+                _ => OpCodes.Brtrue
             };
 
             builder.EmitOpCode(op, _label);

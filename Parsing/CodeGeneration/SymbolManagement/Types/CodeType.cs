@@ -55,7 +55,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public static BoxedType Int32_Boxed = new BoxedType(typeof(int));
         public static BoxedType Int64_Boxed = new BoxedType(typeof(long));
         public static BoxedType Int8_Boxed = new BoxedType(typeof(byte));
-        public static BoxedType Int16_Boxed = new BoxedType(typeof(char));
+        public static BoxedType Int16_Boxed = new BoxedType(typeof(short));
+        public static BoxedType Char_Boxed = new BoxedType(typeof(char));
         public static BoxedType Bool_Boxed = new BoxedType(typeof(bool));
         public static BoxedType Real4_Boxed = new BoxedType(typeof(float));
         public static BoxedType Real8_Boxed = new BoxedType(typeof(double));
@@ -74,7 +75,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         //Define derived types
         public static DerivedType Int8 = new DerivedType(.5f, Int32, Int8_Boxed, "byte", "int8");
         public static DerivedType Bool = new DerivedType(.5f, Int32, Bool_Boxed, "bool");
-        public static DerivedType Int16 = new DerivedType(.7f, Int32, Int16_Boxed, "short", "int16", "char");
+        public static DerivedType Int16 = new DerivedType(.7f, Int32, Int16_Boxed, "short", "int16");
+        public static DerivedType Char = new DerivedType(.7f, Int32, Char_Boxed, "char");
         public static DerivedType Real4 = new DerivedType("R4", 4, Real, Real4_Boxed, "float32", "float", "real4");
         public static DerivedType Real8 = new DerivedType("R8", 4.5f, Real, Real8_Boxed, "float64", "double", "decimal", "real8");
 

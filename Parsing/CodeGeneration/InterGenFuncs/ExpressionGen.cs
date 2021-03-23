@@ -65,6 +65,14 @@ namespace Redmond.Parsing.CodeGeneration
             return null;
         }
 
+        private string TypeNameFromNode(SyntaxTreeNode node)
+        {
+            if (node.Op == "Array")
+                return TypeNameFromNode(node[0]) + "[]";
+
+            return node.ValueString;
+        }
+
         public void PushExpression(SyntaxTreeNode node)
             => builder.AddInstruction(CompileNode(node) as InterInst);
 
@@ -112,7 +120,7 @@ namespace Redmond.Parsing.CodeGeneration
             for (int i = 0; i < parameters.Length; i++)
                 parameters[i] = ToIntermediateExpression(node[1][i]);
 
-            return new InterNew(node[0].ValueString, parameters);
+            return new InterNew(TypeNameFromNode(node[0]), parameters);
         }
 
         [CodeGenFunction("NewArrayExpression")]
@@ -129,7 +137,7 @@ namespace Redmond.Parsing.CodeGeneration
                 
             }
 
-            string type = node[0].ValueString;
+            string type = TypeNameFromNode(node[0]);
 
             if(node[1].Op == "ParameterList")
             {

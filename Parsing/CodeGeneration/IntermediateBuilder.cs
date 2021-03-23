@@ -102,7 +102,7 @@ namespace Redmond.Parsing.CodeGeneration
         public void AddReference(IAssemblyReference reference)
             => AssemblyReferences = AssemblyReferences.Add(reference);
 
-        //TODO: Improve this
+        
         public CodeType ResolveType(string name)
         {
             if (name.Length > 2 && name[^2..] == "[]")
