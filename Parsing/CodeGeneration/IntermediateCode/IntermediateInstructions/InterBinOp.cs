@@ -48,9 +48,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _op1.Bind(context);
             _op2.Bind(context);
 
-            CodeType wideType = GetResultType();
+            CodeType wideType = _op1.Type.GetWiderType(_op2.Type);
 
-           
+
+
             if (_op1.Type is UserType)
             {
                 var user = UserType.ToUserType(_op1.Type);

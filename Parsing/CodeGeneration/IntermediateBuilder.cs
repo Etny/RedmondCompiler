@@ -122,7 +122,7 @@ namespace Redmond.Parsing.CodeGeneration
                 {
                     var type = a.ResolveType(ns + "." + name);
                     if (type == null) type = a.ResolveType(name);
-                    if (type != null) return UserType.NewUserType(type);
+                    if (type != null) return UserType.NewUserType(type, this);
                 }
             }
 
@@ -133,7 +133,7 @@ namespace Redmond.Parsing.CodeGeneration
         {
             if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
 
-            return UserType.NewUserType(type);
+            return UserType.NewUserType(type, this);
         }
 
 

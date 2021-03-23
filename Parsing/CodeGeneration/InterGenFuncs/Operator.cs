@@ -72,7 +72,7 @@ namespace Redmond.Parsing.CodeGeneration
 
         public enum OperatorType
         {
-            Add, Sub, Mul, Div, Ceq, Clt, Cgt, Neq
+            Add, Sub, Mul, Div, Ceq, Clt, Cgt, Neq, Or, And
         }
 }
 }

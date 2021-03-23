@@ -2,6 +2,8 @@
 
 left + -
 left * /
+left OR AND
+left CGT CLT CEQ NEQ
 none precToken
 none .
 none ELSE
@@ -141,8 +143,8 @@ if_statement
 					;
 
 while_statement		
-					:	WHILE parenthesized_exp statement	{$$ = makeNode("WhileStatement", $2, $3)}
-					|	DO statement WHILE parenthesized_exp	{$$ = makeNode("DoWhileStatement", $4, $2)}
+					:	WHILE parenthesized_exp statement			{$$ = makeNode("WhileStatement", $2, $3)}
+					|	DO statement WHILE parenthesized_exp ';'	{$$ = makeNode("DoWhileStatement", $4, $2)}
 					;
 
 for_statement		
@@ -173,6 +175,7 @@ parameter_dec
 array_dec_expression
 					:	NEW type_name '[' expression ']'						{$$ = makeNode("NewArrayExpression", $2, $4)}
 					|	NEW type_name RANK_SPECIFIER array_init_expression		{$$ = makeNode("NewArrayExpression", $2, $4)}
+					|	array_init_expression									{$$ = makeNode("NewArrayExpression", $1)}
 					;
 
 array_init_expression		
@@ -183,10 +186,17 @@ array_access_expression
 					:	expression '[' expression ']'	{$$ = makeNode("ArrayAccessExpression", $1, $3)}
 					;
 
+bool_expression
+					:	expression bin_bool_op expression				{$$ = makeNode("BinaryBoolExpression", $1, $3, $2)}
+					|	expression check_bool_op expression				{$$ = makeNode("BoolCheckExpression", $1, $3, $2)}
+					;
+
+
 expression			
 					:	Digit									{$$ = makeLeaf("NumericalLiteral", $1}
 					|	call_statement							{$$ = makeNode("CallExpression", $1)}
 					|	StringLiteral							{$$ = makeLeaf("StringLiteral", $1)}
+					|	CharLiteral								{$$ = makeLeaf("CharLiteral", $1)}
 					|	BoolLiteral								{$$ = makeLeaf("BoolLiteral", $1)}
 					|	IDENTIFIER								{$$ = makeLeaf("IdentifierExpression", $1)}
 					|	expression binop expression				{$$ = makeNode("BinaryExpression", $1, $3, $2);}
@@ -198,9 +208,6 @@ expression
 					|   NEW type_name '\(' parameter_list '\)'	{$$ = makeNode("NewExpression", $2, $4)}
 					;
 
-bool_expression
-					:	expression bin_bool_op expression		{$$ = makeNode("BinaryBoolExpression", $1, $3, $2)}
-					;
 
 parenthesized_exp	
 					:	'\(' expression '\)'	{$$ = $2}
@@ -241,6 +248,11 @@ bin_bool_op
 					|	NEQ		{$$ = makeLeaf("BinaryBooleanOperator", "Neq")}
 					;
 
+check_bool_op
+					:	OR	{$$ = makeLeaf("BooleanCheckOperator", "Or")}
+					|	AND	{$$ = makeLeaf("BooleanCheckOperator", "And")}
+					;
+
 
 
 #End
@@ -262,6 +274,7 @@ Whitespace
 NewLine
 StringLiteral
 BoolLiteral
+CharLiteral
 
 STATIC
 PUBLIC
@@ -288,17 +301,15 @@ CEQ
 CLT
 CGT
 NEQ
+AND
+OR
 
 RANK_SPECIFIER
-
-OPENBRACK
-CLOSEBRACK
-OPENSQR
-CLOSESQR
 
 #End
 
 #Lex
+
 
 letter = [a-zA-Z]
 number = [0-9]
@@ -325,6 +336,8 @@ while		{WHILE}
 do			{DO}
 for			{FOR}
 
+\&\&		{AND}
+\|\|		{OR}
 ==			{CEQ}
 !=			{NEQ}
 >			{CGT}
@@ -333,12 +346,13 @@ for			{FOR}
 
 \[[\w\t\r\n]*\]		{RANK_SPECIFIER}
 
-true {BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
-(letter|_)character* {IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}
-number+ {Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
-[=\*/+-] {Operator}
-[,();:>.,\{\}\[\]] {Punctuation}
-[\w\t\r\n]	{Whitespace}
-"((letter|number)|[\w\t\r\n:,])*"	{StringLiteral; $$ = makeValue("string", $)}
+true												{BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
+(letter|_)character*								{IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}
+number+												{Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
+[=\*/+-]											{Operator}
+[,();:>.,\{\}\[\]]									{Punctuation}
+[\w\t\r\n]											{Whitespace}
+\'character\'										{CharLiteral; $$ = makeValue("char", $)}
+"((letter|number)|[\w\t\r\n:,!/\(\)?])*"			{StringLiteral; $$ = makeValue("string", $)}
 
 #End

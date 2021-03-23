@@ -25,8 +25,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public List<CodeSymbol> Locals = new List<CodeSymbol>();
         public int Args => Arguments.Length;
 
-        private LabelManager _labels = new LabelManager();
-        public string NextLabel { get { _labels.LabelNext = true; return _labels.CurrentLabel; } }
+        public LabelManager LabelManager = new LabelManager();
+        public string NextLabel { get { LabelManager.LabelNext = true; return LabelManager.CurrentLabel; } }
 
         public InterMethod(string name, string returnTypeName, ArgumentSymbol[] args, InterType owner, List<string> flags)
         {
@@ -63,8 +63,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             Instructions = Instructions.Add(inst);
             inst.SetOwner(this);
 
-            if (!_labels.LabelNext) return;
-            inst.Label = _labels.NextLabel;
+            if (!LabelManager.LabelNext) return;
+            inst.Label = LabelManager.NextLabel;
         }
 
         public void AddInstruction(InterInst inst, int index)
@@ -72,8 +72,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             Instructions = Instructions.Insert(index, inst);
             inst.SetOwner(this);
 
-            if (!_labels.LabelNext) return;
-            inst.Label = _labels.NextLabel;
+            if (!LabelManager.LabelNext) return;
+            inst.Label = LabelManager.NextLabel;
         }
 
         public virtual void Emit(IlBuilder builder)

@@ -42,7 +42,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _method.Args;
 
-        public CodeType[] Arguments => (from a in _method.Arguments select a.Type).ToArray();
+        public CodeType[] Arguments => (from a in _method.Arguments select a.Type.StoredType).ToArray();
     }
 
     class MethodInfoWrapper : IMethodWrapper
@@ -72,7 +72,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _method.GetParameters().Length;
 
-        public CodeType[] Arguments => (from p in _method.GetParameters() select _context.ResolveType(p.ParameterType)).ToArray();
+        public CodeType[] Arguments => (from p in _method.GetParameters() select _context.ResolveType(p.ParameterType).StoredType).ToArray();
 
         private string functionPrefixes
         {
@@ -117,7 +117,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _constructor.GetParameters().Length;
 
-        public CodeType[] Arguments => (from p in _constructor.GetParameters() select _context.ResolveType(p.ParameterType)).ToArray();
+        public CodeType[] Arguments => (from p in _constructor.GetParameters() select _context.ResolveType(p.ParameterType).StoredType).ToArray();
 
         private string functionPrefixes
         {

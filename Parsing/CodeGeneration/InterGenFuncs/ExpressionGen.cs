@@ -24,6 +24,7 @@ namespace Redmond.Parsing.CodeGeneration
             switch (node.Op)
             {
                 case "BoolLiteral":
+                case "CharLiteral":
                 case "StringLiteral":
                 case "NumericalLiteral":
                     return node.Val as CodeValue;
@@ -81,6 +82,19 @@ namespace Redmond.Parsing.CodeGeneration
             return op;
         }
 
+        [CodeGenFunction("BoolCheckExpression")]
+        public InterOp CompileBinaryCheckExpression(SyntaxTreeNode node)
+        {
+            var op1 = ToIntermediateExpression(node[0]);
+            var op2 = ToIntermediateExpression(node[1]);
+
+            InterBinCheck check = new InterBinCheck(op1, op2, new Operator((Operator.OperatorType)Enum.Parse(typeof(Operator.OperatorType), node[2].ValueString)));
+            check.SetOwner(builder.CurrentMethod);
+            //check.SetLabel(builder.CurrentMethod.NextLabel);
+
+            return check;
+        }
+
         [CodeGenFunction("CallExpression")]
         public InterOp CompileCallExpression(SyntaxTreeNode node)
         {
@@ -104,7 +118,28 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("NewArrayExpression")]
         public InterOp CompileNewArrayExpression(SyntaxTreeNode node)
         {
+            if(node.Children.Length == 1)
+            {
+                CodeValue[] entries = new CodeValue[node[0].Children.Length];
+
+                for (int i = 0; i < entries.Length; i++)
+                    entries[i] = ToIntermediateExpression(node[0][i]);
+
+                return new InterNewArray(entries);
+                
+            }
+
             string type = node[0].ValueString;
+
+            if(node[1].Op == "ParameterList")
+            {
+                CodeValue[] entries = new CodeValue[node[1].Children.Length];
+
+                for (int i = 0; i < entries.Length; i++)
+                    entries[i] = ToIntermediateExpression(node[1][i]);
+
+                return new InterNewArray(type, entries);
+            }
 
             return new InterNewArray(type, ToIntermediateExpression(node[1]));
         }

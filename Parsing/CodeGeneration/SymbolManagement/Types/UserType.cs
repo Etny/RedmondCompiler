@@ -26,13 +26,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         protected UserType(params string[] names) : base(names) { OpName = "Ref"; }
 
-        public static UserType NewUserType(Type t) 
+        public static UserType NewUserType(Type t, IntermediateBuilder context) 
         {
             if (_specialCases.ContainsKey(t)) return _specialCases[t];
+            if (t.IsArray) return new ArrayType(context.ResolveType(t.GetElementType()));
             else return new UserType(t);
         }
 
-        protected UserType(Type type) : this("")
+        public UserType(Type type) : this("")
         {
             _type = type;
 
