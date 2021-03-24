@@ -35,8 +35,12 @@ namespace Redmond.Parsing.CodeGeneration
                 case "Identifier":
                     return GetFirst(node.ValueString);
 
+                case "QualifiedIdentifier":
+                case "Qualifier":
+                    return CompileFieldOrPropertyReference(node);
+
                 case "MemberAccess":
-                    return CompileMemberAccess(node);
+                    return new FieldOrPropertySymbol(ToIntermediateExpression(node[0]), node[1].ValueString);
 
                 case "ArrayAccessExpression":
                     return new ArrayEntryValue(ToIntermediateExpression(node[0]), ToIntermediateExpression(node[1]));
@@ -70,7 +74,10 @@ namespace Redmond.Parsing.CodeGeneration
             if (node.Op == "Array")
                 return TypeNameFromNode(node[0]) + "[]";
 
-            return node.ValueString;
+            if (node.Children.Length == 1)
+                return node[0].ValueString;
+            else
+                return TypeNameFromNode(node[0]) + '.' + node[1].ValueString;
         }
 
         public void PushExpression(SyntaxTreeNode node)
@@ -152,22 +159,17 @@ namespace Redmond.Parsing.CodeGeneration
             return new InterNewArray(type, ToIntermediateExpression(node[1]));
         }
 
-        private FieldOrPropertySymbol CompileMemberAccess(SyntaxTreeNode node)
+        private CodeValue CompileFieldOrPropertyReference(SyntaxTreeNode node)
         {
-            var name = node[0].ValueString;
-
-            if (node[1].Op == "MemberAccess")
+            if (node.Children.Length > 1)
             {
-                var next = CompileMemberAccess(node[1]);
+                var next = CompileFieldOrPropertyReference(node[0]);
                 if (next == null) return null;
-                return new FieldOrPropertySymbol(next, name);
+                return new FieldOrPropertySymbol(next, node[1].ValueString);
             }
             else
-            {
-                var final = GetFirst(node[1].ValueNode.ValueString);
-                if (final == null) return null;
-                return new FieldOrPropertySymbol(final, name);
-            }
+                return GetFirst(node[0].ValueString);
+            
         }
     }
 }

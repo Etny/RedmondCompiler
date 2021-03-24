@@ -29,9 +29,15 @@ namespace Redmond.Lex.LexCompiler
         }
 
         [LexFunction("parseBool")]
-        public static bool ParseBool(string s)
+        public static byte ParseBool(string s)
         {
-            return bool.Parse(s);
+            return bool.Parse(s) ? (byte)1 : (byte)0;
+        }
+
+        [LexFunction("parseChar")]
+        public static short ParseChar(string s)
+        {
+            return (short)s[1];
         }
 
         [LexFunction("add")]

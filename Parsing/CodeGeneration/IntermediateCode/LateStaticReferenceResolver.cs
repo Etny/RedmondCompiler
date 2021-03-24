@@ -17,35 +17,51 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsFieldOrProperty => !IsStatic;
 
         private FieldOrPropertySymbol _field = null;
-
+        
         public LateStaticReferenceResolver(SyntaxTreeNode node)
         {
-            switch (node.Op)
+            var n = node;
+            List<string> ids = new List<string>();
+
+            while (n.Children.Length > 1)
             {
-                case "Identifier":
-                    _ids = new string[] { node.ValueString};
-                    break;
-
-                case "IdentifierExpression":
-                    _ids = new string[] { node.ValueNode.ValueString };
-                    break;
-
-                case "MemberAccess":
-                    var n = node;
-                    List<string> ids = new List<string>();
-
-                    while(n.Op == "MemberAccess")
-                    {
-                        ids.Add(n[0].ValueString);
-                        n = n[1];
-                    }
-
-                    ids.Add(n.ValueNode.ValueString);
-
-                    _ids = ids.ToArray();
-                    Array.Reverse(_ids);
-                    break;
+                ids.Add(n[1].ValueString);
+                n = n[0];
             }
+
+            ids.Add(n.Op == "Identifier" ? n.ValueString : n[0].ValueString);
+
+            _ids = ids.ToArray();
+            Array.Reverse(_ids);
+
+            //switch (node.Op)
+            //{
+            //    case "Identifier":
+            //        _ids = new string[] { node.ValueString};
+            //        break;
+
+            //    case "IdentifierExpression":
+            //        _ids = new string[] { node.ValueNode.ValueString };
+            //        break;
+
+            //    case "Qualifier":
+            //    case "QualifiedIdentifier":
+            //    case "MemberAccess":
+            //        var n = node;
+            //        List<string> ids = new List<string>();
+
+            //        while(n.Op == "MemberAccess")
+            //        {
+            //            ids.Add(n[0].ValueString);
+            //            n = n[1];
+            //        }
+
+            //        ids.Add(n.ValueNode.ValueString);
+
+            //        _ids = ids.ToArray();
+            //        Array.Reverse(_ids);
+            //        break;
+            //}
         }
 
         public override void Bind(IntermediateBuilder context)

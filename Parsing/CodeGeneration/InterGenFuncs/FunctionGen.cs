@@ -47,20 +47,22 @@ namespace Redmond.Parsing.CodeGeneration
 
             for (int i = 0; i < parameters.Length; i++)
                 parameters[i] = ToIntermediateExpression(node[1][i]);
+
             CodeValue thisPtr = null;
+            string functionName = "";
 
-            if (node.Children.Length > 2)
+            if(node[0].Op == "QualifiedIdentifier" || node[0].Op == "MemberAccess")
             {
-                var member = ToIntermediateExpression(node[2]);
+                if (node[0].Children.Length > 1)
+                {
+                    functionName = node[0][1].ValueString;
+                    thisPtr = ToIntermediateExpression(node[0][0]);
+                }
+                else functionName = node[0][0].ValueString;
+            }else 
+                thisPtr = ToIntermediateExpression(node[0]);
 
-                if (member == null)
-                    return new InterCall(node[0].ValueString, parameters, exp, new LateStaticReferenceResolver(node[2]));
-
-                thisPtr = member;
-
-            }
-
-            return new InterCall(node[0].ValueString, parameters, exp, thisPtr);
+            return new InterCall(functionName, parameters, exp, thisPtr);
         }
 
         [CodeGenFunction("Function")]

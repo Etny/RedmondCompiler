@@ -31,8 +31,6 @@
                 else
                     Console.WriteLine("You win!");
 
-                Console.WriteLine();
-
                 do
                 {
                     Console.Write("Play again? (y/n): ");

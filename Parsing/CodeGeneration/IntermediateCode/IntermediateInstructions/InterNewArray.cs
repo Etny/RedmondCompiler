@@ -56,7 +56,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             builder.PushValue(_rank);
 
-            builder.EmitOpCode(OpCodes.Newarr, _typeof.Name);
+            builder.EmitOpCode(OpCodes.Newarr, (_typeof as ArrayType).TypeOf.Name);
 
             for(int i = 0; i < _entries.Length; i++)
             {
@@ -69,6 +69,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         }
 
         public override CodeType GetResultType()
-            => new ArrayType(_typeof);
+            => _typeof;
     }
 }

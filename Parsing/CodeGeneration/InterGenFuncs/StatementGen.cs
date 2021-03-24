@@ -16,16 +16,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("AssignStatement")]
         public void CompileAssignStatement(SyntaxTreeNode node)
         {
-            CodeSymbol symbol = null;
-
-            if (node[0].Op == "Identifier")
-                symbol = GetFirst(node[0].ValueString);
-            else if (node[0].Op == "MemberAccess")
-                symbol = CompileMemberAccess(node[0]);
-            else if (node[0].Op == "ArrayAccessExpression")
-                symbol = (CodeSymbol)ToValue(node[0]);
-            else
-                Debug.Assert(false);
+            CodeSymbol symbol = (CodeSymbol) ToIntermediateExpression(node[0]);
 
             if(symbol == null)
                 builder.AddInstruction(new InterCopy(new LateStaticReferenceResolver(node[0]), ToIntermediateExpression(node[1])));
@@ -42,12 +33,10 @@ namespace Redmond.Parsing.CodeGeneration
             if (CurrentTable.Contains(name))
                 ErrorManager.ExitWithError(new Exception("Duplicate ID: " + name));
 
-            CodeSymbol symbol = builder.AddLocal(name, node[1].ValueString);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
+            CodeSymbol symbol = builder.AddLocal(name, TypeNameFromNode(node[1]));//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
 
             if(node.Children.Length > 2)
                 builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[2])));
-
-            int[   ] ik = new int[2];
         }
 
         [CodeGenFunction("ReturnStatement")]
