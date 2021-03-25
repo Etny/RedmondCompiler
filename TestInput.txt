@@ -1,47 +1,16 @@
 ﻿using System;
 
+namespace RPSTest{
+
     class Program
     {
-        static string[] rps = new string[]{ "rock", "paper", "scissors" };
-        static string[] winsAgainst = new string[]{ "scissors", "rock", "paper" };
-
-        static void Main()
+        public static void Main()
         {
-            string input;
-            Random r = new Random();
+            string[] strings = new string[]{"first", "second", "third"};
 
-            bool replay = true;
-
-            while (replay)
-            {
-                do
-                {
-                    Console.Write("Choose rock, paper or scissors: ");
-                    input = Console.ReadLine().ToLower();
-                } while (input != "rock" && input != "scissors" && input != "paper");
-
-                int choice = r.Next(3);
-                Console.WriteLine("You chose " + input);
-                Console.WriteLine("The Computer chose " + rps[choice]);
-
-                if (rps[choice] == input)
-                    Console.WriteLine("It's a tie!");
-                else if (winsAgainst[choice] == input)
-                    Console.WriteLine("The computer wins!");
-                else
-                    Console.WriteLine("You win!");
-
-                do
-                {
-                    Console.Write("Play again? (y/n): ");
-                    input = Console.ReadLine().ToLower();
-                } while (input.Length < 1 || (input.ToCharArray()[0] != 'y' && input.ToCharArray()[0] != 'n'));
-                replay = input.ToCharArray()[0] == 'y';
-
-                Console.WriteLine();
-            }
-
-
+            for(int i = 0; i < strings.Length; i = i + 2, i--)
+                Console.WriteLine(strings[i]);
         }
     }
 
+}

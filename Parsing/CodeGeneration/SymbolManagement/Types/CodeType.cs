@@ -68,7 +68,6 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public static BasicType Int64 = new BasicType("I8", 2, Int64_Boxed, "int64", "long");
         public static BasicType NativeInt = new BasicType("I", 3, "native");
         public static BasicType Real = new BasicType(4, "real");
-        public static CodeType Object = new UserType(typeof(object));
 
 
 
@@ -82,6 +81,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public static StringType String = new StringType();
         public static VoidType Void = new VoidType();
+        public static CodeType Object = new ObjectType();
 
     }
 }

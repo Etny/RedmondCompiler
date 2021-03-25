@@ -13,16 +13,10 @@ namespace Redmond.Parsing.CodeGeneration
     internal partial class IntermediateGenerator
     {
 
-        [CodeGenFunction("AssignStatement")]
-        public void CompileAssignStatement(SyntaxTreeNode node)
+        [CodeGenFunction("ExpressionStatement")]
+        public void CompileExpressionStatement(SyntaxTreeNode node)
         {
-            CodeSymbol symbol = (CodeSymbol) ToIntermediateExpression(node[0]);
-
-            if(symbol == null)
-                builder.AddInstruction(new InterCopy(new LateStaticReferenceResolver(node[0]), ToIntermediateExpression(node[1])));
-            else
-                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
-
+            builder.AddInstruction(new InterPush(ToIntermediateExpression(node[0])));
         }
 
         [CodeGenFunction("DeclarationStatement")]
@@ -121,15 +115,15 @@ namespace Redmond.Parsing.CodeGeneration
         {
             PushNewTable();
 
-            CompileNode(node[0]);
+            if(node[0].Op != "Empty") CompileNode(node[0]);
 
             InterBranch initialBranch = new InterBranch();
 
             builder.AddInstruction(initialBranch);
 
             string beginLabel = builder.CurrentMethod.NextLabel;
-            CompileNode(node[3]);
-            CompileNode(node[2]);
+            if (node[3].Op != "Empty") CompileNode(node[3]);
+            if (node[2].Op != "Empty")  CompileStatementExpressionList(node[2]);
             initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
 
             InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[1]), InterBranch.BranchCondition.OnTrue);

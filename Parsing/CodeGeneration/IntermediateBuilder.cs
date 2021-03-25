@@ -18,6 +18,8 @@ namespace Redmond.Parsing.CodeGeneration
 
         public InterType CurrentType = null;
         public InterMethod CurrentMethod = null;
+        public Stack<string> Namespaces = new Stack<string>();
+        public string CurrentNameSpace => Namespaces.Peek();
 
         private Stack<SymbolTable> _tables;
 
@@ -45,6 +47,12 @@ namespace Redmond.Parsing.CodeGeneration
             Types.Add(type);
             return type;
         }
+
+        public void BeginNamespace(string name)
+            => Namespaces.Push(name);
+
+        public void EndNameSpace()
+            => Namespaces.Pop();
 
         public InterMethod AddMethod(string name, string returnType, ArgumentSymbol[] vars, List<string> flags)
         {
@@ -122,7 +130,7 @@ namespace Redmond.Parsing.CodeGeneration
                 {
                     var type = a.ResolveType(ns + "." + name);
                     if (type == null) type = a.ResolveType(name);
-                    if (type != null) return UserType.NewUserType(type, this);
+                    if (type != null) return UserType.NewUserType(type);
                 }
             }
 
@@ -133,7 +141,8 @@ namespace Redmond.Parsing.CodeGeneration
         {
             if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
 
-            return UserType.NewUserType(type, this);
+            if (type.IsArray) return new ArrayType(ResolveType(type.GetElementType()));
+            return UserType.NewUserType(type);
         }
 
 

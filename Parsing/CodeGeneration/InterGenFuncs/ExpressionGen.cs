@@ -88,7 +88,7 @@ namespace Redmond.Parsing.CodeGeneration
         public InterOp CompileBinaryExpression(SyntaxTreeNode node)
         {
             var op = new InterBinOp(
-                new Operator((Operator.OperatorType)Enum.Parse(typeof(Operator.OperatorType), node[2].ValueString)), 
+                Operator.FromName(node[2].ValueString), 
                 ToIntermediateExpression(node.Children[0]), 
                 ToIntermediateExpression(node.Children[1]));
 
@@ -103,11 +103,45 @@ namespace Redmond.Parsing.CodeGeneration
             var op1 = ToIntermediateExpression(node[0]);
             var op2 = ToIntermediateExpression(node[1]);
 
-            InterBinCheck check = new InterBinCheck(op1, op2, new Operator((Operator.OperatorType)Enum.Parse(typeof(Operator.OperatorType), node[2].ValueString)));
+            InterBinCheck check = new InterBinCheck(op1, op2, Operator.FromName(node[2].ValueString));
             check.SetOwner(builder.CurrentMethod);
             //check.SetLabel(builder.CurrentMethod.NextLabel);
 
             return check;
+        }
+
+        [CodeGenFunction("PostIncOrDec")]
+        public InterOp CompilePostIncrementOrDecrementExpression(SyntaxTreeNode node)
+        {
+            var op1 = ToIntermediateExpression(node[0]);
+            var op2 = new CodeValue(CodeType.Int32, 1);
+            var op =  new InterBinOp(Operator.FromName(node[1].ValueString), op1, op2);
+            var copy = new InterCopy((CodeSymbol)ToIntermediateExpression(node[0]), new InterOpValue(op));
+            copy.SetOwner(builder.CurrentMethod);
+            return copy;
+        }
+
+        [CodeGenFunction("AssignExpression")]
+        public InterOp CompileAssignExpression(SyntaxTreeNode node)
+        {
+            CodeSymbol symbol = ToIntermediateExpression(node[0]) as CodeSymbol;
+
+            InterCopy copy;
+
+            if (symbol == null)
+                copy = new InterCopy(new LateStaticReferenceResolver(node[0]), ToIntermediateExpression(node[1]));
+            else 
+                 copy = new InterCopy(symbol, ToIntermediateExpression(node[1]));
+
+            copy.SetOwner(builder.CurrentMethod);
+            return copy;
+        }
+
+        [CodeGenFunction("StatementExpressionList")]
+        public void CompileStatementExpressionList(SyntaxTreeNode node)
+        {
+            foreach (var c in node.Children)
+                builder.AddInstruction(new InterPush(ToIntermediateExpression(c)));
         }
 
         [CodeGenFunction("CallExpression")]

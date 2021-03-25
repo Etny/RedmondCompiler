@@ -132,6 +132,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return SyntaxTreeNode.CurrentNode;
         }
 
+        public Parser GetParser()
+        {
+            var table = CreateLALRParsingTable();
+            return new Parser(table);
+        }
+
+
         public void AddNonTerminal(NonTerminal nt)
             => NonTerminals.Add(nt.Tag, nt);
 

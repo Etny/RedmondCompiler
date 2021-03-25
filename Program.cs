@@ -26,13 +26,29 @@ namespace Redmond
         {
             CompileSettings.InitSettings(Dec.SettingsLines);
             TokenType.AddTypes(Dec.TokenLines);
-            TokenStream Input = new TokenStream(InputString, Dec.LexLines, "\"\'.,&|?<>[]{}!12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=*/:;() $\n\r\t");
-            //Console.WriteLine(new Grammar(Dec.GrammarLines).Parse(Input).ToTreeString());
-            var tree = new Grammar(Dec.GrammarLines).Parse(Input);
-            Console.WriteLine(tree.ToTreeString());
-            Console.WriteLine("============\n");
-            new IntermediateGenerator(tree);
+            Console.WriteLine("Generating parsing table...");
+            var parser = new Grammar(Dec.GrammarLines).GetParser();
+            Console.Write("Finished parsing table, enter file: ");
 
+            string s = Console.ReadLine();
+
+            do
+            {
+                string inputString = InputString;
+
+                if (s.Trim().Length > 0 && File.Exists(s))
+                    inputString = File.ReadAllText(s);
+
+                TokenStream Input = new TokenStream(inputString, Dec.LexLines, "\"\'.,&|?<>[]{}!12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=*/:;() $\n\r\t"); ;
+
+                parser.Parse(Input);
+                var tree = SyntaxTreeNode.CurrentNode;
+                Console.WriteLine(tree.ToTreeString());
+                Console.WriteLine("============\n");
+                new IntermediateGenerator(tree);
+                Console.WriteLine("============\n");
+                s = Console.ReadLine();
+            } while (s != "q");
 
         }
     }

@@ -16,6 +16,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _val = value;
         }
 
+        public override void Bind(IntermediateBuilder context)
+        {
+            base.Bind(context);
+            _val.Bind(context);
+        }
+
         public override void Emit(IlBuilder builder)
         {
             base.Emit(builder);

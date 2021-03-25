@@ -26,6 +26,7 @@ namespace Redmond.Lex.LexCompiler
 
         public static void Init()
         {
+            if (lexFunctions.Count > 0) return;
             var syntaxFuncs = Assembly.GetExecutingAssembly().GetTypes()
                                 .SelectMany(t => t.GetMethods())
                                 .Where(m => m.IsStatic && m.GetCustomAttribute(typeof(LexFunctionAttribute)) != null)

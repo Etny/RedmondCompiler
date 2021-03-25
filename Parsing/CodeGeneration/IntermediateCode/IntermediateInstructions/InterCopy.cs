@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterCopy : InterInst
+    class InterCopy : InterOp
     {
 
         private CodeSymbol _target = null;
@@ -58,5 +58,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _target.Store(builder, _source);
             //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }
+
+        public override CodeType GetResultType()
+            => _target.Type;
     }
 }

@@ -130,7 +130,7 @@ namespace Redmond.Parsing.CodeGeneration
             ArgumentSymbol[] args = new ArgumentSymbol[node.Children.Length];
 
             for (int i = 0; i < args.Length; i++)
-                args[i] = new ArgumentSymbol(node[i][1].ValueString, node[i][0].ValueString, i);
+                args[i] = new ArgumentSymbol(node[i][1].ValueString, TypeNameFromNode(node[i][0]), i);
 
             return args;
         }

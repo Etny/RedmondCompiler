@@ -76,4 +76,16 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override CodeType GetWiderType(CodeType otherType) => otherType;
     }
+
+    class ObjectType : UserType
+    {
+        public ObjectType() : base("object") 
+        {
+            _type = typeof(object); 
+            _specialCases.Add(_type, this);
+
+           //Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+            ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+        }
+    }
 }

@@ -14,6 +14,9 @@ namespace Redmond.Parsing.CodeGeneration
             Type = type;
         }
 
+        public static Operator FromName(string name)
+            => new Operator((OperatorType)Enum.Parse(typeof(OperatorType), name));
+
         public string GetOverloadName()
         {
             return Type switch

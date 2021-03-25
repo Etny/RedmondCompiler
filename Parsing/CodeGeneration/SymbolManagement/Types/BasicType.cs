@@ -62,7 +62,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override AssignType CanAssignTo(CodeType fieldType)
         {
             var other = fieldType as BasicType;
-            if (other == null) return AssignType.CannotAssign; //TODO: Return CanAssignTo for boxed value
+            if (other == null) return BoxedType.CanAssignTo(fieldType);
 
             if (Equals(fieldType)) return AssignType.CanAssign;
             else if (other.Wideness >= Wideness) return AssignType.CanConvert;

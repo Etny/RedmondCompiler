@@ -17,7 +17,7 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileClass(SyntaxTreeNode node)
         {
             string name = node[0].ValueString;
-            builder.AddType(new InterType(name));
+            builder.AddType(new InterType(builder.CurrentNameSpace + "." + name));
             CompileNode(node[1]);
         }
 

@@ -26,14 +26,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         protected UserType(params string[] names) : base(names) { OpName = "Ref"; }
 
-        public static UserType NewUserType(Type t, IntermediateBuilder context) 
+        public static UserType NewUserType(Type t) 
         {
             if (_specialCases.ContainsKey(t)) return _specialCases[t];
-            if (t.IsArray) return new ArrayType(context.ResolveType(t.GetElementType()));
+            //if (t.IsArray) return new ArrayType(context.ResolveType(t.GetElementType()));
             else return new UserType(t);
         }
 
-        public UserType(Type type) : this("")
+        public UserType(Type type) : this()
         {
             _type = type;
 
@@ -81,7 +81,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public virtual UserType GetBaseType()
         {
             if (_type == typeof(object)) return null;
-            return new UserType(_type.BaseType);
+            return NewUserType(_type.BaseType);
         }
 
         public virtual IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
