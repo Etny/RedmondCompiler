@@ -8,31 +8,29 @@ namespace Redmond.Parsing.SyntaxAnalysis
     {
 
         public Dictionary<ProductionEntry, ParserState> Goto = new Dictionary<ProductionEntry, ParserState>();
-        public Dictionary<ProductionEntry, (ParserAction, Object)> Action = new Dictionary<ProductionEntry, (ParserAction, Object)>();
-
+        public Dictionary<ProductionEntry, ParserAction> Action = new Dictionary<ProductionEntry, ParserAction>();
+        public int Index;
 
 #warning Remove this!
         private readonly List<GrammarItem> _i;
 
         public ParserState(List<GrammarItem> I)
         {
-            _i = I;
+           // _i = I;
         }
 
+        //TODO: this
         public override string ToString()
         {
-            string s = "";
+            string s = "state";
 
-            foreach (var g in _i)
-                s += "["+g + "] \n";
+            //foreach (var g in _i)
+            //    s += "["+g + "] \n";
 
             return s;
         }
 
     }
 
-    public enum ParserAction
-    {
-        Reduce, Shift, Accept
-    }
+    
 }

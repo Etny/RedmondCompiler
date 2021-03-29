@@ -116,10 +116,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
 
             if (HasAction)
-                Action = new GrammarAction(_actionString, this);
+                Action = new GrammarAction(_actionString, Rhs.Length);
             else if (Rhs.Length == 1 && Rhs[0] is NonTerminal && CompileSettings.AutoValueInheritance)
             {
-                Action = new GrammarAction("$$ = $1", this);
+                Action = new GrammarAction("$$ = $1", Rhs.Length);
                 HasAction = true;
             }
 

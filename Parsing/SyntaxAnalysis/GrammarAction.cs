@@ -10,17 +10,16 @@ namespace Redmond.Parsing.SyntaxAnalysis
     class GrammarAction
     {
 
-        private string _dec;
-        private Production _prod;
+        public readonly string DeclarationString;
+        public static readonly GrammarAction Default = new GrammarAction("$$ = $1", 1);
         private Action<Stack<ParserStackEntry>>[] _actions;
 
         private static Dictionary<string, Func<Stack<ParserStackEntry>, List<GrammarActionArgument>, object>> syntaxFunctions = new Dictionary<string, Func<Stack<ParserStackEntry>, List<GrammarActionArgument>, object>>();
 
-        public GrammarAction(string dec, Production prod)
+        public GrammarAction(string dec, int prodSize)
         {
-            _dec = dec;
-            _prod = prod;
-            Parse(dec, prod);
+            DeclarationString = dec;
+            Parse(dec, prodSize);
         }
 
         
@@ -46,7 +45,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
             return info.Invoke(null, paramList);
         }
 
-        private void Parse(string dec, Production prod)
+        private void Parse(string dec, int prodSize)
         {
             dec = dec.Replace(" ", "").Replace("\t", "").Trim();
             int index = 0;
@@ -75,8 +74,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         {
                             string s = dec.ReadWhile(ref index, c => "-0123456789".Contains(c));
                             offset = int.Parse(s);
-                            if (offset < 0) offset = prod.Rhs.Length - offset;
-                            else if(offset > 0) offset = prod.Rhs.Length - (offset - 1);
+                            if (offset < 0) offset = prodSize - offset;
+                            else if(offset > 0) offset = prodSize - (offset - 1);
                         }
                         else index++;
 

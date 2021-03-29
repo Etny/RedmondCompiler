@@ -154,23 +154,24 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 n.CalculateFollows();
         }
 
-        private void SetAction(ParserState state, ProductionEntry key, (ParserAction, Object) newAction)
+        private void SetAction(ParserState state, ProductionEntry key, ParserAction newAction)
         {
+            Console.WriteLine(newAction);
             if (state.Action.ContainsKey(key))
             {
                 var oldAction = state.Action[key];
-                if (oldAction.Item1 == newAction.Item1 && oldAction.Item2 == newAction.Item2) return;
+                if (oldAction.ToString() == newAction.ToString()) return;
 
-                if (oldAction.Item1 != ParserAction.Accept && newAction.Item1 != ParserAction.Accept)
+                if (!(oldAction is AcceptAction) && !(newAction is AcceptAction))
                 {
 
-                    if (oldAction.Item1 != newAction.Item1)
+                    if (oldAction.Name != newAction.Name)
                     {
                         //Shift/Reduce Conflict
-                        var shiftAction = oldAction.Item1 == ParserAction.Shift ? oldAction : newAction;
-                        var reduceAction = oldAction.Item1 == ParserAction.Reduce ? oldAction : newAction;
+                        ShiftAction shiftAction = (oldAction.Name == "shift" ? oldAction : newAction) as ShiftAction;
+                        ReduceAction reduceAction = (oldAction.Name == "shift" ? newAction : oldAction) as ReduceAction;
 
-                        var prod = reduceAction.Item2 as Production;
+                        var prod = reduceAction.Production;
                         var term = key as Terminal;
 
                         //Resolve based on precedence and associativity
@@ -182,11 +183,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         return;
                     }
-                    else if(newAction.Item1 == ParserAction.Reduce)
+                    else if(newAction is ReduceAction)
                     {
                         //Reduce/Reduce conflict
-                        var newProd = newAction.Item2 as Production;
-                        var oldProd = oldAction.Item2 as Production;
+                        var newProd = (newAction as ReduceAction).Production;
+                        var oldProd = (oldAction as ReduceAction).Production;
 
                         bool newFirst = false;
 
@@ -211,7 +212,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         return;
                     }
                     else
-                        throw new Exception($"Conflict in state {state} on entry {key} between {state.Action[key].Item1} and {newAction.Item1}. Cannot resolve shift/shift conflict.");
+                        throw new Exception($"Conflict in state {state} on entry {key}. Cannot resolve shift/shift conflict.");
                 }
             }
 
@@ -279,6 +280,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 }
             }
 
+            for (int i = 0; i < Cd.Count; i++)
+                Cd[i].Item1.Index = i;
+
 
             //Apply rule 2 and 3 (page 234)
             foreach (var J in Cd)
@@ -296,7 +300,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     Debug.Assert(goState.Item1 != null);
 
                     if (key.IsTerminal)
-                        SetAction(state, key, (ParserAction.Shift, goState.Item1));
+                        SetAction(state, key, new ShiftAction(goState.Item1));
                     else
                         state.Goto[key] = goState.Item1;
                 }
@@ -307,10 +311,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                     if (item.Production.Lhs.Equals(startSymbol))
                         foreach (var l in item.Lookaheads)
-                            SetAction(state, l, (ParserAction.Accept, null));
+                            SetAction(state, l, new AcceptAction());
                     else
                         foreach (var l in item.Lookaheads)
-                            SetAction(state, l, (ParserAction.Reduce, item.Production));
+                            SetAction(state, l, new ReduceAction(item.Production));
                 }
             }
             

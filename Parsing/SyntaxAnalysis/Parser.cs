@@ -24,7 +24,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             stateStack.Push(new ParserStackEntry(_start, Token.Unknown));
 
-            (ParserAction, object) nextAction()
+            ParserAction nextAction()
             {
                 try
                 {
@@ -37,37 +37,32 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 {
                     ErrorManager.ExitWithError(new ParserActionNotFoundException(stateStack.Peek().State, input.NextToken));
                 }
-                return (ParserAction.Accept, null);
+                return new AcceptAction();
             }
 
             var action = nextAction();
 
-            while (action.Item1 != ParserAction.Accept)
+            while (!(action is AcceptAction))
             {
                 //if (input.NextToken.Text == "Console")
                 //    Console.WriteLine("aaaa");
 
-                switch (action.Item1)
+                switch (action)
                 { 
-                    case ParserAction.Shift:
-                        stateStack.Push(new ParserStackEntry(action.Item2 as ParserState, input.EatToken()));
+                    case ShiftAction shift:
+                        stateStack.Push(new ParserStackEntry(shift.ShiftState, input.EatToken()));
                         break;
 
-                    case ParserAction.Reduce:
-                        var production = action.Item2 as Production;
-
+                    case ReduceAction reduce:
                         Stack<ParserStackEntry> tempStack = new Stack<ParserStackEntry>(new Stack<ParserStackEntry>(stateStack));
 
-                        for (int i = 0; i < production.Rhs.Length; i++)
-                        {
+                        for (int i = 0; i < reduce.PopCount; i++)
                             stateStack.Pop();
-                        }
 
-                        stateStack.Push(new ParserStackEntry(stateStack.Peek().State.Goto[production.Lhs], Token.Unknown));
+                        stateStack.Push(new ParserStackEntry(stateStack.Peek().State.Goto[reduce.Goto], Token.Unknown));
                         tempStack.Push(stateStack.Peek());
 
-                        if (production.HasAction)
-                            production.Action.Invoke(tempStack);
+                        reduce.Action?.Invoke(tempStack);
 
                         break;
                 }

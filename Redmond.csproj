@@ -24,10 +24,4 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.9.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="3Dtest">
-      <HintPath>..\3Dtest\bin\Debug\netcoreapp3.1\3Dtest.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
