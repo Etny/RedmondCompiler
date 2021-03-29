@@ -47,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
 
 
-            _typeof = _type == null ? _entries[0].Type : context.ResolveType(_type);
+            _typeof = _type == null ? new ArrayType(_entries[0].Type) : context.ResolveType(_type);
         }
 
         public override void Emit(IlBuilder builder)

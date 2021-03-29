@@ -1,4 +1,5 @@
 ﻿using Redmond.Common;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
@@ -11,6 +12,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         private CodeValue _array, _index;
 
+        private InterCall _indexerCall = null;
+
         public ArrayEntryValue(CodeValue array, CodeValue index)
         {
             _array = array;
@@ -21,14 +24,29 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             _array.Bind(context);
             _index.Bind(context);
-            Type = (_array.Type as ArrayType).TypeOf; 
+
+            var array = _array.Type as ArrayType;
+
+            if(array == null)
+            {
+                var indexer = context.FindClosestIndexerGet(_array.Type, _index);
+                _indexerCall = new InterCall(indexer, new CodeValue[] { _index }, true, _array);
+                _indexerCall.Bind(context);
+                Type = _indexerCall.GetResultType();
+            }else
+                Type = array.TypeOf;
         }
 
         public override void Push(IlBuilder builder)
         {
-            builder.PushValue(_array);
-            builder.PushValue(_index);
-            builder.EmitOpCode(OpCodeUtil.GetOpcode("Ldelem_"+Type.OpName));
+            if (_indexerCall == null)
+            {
+                builder.PushValue(_array);
+                builder.PushValue(_index);
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("Ldelem_" + Type.OpName));
+            }
+            else
+                _indexerCall.Emit(builder);
         }
 
         public override void PushAddress(IlBuilder builder)
@@ -38,10 +56,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void Store(IlBuilder builder, CodeValue source)
         {
-            builder.PushValue(_array);
-            builder.PushValue(_index);
-            builder.PushValue(source);
-            builder.EmitOpCode(OpCodeUtil.GetOpcode("Stelem_"+Type.OpName));
+            if (_indexerCall == null)
+            {
+                builder.PushValue(_array);
+                builder.PushValue(_index);
+                builder.PushValue(source);
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("Stelem_" + Type.OpName));
+            }else
+                throw new NotImplementedException();
         }
 
 

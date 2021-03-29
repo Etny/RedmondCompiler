@@ -1,16 +1,1 @@
-﻿using System;
-
-namespace RPSTest{
-
-    class Program
-    {
-        public static void Main()
-        {
-            string[] strings = new string[]{"first", "second", "third"};
-
-            for(int i = 0; i < strings.Length; i = i + 2, i--)
-                Console.WriteLine(strings[i]);
-        }
-    }
-
-}
+﻿

@@ -37,7 +37,7 @@ namespace Redmond
                 string inputString = InputString;
 
                 if (s.Trim().Length > 0 && File.Exists(s))
-                    inputString = File.ReadAllText(s);
+                    inputString = File.ReadAllText(s)+GrammarConstants.EndChar;
 
                 TokenStream Input = new TokenStream(inputString, Dec.LexLines, "\"\'.,&|?<>[]{}!12345678910abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_+-=*/:;() $\n\r\t"); ;
 

@@ -123,8 +123,7 @@ statement_list
 					;
 
 statement			
-					:	assign_statement ';'	{$$ = $1}
-					|	call_statement ';'	{$$ = $1}
+					:	call_statement ';'	{$$ = $1}
 					|	dec_statement ';'		{$$ = $1}
 					|	return_statement ';'	{$$ = $1}
 					|	statement_expression ';' {$$ = makeNode("ExpressionStatement", $1)}

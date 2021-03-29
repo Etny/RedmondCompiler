@@ -96,6 +96,15 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new ConstructorInfoWrapper(f, context);
         }
 
+        public virtual IEnumerable<IPropertyWrapper> GetIndexers(IntermediateBuilder context)
+        {
+            foreach (var f in _type.GetProperties())
+            {
+                if(f.GetIndexParameters().Length > 0)
+                    yield return new PropertyInfoWrapper(f, context);
+            }
+        }
+
         public virtual IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
         {
             foreach (var f in _type.GetFields())
