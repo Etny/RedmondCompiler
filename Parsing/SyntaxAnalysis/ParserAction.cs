@@ -28,19 +28,19 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string Name => "shift";
 
-        public readonly ParserState ShiftState;
+        public readonly int StateIndex;
 
         public ShiftAction(ParserState state)
-            => ShiftState = state;
+            => StateIndex = state.Index;
 
         public ShiftAction(string[] parsed)
         {
-            int index = int.Parse(parsed[0]);
+            StateIndex = int.Parse(parsed[0]);
         }
 
         public override string ToString()
         {
-            return $"s/{ShiftState.Index}";
+            return $"s{StateIndex}";
         }
     }
 
@@ -50,14 +50,14 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
 
         public readonly int PopCount;
-        public readonly NonTerminal Goto;
+        public readonly int GotoID;
         public readonly GrammarAction Action;
         public readonly Production Production;
 
         public ReduceAction(Production prod)
         {
             PopCount = prod.Rhs.Length;
-            Goto = prod.Lhs;
+            GotoID = prod.Lhs.ID;
             Action = prod.HasAction ? prod.Action : null;
             Production = prod;
         }
@@ -65,18 +65,18 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public ReduceAction(string[] parsed)
         {
             PopCount = int.Parse(parsed[0]);
-            int gotoId = int.Parse(parsed[1]);
+            GotoID = int.Parse(parsed[1]);
 
             if (parsed[2] == "n") Action = null;
             else if (parsed[2] == "d") Action = GrammarAction.Default;
-            else Action = new GrammarAction(parsed[2], PopCount);
+            else Action = GrammarAction.FromDec(parsed[2], PopCount);
         }
 
         public override string ToString()
         {
-            string actionString = Action == null ? "n" : (Action.DeclarationString == GrammarAction.Default.DeclarationString ? "d" : Action.DeclarationString);
+            string actionString = Action == null ? "n" : (PopCount == 1 && Action.DeclarationString == GrammarAction.Default.DeclarationString ? "d" : Action.DeclarationString);
 
-            return $"r{PopCount}/{Goto.ID}/{actionString}";
+            return $"r{PopCount}/{GotoID}/{actionString}";
         }
     }
 

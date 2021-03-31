@@ -16,6 +16,7 @@ namespace Redmond.UX
             switch (args[0])
             {
                 case "compile": CompileCommands.Compile(parsed); break;
+                case "compiledec": CompileCommands.CompileDec(parsed); break;
 
                 default:
                     succes = false;

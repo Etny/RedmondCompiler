@@ -9,7 +9,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
     {
 
 
-        public MarkerNonTerminal(Grammar g, string actionString)
+        public MarkerNonTerminal(DecGrammar g, string actionString)
             : base(g, GrammarConstants.MarkerChar + actionString, actionString) { }
         protected override bool _canBeEmpty()
             => true;

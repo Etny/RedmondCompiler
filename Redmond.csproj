@@ -12,10 +12,14 @@
 
   <ItemGroup>
     <None Remove="TestDec.dec" />
+    <None Remove="TestParse.parse" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="TestDec.dec">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestParse.parse">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

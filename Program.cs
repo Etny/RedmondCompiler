@@ -1,4 +1,7 @@
-﻿using Redmond.UX;
+﻿using Redmond.Lex.LexCompiler;
+using Redmond.Parsing.CodeGeneration;
+using Redmond.Parsing.SyntaxAnalysis;
+using Redmond.UX;
 using System;
 
 namespace Redmond
@@ -8,7 +11,11 @@ namespace Redmond
 
         static void Main(string[] args)
         {
-            if(args.Length < 1) args = Console.ReadLine().Split(' ');
+            GrammarAction.Init();
+            LexAction.Init();
+            IntermediateGenerator.Init();
+
+            if (args.Length < 1) args = Console.ReadLine().Split(' ');
 
             if(!SubCommandInvoker.TryInvokeSubcommand(args)) Console.WriteLine($"Unkown Redmond command '{args[0]}'");
         }

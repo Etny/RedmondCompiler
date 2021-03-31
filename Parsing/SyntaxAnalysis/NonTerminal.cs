@@ -13,19 +13,15 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public Production[] Productions;
 
         protected string[] productionStrings;
-        protected Grammar _grammar;
+        protected DecGrammar _grammar;
 
-        public int ID { get; protected set; } = 0;
         protected static readonly List<string> NonTerminalTags = new List<string>();
 
-        public NonTerminal(Grammar g, string tag, params string[] productions)
+        public NonTerminal(DecGrammar g, string tag, params string[] productions) : base ('/' + tag)
         {
             _grammar = g;
             Tag = tag;
             productionStrings = productions;
-
-            if (!NonTerminalTags.Contains(Tag)) NonTerminalTags.Add(Tag);
-            ID = NonTerminalTags.IndexOf(Tag);
         }
 
         public void MakeProductions()
@@ -41,7 +37,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public override string ToString() => Tag;
 
         public override bool Equals(object obj) => obj is NonTerminal other && other.Tag == Tag;
-        public override int GetHashCode() => -ID;
+        public override int GetHashCode() => ID;
 
 
         protected override bool _canBeEmpty()

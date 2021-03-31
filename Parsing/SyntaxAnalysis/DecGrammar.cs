@@ -7,22 +7,25 @@ using System.Linq;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
-    class Grammar
+    class DecGrammar : IGrammar
     {
         public Dictionary<string, NonTerminal> NonTerminals = new Dictionary<string, NonTerminal>();
         private NonTerminal startSymbol = null;
-
+        private List<string> _tokenNames;
         
-        public Grammar(string[] lines)
+        public DecGrammar(DecFile file)
         {
-            CompileFile(lines);
+            CompileFile(file);
             GrammarAction.Init();
 
             InitNonTerminals();
         }
 
-        private void CompileFile(string[] lines)
+        private void CompileFile(DecFile file)
         {
+            _tokenNames = new List<string>(file.TokenLines);
+
+            var lines = file.GrammarLines;
             int linesIndex = 0;
             CompileGrammarHeader(lines, ref linesIndex);
 
@@ -110,7 +113,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         for(int i = 1; i < split.Length; i++)
                         {
-                            var term = new Terminal(split[i], TokenType.IsTokenType(split[i]))
+                            var term = new Terminal(split[i], _tokenNames.Contains(split[i]))
                             {
                                 Precedence = currentPrecedence,
                                 Associativity = split[0] == "left" ? OperatorAssociativity.Left : (split[0] == "right" ? OperatorAssociativity.Right : OperatorAssociativity.None)
@@ -123,6 +126,17 @@ namespace Redmond.Parsing.SyntaxAnalysis
             }
 
             if (index < lines.Length) index++;
+        }
+
+
+        public List<string> SerializeParsingTable()
+        {
+            var table = CreateLALRParsingTable();
+            List<string> tableStrings = new List<string>();
+
+            foreach (var t in table) tableStrings.Add(t.Serialize());
+
+            return tableStrings;
         }
 
         public SyntaxTreeNode Parse(TokenStream input)
@@ -156,10 +170,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         private void SetAction(ParserState state, ProductionEntry key, ParserAction newAction)
         {
-            Console.WriteLine(newAction);
-            if (state.Action.ContainsKey(key))
+            if (state.Action.ContainsKey(key.ID))
             {
-                var oldAction = state.Action[key];
+                var oldAction = state.Action[key.ID];
                 if (oldAction.ToString() == newAction.ToString()) return;
 
                 if (!(oldAction is AcceptAction) && !(newAction is AcceptAction))
@@ -177,9 +190,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         //Resolve based on precedence and associativity
                         if (prod.Precendece > term.Precedence ||
                            (prod.Precendece == term.Precedence && prod.Associatvity == OperatorAssociativity.Left))
-                            state.Action[key] = reduceAction;
+                            state.Action[key.ID] = reduceAction;
                         else
-                            state.Action[key] = shiftAction;
+                            state.Action[key.ID] = shiftAction;
 
                         return;
                     }
@@ -207,7 +220,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
                         //Resolve based on first appearance
                         if (newFirst)
-                            state.Action[key] = newAction;
+                            state.Action[key.ID] = newAction;
 
                         return;
                     }
@@ -216,10 +229,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 }
             }
 
-            state.Action[key] = newAction;
+            state.Action[key.ID] = newAction;
         }
 
-        private ParserState CreateLALRParsingTable()
+        private List<ParserState> CreateLALRParsingTable()
         {
             List<GrammarItem> startI = Closure(new List<GrammarItem>()
                 {
@@ -302,7 +315,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                     if (key.IsTerminal)
                         SetAction(state, key, new ShiftAction(goState.Item1));
                     else
-                        state.Goto[key] = goState.Item1;
+                        state.Goto[key.ID] = goState.Item1.Index;
                 }
 
                 foreach(var item in set)
@@ -317,8 +330,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
                             SetAction(state, l, new ReduceAction(item.Production));
                 }
             }
-            
-            return Cd[0].Item1;
+
+            return Cd.Select(entry => entry.Item1).ToList();
         }
 
         private Dictionary<ProductionEntry, List<GrammarItem>> FullGoto(List<GrammarItem> items)

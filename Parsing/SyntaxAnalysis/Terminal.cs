@@ -10,44 +10,39 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public readonly string Value;
         public readonly bool IsToken;
 
-        private static List<(string, bool)> TerminalValues = new List<(string, bool)>();
         private static Dictionary<int, int> _precedences = new Dictionary<int, int>();
         private static Dictionary<int, OperatorAssociativity> _associativies = new Dictionary<int, OperatorAssociativity>();
 
-        private int _id = 0;
 
-        public Terminal(string value, bool isToken) 
+        public Terminal(string value, bool isToken) : base ((isToken ? '+' : '-') + value)
         { 
             Value = value;
             IsToken = isToken;
-
-            if (!TerminalValues.Contains((Value, isToken))) TerminalValues.Add((Value, isToken));
-            _id = TerminalValues.IndexOf((Value, isToken));
         }
 
         public int Precedence
         {
             get
             {
-                if (!_precedences.ContainsKey(_id)) return 0;
-                else return _precedences[_id];
+                if (!_precedences.ContainsKey(ID)) return 0;
+                else return _precedences[ID];
             }
 
-            set => _precedences[_id] = value;
+            set => _precedences[ID] = value;
         }
 
         public OperatorAssociativity Associativity
         {
             get
             {
-                if (!_associativies.ContainsKey(_id)) return OperatorAssociativity.Left;
-                else return _associativies[_id];
+                if (!_associativies.ContainsKey(ID)) return OperatorAssociativity.Left;
+                else return _associativies[ID];
             }
 
-            set => _associativies[_id] = value;
+            set => _associativies[ID] = value;
         }
 
-        public override int GetHashCode() => _id;
+        public override int GetHashCode() => ID;
 
 
         protected override bool _isTerminal() => true;

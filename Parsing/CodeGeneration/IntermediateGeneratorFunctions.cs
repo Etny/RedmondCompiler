@@ -11,7 +11,7 @@ namespace Redmond.Parsing.CodeGeneration
         private static Dictionary<string, MethodInfo> _codeGenFunctions = new Dictionary<string, MethodInfo>();
 
         
-        private void _InitCodeGenFunctions()
+        public static void Init()
         {
             foreach(var func in typeof(IntermediateGenerator).GetMethods())
             {

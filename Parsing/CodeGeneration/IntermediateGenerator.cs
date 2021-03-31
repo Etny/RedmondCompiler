@@ -17,17 +17,16 @@ namespace Redmond.Parsing.CodeGeneration
         private SymbolTable CurrentTable { get => Tables.Peek(); }
 
 
-        private readonly SyntaxTreeNode _tree;
         private readonly IntermediateBuilder builder;
 
-        public IntermediateGenerator(SyntaxTreeNode tree)
+        public IntermediateGenerator()
         {
-            _tree = tree;
             builder = new IntermediateBuilder(Tables);
+        }
 
-            if (_codeGenFunctions.Count <= 0)
-                _InitCodeGenFunctions();
-
+        public void Start(SyntaxTreeNode tree)
+        {
+            Tables.Clear();
             PushNewTable();
             CompileNode(tree);
             builder.Emit(new IlBuilder(new ConsoleStream()));

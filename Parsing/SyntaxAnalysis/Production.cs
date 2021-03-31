@@ -2,6 +2,7 @@
 using Redmond.Lex;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
@@ -24,7 +25,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         private string _actionString;
         public bool HasAction = false;
 
-        public Production(NonTerminal lhs, Grammar g, string dec)
+        public Production(NonTerminal lhs, DecGrammar g, string dec)
         {
             Lhs = lhs;
             
@@ -38,7 +39,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 Parse(dec, g);
         }
 
-        private void Parse(string dec, Grammar g)
+        private void Parse(string dec, DecGrammar g)
         {
             List<ProductionEntry> entries = new List<ProductionEntry>();
 
@@ -79,9 +80,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         switch (ss[0])
                         {
                             case "prec":
-                                var term = new Terminal(ss[1], TokenType.IsTokenType(ss[1]));
-                                _precedence = term.Precedence;
-                                _associatvity = term.Associativity;
+                                //var term = new Terminal(ss[1], _tokenNames.Contains(ss[1]));
+                                //_precedence = term.Precedence;
+                                //_associatvity = term.Associativity;
+                                Debug.Assert(false);
                                 break;
                         }
                         continue;

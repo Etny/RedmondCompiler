@@ -7,7 +7,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 {
     class EmptyTerminal : ProductionEntry
     {
-        public EmptyTerminal()
+        public EmptyTerminal() : base ("empty")
         { }
 
         protected override bool _isTerminal() => true;
@@ -15,7 +15,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public override string ToString() => "\'Empty\'";
 
-        public override int GetHashCode() => 0;
+        public override int GetHashCode() => ID;
 
         public override bool Equals(object obj) => obj is EmptyTerminal;
 

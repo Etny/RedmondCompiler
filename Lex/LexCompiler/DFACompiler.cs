@@ -15,14 +15,12 @@ namespace Redmond.Lex.LexCompiler
 
         public static List<DFA> CompileFile(string[] lexLines, string alphabet)
         {
-            LexAction.Init();
-
             var regexCompiler = new RegexTreeCompiler(lexLines);
             var trees = regexCompiler.CompileFile(":" + AcceptingCharacter);
 
             List<DFA> dfas = new List<DFA>();
 
-            foreach(var t in trees)
+            foreach (var t in trees)
                 dfas.Add(CompileDFA(t.Item3, alphabet, t.Item1, t.Item2));
 
             return dfas;

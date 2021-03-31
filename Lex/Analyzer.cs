@@ -78,7 +78,7 @@ namespace Redmond.Lex
                     }
                 }
 
-                if (final == null) final = living[0];
+                if (final == null) { throw new Exception(); }
             }
 
             if (living.Count > 1) i--;
@@ -110,7 +110,7 @@ namespace Redmond.Lex
             }
 
             if (accepted)
-                t = new Token(_input.Substring(_index, i), TokenType.GetTokenType(final.Name))
+                t = new Token(_input.Substring(_index, i), final.Name)
                 { Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex + 1 };
             else
             {

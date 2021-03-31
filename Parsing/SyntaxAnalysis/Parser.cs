@@ -11,10 +11,12 @@ namespace Redmond.Parsing.SyntaxAnalysis
     {
 
         private readonly ParserState _start;
+        private readonly List<ParserState> _states;
 
-        public Parser(ParserState startState)
+        public Parser(List<ParserState> states)
         {
-            _start = startState;
+            _start = states[0];
+            _states = states;
         }
 
         public void Parse(TokenStream input)
@@ -28,10 +30,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
             {
                 try
                 {
-                    if (stateStack.Peek().State.Action.ContainsKey(new Terminal(input.NextToken.Text, false)))
-                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Text, false)];
+                    if (stateStack.Peek().State.Action.ContainsKey(new Terminal(input.NextToken.Text, false).ID))
+                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Text, false).ID];
                     else
-                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Type.Name, true)];
+                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Type, true).ID];
                 } 
                 catch
                 {
@@ -50,7 +52,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
                 switch (action)
                 { 
                     case ShiftAction shift:
-                        stateStack.Push(new ParserStackEntry(shift.ShiftState, input.EatToken()));
+                        stateStack.Push(new ParserStackEntry(_states[shift.StateIndex], input.EatToken()));
                         break;
 
                     case ReduceAction reduce:
@@ -59,10 +61,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         for (int i = 0; i < reduce.PopCount; i++)
                             stateStack.Pop();
 
-                        stateStack.Push(new ParserStackEntry(stateStack.Peek().State.Goto[reduce.Goto], Token.Unknown));
+                        stateStack.Push(new ParserStackEntry(_states[stateStack.Peek().State.Goto[reduce.GotoID]], Token.Unknown));
                         tempStack.Push(stateStack.Peek());
 
-                        reduce.Action?.Invoke(tempStack);
+                        if(reduce.Action != null)
+                            reduce.Action.Invoke(tempStack);
 
                         break;
                 }
@@ -88,7 +91,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public object GetAttribute(string key)
         {
             if (Attributes.ContainsKey(key)) return Attributes[key];
-            else if (Token.Type != TokenType.GetTokenType("Unkown") && Token.Values.ContainsKey(key)) return Token.Values[key];
+            else if (Token.Type != "Unkown" && Token.Values.ContainsKey(key)) return Token.Values[key];
             return null;
         }
 

@@ -14,12 +14,21 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public static readonly GrammarAction Default = new GrammarAction("$$ = $1", 1);
         private Action<Stack<ParserStackEntry>>[] _actions;
 
+        private static Dictionary<string, GrammarAction> _cache = new Dictionary<string, GrammarAction>();
         private static Dictionary<string, Func<Stack<ParserStackEntry>, List<GrammarActionArgument>, object>> syntaxFunctions = new Dictionary<string, Func<Stack<ParserStackEntry>, List<GrammarActionArgument>, object>>();
 
         public GrammarAction(string dec, int prodSize)
         {
             DeclarationString = dec;
             Parse(dec, prodSize);
+        }
+
+        public static GrammarAction FromDec(string dec, int prodSize)
+        {
+            if (!_cache.ContainsKey(dec + prodSize))
+                _cache.Add(dec + prodSize, new GrammarAction(dec, prodSize));
+
+            return _cache[dec + prodSize];
         }
 
         

@@ -4,7 +4,6 @@ left + -
 left * /
 left OR AND
 left CGT CLT CEQ NEQ
-none precToken
 left .
 none ELSE
 none [

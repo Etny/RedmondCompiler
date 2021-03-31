@@ -4,6 +4,8 @@ using System.Text;
 using System.Linq;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Redmond.Common;
+using Redmond.Lex;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
@@ -24,6 +26,47 @@ namespace Redmond.Parsing.SyntaxAnalysis
         protected ProductionEntry[] _follow = null;
         protected List<IEnumerable<ProductionEntry>> _followGroups = new List<IEnumerable<ProductionEntry>>();
         protected List<NonTerminal> _followFollow = new List<NonTerminal>();
+
+        public int ID { get; protected set; } = 0;
+
+        private static int _nextId = 0;
+        private static Dictionary<string, int> _tags = new Dictionary<string, int>();
+
+        protected ProductionEntry(string tag)
+        {
+            if (!_tags.ContainsKey(tag)) _tags.Add(tag, _nextId++);
+            ID = _tags[tag];
+        }
+
+        public static void ParseTags(IEnumerable<string> tags)
+        {
+            foreach (string l in tags)
+            {
+                var split = l.Split(GrammarConstants.ReservedChar);
+                int num = int.Parse(split[0]);
+                string tag = split[1];
+                RegisterTag(num, tag);
+            }
+        }
+
+        public static void RegisterTag(int num, string tag)
+        {
+            _tags.Add(tag, num);
+            if (_nextId < num) _nextId = num + 1;
+        }
+
+        public static List<string> SerializeTags()
+        {
+            List<string> savedTags = new List<string>();
+
+            foreach(string s in _tags.Keys)
+            {
+                if (s[0] == '/') continue;
+                savedTags.Add((_tags[s] + "") + GrammarConstants.ReservedChar + s);
+            }
+
+            return savedTags;
+        }
 
 
         public void AddToFollow(IEnumerable<ProductionEntry> e) => _followGroups.Add(e);
