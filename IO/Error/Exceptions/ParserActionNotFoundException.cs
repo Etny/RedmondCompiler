@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Redmond.Common;
 
-namespace Redmond.Output.Error.Exceptions
+namespace Redmond.IO.Error.Exceptions
 {
     class ParserActionNotFoundException : Exception
     {

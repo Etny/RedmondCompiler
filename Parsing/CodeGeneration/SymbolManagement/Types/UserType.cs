@@ -161,6 +161,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             foreach (var f in _intertype.Constructors)
                 yield return new InterMethodWrapper(f, context);
         }
+
+        public override IEnumerable<IPropertyWrapper> GetProperties(IntermediateBuilder context)
+        {
+            return new List<IPropertyWrapper>();
+        }
     }
 
 }

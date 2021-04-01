@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
-    class ParseGrammar : IGrammar
+    class ParseGrammar : Grammar
     {
 
         private ParseFile _file;
@@ -17,16 +17,16 @@ namespace Redmond.Parsing.SyntaxAnalysis
             
         }
 
-        public Parser GetParser()
+        protected override List<ParserState> CreateParsingTable()
         {
             List<ParserState> states = new List<ParserState>();
 
             var s = _file.ParseTableLines;
 
-            for(int i = 0; i < s.Length; i++)
+            for (int i = 0; i < s.Length; i++)
                 states.Add(new ParserState(i, s[i]));
 
-            return new Parser(states);
+            return states;
         }
     }
 }

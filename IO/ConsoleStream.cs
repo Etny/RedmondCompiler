@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Redmond.Output
+namespace Redmond.IO
 {
     class ConsoleStream : OutputStream
     {
@@ -10,9 +10,6 @@ namespace Redmond.Output
         private int currentLoc = 0;
 
         public ConsoleStream() { startLoc = Console.CursorTop; }
-
-        private string GetIndentation()
-            => new string('\t', currentIndent < 0 ? 0 : currentIndent);
 
         public override void WriteString(string s = "")
         {

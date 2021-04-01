@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Redmond.Output.Error.Exceptions
+namespace Redmond.IO.Error.Exceptions
 {
     class IdentifierNotFoundException : Exception
     {

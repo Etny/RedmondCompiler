@@ -1,12 +1,12 @@
-﻿using Redmond.Output;
+﻿using Redmond.IO;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
-using Redmond.Output.Error;
-using Redmond.Output.Error.Exceptions;
+using Redmond.IO.Error;
+using Redmond.IO.Error.Exceptions;
 
 namespace Redmond.Parsing.CodeGeneration
 {
@@ -19,9 +19,12 @@ namespace Redmond.Parsing.CodeGeneration
 
         private readonly IntermediateBuilder builder;
 
-        public IntermediateGenerator()
+        private OutputStream _out;
+
+        public IntermediateGenerator(OutputStream output)
         {
             builder = new IntermediateBuilder(Tables);
+            _out = output;
         }
 
         public void Start(SyntaxTreeNode tree)
@@ -29,7 +32,7 @@ namespace Redmond.Parsing.CodeGeneration
             Tables.Clear();
             PushNewTable();
             CompileNode(tree);
-            builder.Emit(new IlBuilder(new ConsoleStream()));
+            builder.Emit(new IlBuilder(_out));
         }
 
         private object CompileNode(SyntaxTreeNode node)

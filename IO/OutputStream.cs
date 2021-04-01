@@ -1,13 +1,21 @@
 ﻿using System;
 using System.IO;
 
-namespace Redmond.Output
+namespace Redmond.IO
 {
     abstract class OutputStream 
     {
         protected int currentIndent = 0;
         protected int nextIndent = 0;
 
+
+
+        public virtual void OpenStream() { }
+        public virtual void CloseStream() { }
+
+
+        protected virtual string GetIndentation()
+            => new string('\t', currentIndent < 0 ? 0 : currentIndent);
 
         public virtual void WriteString(string s = "") 
             => throw new NotImplementedException();

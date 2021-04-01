@@ -1,6 +1,6 @@
 ﻿using Redmond.Common;
 using Redmond.Lex;
-using Redmond.Output;
+using Redmond.IO;
 using Redmond.Parsing.CodeGeneration;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
@@ -15,23 +15,25 @@ namespace Redmond.Parsing
     {
 
         public readonly TokenStream Input;
-        public readonly IGrammar Grammar;
+        public readonly Grammar Grammar;
         public readonly IntermediateGenerator Generator;
         
-        public CompilationContext(ParseFile file, string inputPath)
+        public CompilationContext(ParseFile file, InputStream input, OutputStream output)
         {
-            Input = new TokenStream(File.ReadAllText(inputPath) + GrammarConstants.EndChar, file.LexLines.ToBuilder().ToArray(), new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
+            Input = new TokenStream(input, file.LexLines.ToBuilder().ToArray(), new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
 
-            ProductionEntry.ParseTags(file.TokenIdLines);
+            ProductionEntry.Register = new ProductionEntryRegister();
+            ProductionEntry.Register.ParseSerializedTags(file.TokenIdLines);
 
             Grammar = new ParseGrammar(file);
-            Generator = new IntermediateGenerator();
+            Generator = new IntermediateGenerator(output);
         }
 
         public void Compile()
         {
             Parser parser = Grammar.GetParser();
             parser.Parse(Input);
+            Console.WriteLine(SyntaxTreeNode.CurrentNode.ToTreeString());
             Generator.Start(SyntaxTreeNode.CurrentNode);
         }
 

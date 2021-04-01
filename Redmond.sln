@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Redmond", "Redmond.csproj", "{0B5262BA-BA01-4961-8A50-502795FCF2B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Redmond", "Redmond.csproj", "{0B5262BA-BA01-4961-8A50-502795FCF2B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompileTestProject", "..\CompileTestProject\CompileTestProject.csproj", "{4CCDB981-2E4E-4149-96A6-1A33C5643067}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{0B5262BA-BA01-4961-8A50-502795FCF2B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B5262BA-BA01-4961-8A50-502795FCF2B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B5262BA-BA01-4961-8A50-502795FCF2B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CCDB981-2E4E-4149-96A6-1A33C5643067}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CCDB981-2E4E-4149-96A6-1A33C5643067}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CCDB981-2E4E-4149-96A6-1A33C5643067}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CCDB981-2E4E-4149-96A6-1A33C5643067}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

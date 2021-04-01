@@ -23,6 +23,8 @@ namespace Redmond.Lex
 
         public string GetHighlightOnLine()
         {
+            return Text;
+
             string under = "";
             int endIndex = LineIndex + (Text.Length - 1);
 

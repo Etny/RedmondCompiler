@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Redmond.Output
+namespace Redmond.IO
 {
     class BufferStream : OutputStream
     {

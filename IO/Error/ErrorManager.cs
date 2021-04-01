@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Redmond.Output.Error
+namespace Redmond.IO.Error
 {
     class ErrorManager
     {

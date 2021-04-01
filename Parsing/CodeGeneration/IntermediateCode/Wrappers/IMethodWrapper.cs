@@ -27,8 +27,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     {
 
         private InterMethod _method;
+        private IntermediateBuilder _context;
 
-        public InterMethodWrapper(InterMethod method, IntermediateBuilder context) { _method = method;  }
+        public InterMethodWrapper(InterMethod method, IntermediateBuilder context) { _method = method; _context = context;/*foreach (var a in _method.Arguments) { a.Bind(context); }*/ }
 
         public bool IsVirtual => _method.IsVirtual;
 
@@ -42,7 +43,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _method.Args;
 
-        public CodeType[] Arguments => (from a in _method.Arguments select a.Type.StoredType).ToArray();
+        public CodeType[] Arguments { 
+            get 
+            {
+                foreach (var a in _method.Arguments) a.Bind(_context);
+                return (from a in _method.Arguments select a.Type.StoredType).ToArray(); 
+            } 
+        }
     }
 
     class MethodInfoWrapper : IMethodWrapper

@@ -1,4 +1,5 @@
 ﻿using Redmond.Common;
+using Redmond.IO;
 using Redmond.Lex;
 using Redmond.Parsing;
 using Redmond.Parsing.CodeGeneration;
@@ -17,13 +18,17 @@ namespace Redmond.UX
         public static void Compile(ParsedCommandOptions opts)
         {
             Console.WriteLine("Reading parse file..");
-            
+
+            var output = GetSelectedOutput(opts);
+            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\Documents\C#_Compiler_tests\Multi File test\File1.txt",
+                                                                                 @"C:\Users\yveem\Documents\C#_Compiler_tests\Multi File test\File2.txt"}));
+
             ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse").Read();
 
             string inputFile = opts.FindOption("input", "i")?.Argument ??
                 @"C:\Users\yveem\source\repos\Redmond\TestInput.txt";
 
-            var context = new CompilationContext(parseFile, inputFile);
+            var context = new CompilationContext(parseFile, input, output);
             context.Compile();
         }
 
@@ -37,7 +42,7 @@ namespace Redmond.UX
             ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse");
             parseFile.SetLexLines(Dec.LexLines);
             parseFile.SetParseTableLines(gram.SerializeParsingTable());
-            parseFile.SetTokenIdLines(ProductionEntry.SerializeTags());
+            parseFile.SetTokenIdLines(ProductionEntry.Register.Serialize());
             parseFile.Save();
 
             //var parser = gram.GetParser();
@@ -55,6 +60,14 @@ namespace Redmond.UX
             //Console.WriteLine("============\n");
             //new IntermediateGenerator().Start(tree);
             //Console.WriteLine("============\n");
+        }
+
+        private static OutputStream GetSelectedOutput(ParsedCommandOptions options)
+        {
+            var o = options.FindOption("output", "out", "o")?.Argument;
+
+            if (o == null || o.ToLower() == "console") return new ConsoleStream();
+            else return new FileOutputStream(o);
         }
 
 

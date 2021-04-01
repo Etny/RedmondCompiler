@@ -118,7 +118,7 @@ namespace Redmond.Parsing.CodeGeneration
 
             functionKeywords.Add(decHeader[0].ValueString);
             Debug.Assert(decHeader[1].Children.Length < 1);
-            Debug.Assert(decHeader[2].ValueString == builder.CurrentType.Name);
+            //Debug.Assert(TypeNameFromNode(decHeader[2]) == builder.CurrentType.Name);
 
             PushNewTable();
 

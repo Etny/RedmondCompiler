@@ -19,6 +19,7 @@ namespace Redmond.Parsing.CodeGeneration
             builder.AddImport(TypeNameFromNode(node[0]));
         }
 
+        [CodeGenFunction("FileList")]
         [CodeGenFunction("NamespaceList")]
         public void CompileNamespaceList(SyntaxTreeNode node)
             => CompileNodes(node.Children);

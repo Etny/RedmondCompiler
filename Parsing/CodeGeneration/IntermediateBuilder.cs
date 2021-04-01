@@ -122,10 +122,15 @@ namespace Redmond.Parsing.CodeGeneration
             foreach(InterType type in Types)
             {
                 if (type.FullName == name) return new InterUserType(type);
+                if (type.FullName == "First" + "." + name) return new InterUserType(type);
             }
+
 
             foreach (string ns in ImportedNamespaces)
             {
+                foreach (InterType type in Types)
+                    if (type.FullName == ns + "." + name) return new InterUserType(type);
+
                 foreach (var a in AssemblyReferences)
                 {
                     var type = a.ResolveType(ns + "." + name);
@@ -220,13 +225,20 @@ namespace Redmond.Parsing.CodeGeneration
 
         public void Emit(IlBuilder builder)
         {
+            builder.Start();
+
             foreach (InterType t in Types)
                 t.Bind(this);
+
+            foreach (InterType t in Types)
+                t.BindSubMembers(this);
 
             EmitCLRHeader(builder);
 
             foreach (InterType t in Types)
                 t.Emit(builder);
+
+            builder.End();
         }
 
         private void EmitCLRHeader(IlBuilder builder)

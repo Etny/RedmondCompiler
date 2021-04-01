@@ -6,7 +6,7 @@ using System.Text;
 using System.Linq;
 using System.Reflection.Emit;
 using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
-using Redmond.Output;
+using Redmond.IO;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 {
@@ -90,8 +90,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             int startLoc = builder.Output.ReserveLocation();
 
-
-            if(Locals.Count > 0)
+            if (Locals.Count > 0)
             {
                 string types = "";
                 foreach (var t in Locals) types += t.Type.Name + ",";

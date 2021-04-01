@@ -1,5 +1,5 @@
-﻿using Redmond.Output.Error;
-using Redmond.Output.Error.Exceptions;
+﻿using Redmond.IO.Error;
+using Redmond.IO.Error.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Text;

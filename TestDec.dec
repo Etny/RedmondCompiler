@@ -11,6 +11,15 @@ none RANK_SPECIFIER
 
 %%
 
+compilation_unit
+					:	files	{$$ = $1}
+					;
+
+files
+					:	files file	{addChild($1, $2); $$ = $1}
+					|	file		{$$ = makeNode("FileList", $1)}
+					;
+
 file				
 					:	import_list namespace_declarations	{$$ = makeNode("File", $1, $2)}
 					;

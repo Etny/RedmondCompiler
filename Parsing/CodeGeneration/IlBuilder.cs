@@ -1,4 +1,4 @@
-﻿using Redmond.Output;
+﻿using Redmond.IO;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
@@ -19,6 +19,9 @@ namespace Redmond.Parsing.CodeGeneration
         {
             Output = output;
         }
+
+        public void Start() => Output.OpenStream();
+        public void End() => Output.CloseStream();
 
 
         public void PushValue(CodeValue val)
@@ -57,7 +60,7 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var s in operands)
                 EmitString(" " + s);
 
-            EmitLine("");
+            EmitLine();
 
             if (!opCode.HasVariableStackBehaviour())
                 _currentStack += opCode.NetStackCount();

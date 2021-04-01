@@ -44,7 +44,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override IMethodWrapper GetOperatorOverload(Operator op, IntermediateBuilder context)
         {
             if (op.Type == Operator.OperatorType.Add)
-                return new MethodInfoWrapper(typeof(string).GetMethod("Concat", new Type[] { typeof(object), typeof(object)}), context);
+                return new MethodInfoWrapper(typeof(string).GetMethod("Concat", new Type[] { typeof(string), typeof(string) }), context);
             else
                 return base.GetOperatorOverload(op, context);
         }

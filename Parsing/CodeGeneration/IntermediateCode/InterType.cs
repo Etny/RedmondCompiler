@@ -84,6 +84,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             foreach (var method in Methods)
                 method.Bind(builder);
 
+           
+        }
+
+        public void BindSubMembers(IntermediateBuilder builder)
+        {
             Initializer.BindSubMembers(builder);
 
             foreach (var constructor in Constructors)

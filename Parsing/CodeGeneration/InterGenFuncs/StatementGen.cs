@@ -1,4 +1,4 @@
-﻿using Redmond.Output.Error;
+﻿using Redmond.IO.Error;
 using Redmond.Parsing.CodeGeneration.IntermediateCode;
 using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;

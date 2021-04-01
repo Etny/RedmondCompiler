@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Redmond.Parsing.SyntaxAnalysis
 {
-    class DecGrammar : IGrammar
+    class DecGrammar : Grammar
     {
         public Dictionary<string, NonTerminal> NonTerminals = new Dictionary<string, NonTerminal>();
         private NonTerminal startSymbol = null;
@@ -131,26 +131,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         public List<string> SerializeParsingTable()
         {
-            var table = CreateLALRParsingTable();
             List<string> tableStrings = new List<string>();
 
-            foreach (var t in table) tableStrings.Add(t.Serialize());
+            foreach (var t in ParsingTable) tableStrings.Add(t.Serialize());
 
             return tableStrings;
         }
 
-        public SyntaxTreeNode Parse(TokenStream input)
-        {
-            var table = CreateLALRParsingTable();
-            new Parser(table).Parse(input);
-            return SyntaxTreeNode.CurrentNode;
-        }
-
-        public Parser GetParser()
-        {
-            var table = CreateLALRParsingTable();
-            return new Parser(table);
-        }
 
 
         public void AddNonTerminal(NonTerminal nt)
@@ -231,6 +218,8 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             state.Action[key.ID] = newAction;
         }
+
+        protected override List<ParserState> CreateParsingTable() => CreateLALRParsingTable();
 
         private List<ParserState> CreateLALRParsingTable()
         {

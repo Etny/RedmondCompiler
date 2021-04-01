@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.IO;
+using System;
 using System.Collections.Generic;
 
 namespace Redmond.Lex
@@ -10,7 +11,7 @@ namespace Redmond.Lex
         private int _tokenIndex = 0;
         private List<Token> _tokens = new List<Token>();
 
-        public TokenStream(string input, string[] lexLines, string alphabet = "")
+        public TokenStream(InputStream input, string[] lexLines, string alphabet = "")
         {
             _analyzer = new Analyzer(input, lexLines, alphabet);
         }

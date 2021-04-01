@@ -1,5 +1,5 @@
-﻿using Redmond.Output;
-using Redmond.Output.Error;
+﻿using Redmond.IO;
+using Redmond.IO.Error;
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
