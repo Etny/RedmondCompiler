@@ -20,8 +20,7 @@ namespace Redmond.UX
             Console.WriteLine("Reading parse file..");
 
             var output = GetSelectedOutput(opts);
-            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\Documents\C#_Compiler_tests\Multi File test\File1.txt",
-                                                                                 @"C:\Users\yveem\Documents\C#_Compiler_tests\Multi File test\File2.txt"}));
+            var input = new MultiFileInputStream(new List<string>(new string[] {@"C:\Users\yveem\source\repos\Redmond\TestInput.txt"}));
 
             ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse").Read();
 

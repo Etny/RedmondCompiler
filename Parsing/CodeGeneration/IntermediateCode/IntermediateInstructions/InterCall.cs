@@ -21,7 +21,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private CodeType _return = null;
 
         public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
-        { 
+        {
             _targetName = name;
             _parameters = parameters;
             _expression = isExpression;
@@ -98,9 +98,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             base.Emit(builder);
 
-            bool valueType = _thisPtr != null && 
-                             _thisPtr.Type is UserType && 
-                             (_thisPtr.Type as UserType).ValueType;
+            bool valueType = _thisPtr != null &&
+                             ((_thisPtr.Type is UserType &&
+                             (_thisPtr.Type as UserType).ValueType) ||
+                             _thisPtr.Type is BasicType);
 
 
             if (_method.IsInstance)

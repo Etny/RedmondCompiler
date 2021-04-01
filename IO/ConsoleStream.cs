@@ -6,13 +6,14 @@ namespace Redmond.IO
     {
 
         private bool wroteIndent = false;
-        private int startLoc = 0;
+        private int startLoc = -1;
         private int currentLoc = 0;
 
-        public ConsoleStream() { startLoc = Console.CursorTop; }
+        public ConsoleStream() { }
 
         public override void WriteString(string s = "")
         {
+            if (startLoc == -1) startLoc = Console.CursorTop;
             if (!wroteIndent) Console.Write(GetIndentation());
             wroteIndent = true;
             Console.Write(s);
@@ -20,7 +21,8 @@ namespace Redmond.IO
 
         public override void WriteLine(string s = "")
         {
-            if(!wroteIndent) Console.Write(GetIndentation());
+            if (startLoc == -1) startLoc = Console.CursorTop;
+            if (!wroteIndent) Console.Write(GetIndentation());
             Console.WriteLine(s);
             wroteIndent = false;
             currentLoc++;
