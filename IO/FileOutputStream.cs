@@ -24,17 +24,12 @@ namespace Redmond.IO
 
         public override void CloseStream()
         {
+            File.WriteAllText(_path, string.Empty);
             using FileStream stream = new FileStream(_path, FileMode.OpenOrCreate);
             var bytes = new UTF8Encoding(true).GetBytes(builder.ToString());
             stream.Write(bytes, 0, bytes.Length);
             stream.Flush();
             stream.Close();
-        }
-
-        private void WriteStringToStream(string s)
-        {
-            var bytes = new UTF8Encoding(true).GetBytes(s);
-            stream.Write(bytes, 0, bytes.Length);
         }
 
 

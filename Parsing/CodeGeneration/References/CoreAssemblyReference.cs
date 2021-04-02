@@ -5,17 +5,12 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.References
 {
-    class CoreAssemblyReference : IAssemblyReference
+    class CoreAssemblyReference : FileAssemblyReference
     {
-        private Assembly Core;    
+        public CoreAssemblyReference() : base(Assembly.Load("mscorlib")) { }
 
-        public CoreAssemblyReference() { 
-            Core = Assembly.Load("mscorlib");
-        }
+        public override string Name => "mscorlib";
 
-        public string Name => "mscorlib";
-
-        public Type ResolveType(string name) => Core.GetType(name);
 
     }
 }

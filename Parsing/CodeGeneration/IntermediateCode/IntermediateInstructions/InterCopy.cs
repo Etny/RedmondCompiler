@@ -39,7 +39,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 _target.Bind(context);
 
             if (_source.Type.CanAssignTo(_target.Type) != AssignType.CanAssign)
-                _source = new ConvertedValue(_source, _target.Type);
+                _source = new ConvertedValue(_source, _target.Type, Owner);
         }
 
         //TODO: Add back pre-emit type conversion
@@ -51,8 +51,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             if (!Owner.IsStatic && FieldOrPropertySymbol.IsFieldOrProperty(_target))
             {
                 var forp = FieldOrPropertySymbol.ToFieldOrPropertySymbol(_target);
-                forp.SetOwner(Owner.ThisPointer);
-                _target = forp;
+                if (!forp.HasOwner())
+                {
+                    forp.SetOwner(Owner.ThisPointer);
+                    _target = forp;
+                }
             }
 
             _target.Store(builder, _source);

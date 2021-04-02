@@ -95,7 +95,7 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileFunctionDeclaration(SyntaxTreeNode node)
         {
             string name = node[1].ValueString;
-            string retType;
+            TypeName retType;
             ArgumentSymbol[] args = CompileParameterDecList(node[2]);
             List<string> functionKeywords = new List<string>();
 

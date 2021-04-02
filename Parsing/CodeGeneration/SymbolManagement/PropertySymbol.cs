@@ -31,6 +31,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             ID = name;
         }
 
+        public bool HasOwner() => _owner != null;
+
         public void SetOwner(CodeValue owner)
         {
             if (Property.IsStatic) return;

@@ -10,12 +10,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     {
 
         private CodeValue[] _parameters;
-        private string _typeName;
+        private TypeName _typeName;
         private CodeType _type;
 
         private IMethodWrapper _constructor;
 
-        public InterNew(string typeName, CodeValue[] parameters)
+        public InterNew(TypeName typeName, CodeValue[] parameters)
         {
             _typeName = typeName;
             _parameters = parameters;
@@ -35,7 +35,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             {
                 if (_constructor.Arguments[i] == _parameters[i].Type) continue;
 
-                _parameters[i] = new ConvertedValue(_parameters[i], _constructor.Arguments[i]);
+                _parameters[i] = new ConvertedValue(_parameters[i], _constructor.Arguments[i], Owner);
                 _parameters[i].Bind(context);
             }
 

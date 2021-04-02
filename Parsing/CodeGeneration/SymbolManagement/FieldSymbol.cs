@@ -62,6 +62,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Field = matchField;
         }
 
+        public bool HasOwner() => _owner != null;
+
         public void SetOwner(CodeValue owner)
         {
             if (Field.IsStatic) return;

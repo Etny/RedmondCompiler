@@ -10,7 +10,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     class LocalSymbol : CodeSymbol
     {
         public int Index;
-        public LocalSymbol(string id, string typeName, int index, object value = null) : base(typeName, value)
+        public LocalSymbol(string id, TypeName typeName, int index, object value = null) : base(typeName, value)
         {
             ID = id;
             Index = index;

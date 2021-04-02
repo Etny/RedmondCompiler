@@ -59,25 +59,32 @@ namespace Redmond.Parsing.CodeGeneration
 
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
             {
-                return new InterOpValue(new LateStaticReferenceResolver(node));
+                return new InterOpValue(new LateStaticReferenceResolver(node, builder.CurrentType.NamespaceContext), builder.CurrentMethod);
             }
 
             var op = CompileNode(node);
 
-            if (op is InterOp) return new InterOpValue(op as InterOp);
+            if (op is InterOp) return new InterOpValue(op as InterOp, builder.CurrentMethod);
 
             return null;
         }
 
-        private string TypeNameFromNode(SyntaxTreeNode node)
-        {
-            if (node.Op == "Array")
-                return TypeNameFromNode(node[0]) + "[]";
+       
 
-            if (node.Children.Length == 1)
-                return node[0].ValueString;
-            else
-                return TypeNameFromNode(node[0]) + '.' + node[1].ValueString;
+        private TypeName TypeNameFromNode(SyntaxTreeNode node)
+        {
+            string GetName(SyntaxTreeNode node)
+            {
+                if (node.Op == "Array")
+                    return GetName(node[0]) + "[]";
+
+                if (node.Children.Length == 1)
+                    return node[0].ValueString;
+                else
+                    return GetName(node[0]) + '.' + node[1].ValueString;
+            }
+
+            return new TypeName(GetName(node), builder.CurrentNamespaceContext);
         }
 
         public void PushExpression(SyntaxTreeNode node)
@@ -116,7 +123,7 @@ namespace Redmond.Parsing.CodeGeneration
             var op1 = ToIntermediateExpression(node[0]);
             var op2 = new CodeValue(CodeType.Int32, 1);
             var op =  new InterBinOp(Operator.FromName(node[1].ValueString), op1, op2);
-            var copy = new InterCopy((CodeSymbol)ToIntermediateExpression(node[0]), new InterOpValue(op));
+            var copy = new InterCopy((CodeSymbol)ToIntermediateExpression(node[0]), new InterOpValue(op, builder.CurrentMethod));
             copy.SetOwner(builder.CurrentMethod);
             return copy;
         }
@@ -129,7 +136,7 @@ namespace Redmond.Parsing.CodeGeneration
             InterCopy copy;
 
             if (symbol == null)
-                copy = new InterCopy(new LateStaticReferenceResolver(node[0]), ToIntermediateExpression(node[1]));
+                copy = new InterCopy(new LateStaticReferenceResolver(node[0], builder.CurrentType.NamespaceContext), ToIntermediateExpression(node[1]));
             else 
                  copy = new InterCopy(symbol, ToIntermediateExpression(node[1]));
 
@@ -178,7 +185,7 @@ namespace Redmond.Parsing.CodeGeneration
                 
             }
 
-            string type = TypeNameFromNode(node[0]);
+            TypeName type = TypeNameFromNode(node[0]);
 
             if(node[1].Op == "ParameterList")
             {

@@ -9,7 +9,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     class InterMethodSpecialName : InterMethod
     {
 
-        public InterMethodSpecialName(string name, ArgumentSymbol[] args, InterType owner, List<string> flags) : base(name, "void", args, owner, flags)
+        public InterMethodSpecialName(string name, ArgumentSymbol[] args, InterType owner, List<string> flags) : base(name, new TypeName("void"), args, owner, flags)
         {
             AddFlag("rtspecialname");
             AddFlag("specialname");
@@ -30,6 +30,20 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             {
                 if (Owner.BaseType == CodeType.Object)
                     AddInstruction(new InterCall(new ConstructorInfoWrapper(typeof(object).GetConstructor(new Type[0]), builder), false, ThisPointer), 0);
+
+                foreach (var field in Owner.Fields)
+                {
+                    if (field.IsStatic) continue;
+                    AddInstruction(new InterCopy(field.Symbol, field.Initializer), 0);
+                }
+            }
+            else if (Name == ".cctor") ;
+            {
+                foreach (var field in Owner.Fields)
+                {
+                    if (!field.IsStatic) continue;
+                    AddInstruction(new InterCopy(field.Symbol, field.Initializer));
+                }
             }
         }
 

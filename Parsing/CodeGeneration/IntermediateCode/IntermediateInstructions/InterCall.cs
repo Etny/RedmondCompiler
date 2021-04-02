@@ -19,6 +19,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         private IMethodWrapper _method = null;
         private CodeType _return = null;
+        private bool _valueType = false;
+        private InterCopy _symbolConversion = null;
 
         public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
         {
@@ -54,6 +56,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _parameters = parameters;
             _expression = expression;
             _thisPtr = thisPtr;
+
         }
 
         public override void Bind(IntermediateBuilder context)
@@ -85,8 +88,32 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             {
                 if (_parameters[i].Type.CanAssignTo(_method.Arguments[i]) == AssignType.CanAssign) continue;
 
-                _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i]);
+                _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i], Owner);
                 _parameters[i].Bind(context);
+            }
+
+            _valueType = _thisPtr != null &&
+                             ((_thisPtr.Type is UserType &&
+                             (_thisPtr.Type as UserType).ValueType) ||
+                             _thisPtr.IsSymbol() && _thisPtr.Type is BasicType);
+
+            if (_thisPtr == null) return;
+            if (_thisPtr.Type is UserType && (_thisPtr.Type as UserType).ValueType) _valueType = true;
+            if(!_thisPtr.IsSymbol() && _thisPtr.Type is BasicType)
+            {
+                if (_thisPtr.ToSymbol() == null)
+                {
+
+                    _valueType = true;
+                    LocalSymbol l = new LocalSymbol("locl" + Owner.Locals.Count, _thisPtr.Type, Owner.Locals.Count);
+                    Owner.Locals.Add(l);
+                    _symbolConversion = new InterCopy(l, _thisPtr);
+                    _symbolConversion.SetOwner(Owner);
+                    _symbolConversion.Bind(context);
+                    _thisPtr = l;
+                }
+                else
+                    _thisPtr = _thisPtr.ToSymbol();
             }
 
         }
@@ -97,19 +124,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         public override void Emit(IlBuilder builder)
         {
             base.Emit(builder);
-
-            bool valueType = _thisPtr != null &&
-                             ((_thisPtr.Type is UserType &&
-                             (_thisPtr.Type as UserType).ValueType) ||
-                             _thisPtr.Type is BasicType);
-
-
+            _symbolConversion?.Emit(builder);
+            
             if (_method.IsInstance)
             {
                 if (((Owner == null || Owner.IsStatic) && _thisPtr == null) || _staticCall) ErrorManager.ExitWithError(new Exception("Can't call instance function from static context"));
 
 
-                if (!valueType)
+                if (!_valueType)
                     builder.PushValue(_thisPtr ?? Owner.ThisPointer);
                 else
                     builder.PushAddress(_thisPtr as CodeSymbol);
@@ -120,8 +142,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_method.IsVirtual)
             {
-                if (valueType)
-                    builder.EmitLine("constrained. " + _thisPtr.Type.Name);
+                if (_valueType)
+                    //NOTE: This is sometimes emitted while not needed, like with System.Int32.ToString(), as these methods appear
+                    //as virtual but actually aren't. I don't know why, but it still works so whatever.
+                    builder.EmitLine("constrained. " + _thisPtr.Type.Name); 
 
                 builder.EmitOpCode(OpCodes.Callvirt, _method.FullSignature);
             }

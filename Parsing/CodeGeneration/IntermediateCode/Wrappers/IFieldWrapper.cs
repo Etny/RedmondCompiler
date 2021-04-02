@@ -46,7 +46,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string Name => _field.Name;
 
-        public CodeType Type => _context.ResolveType(_field.FieldType);
+        public CodeType Type => _context.ToCodeType(_field.FieldType);
 
     }
 }

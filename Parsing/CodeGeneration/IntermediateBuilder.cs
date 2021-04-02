@@ -19,11 +19,13 @@ namespace Redmond.Parsing.CodeGeneration
         public InterType CurrentType = null;
         public InterMethod CurrentMethod = null;
         public Stack<string> Namespaces = new Stack<string>();
-        public string CurrentNameSpace => Namespaces.Peek();
+
+        public NamespaceContext CurrentNamespaceContext = null;
 
         private Stack<SymbolTable> _tables;
 
-        public ImmutableList<IAssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<IAssemblyReference>.Empty;
+        private AssemblyReferenceTracker ReferenceTracker = new AssemblyReferenceTracker();
+        public ImmutableList<AssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<AssemblyReference>.Empty;
         public ImmutableList<string> ImportedNamespaces { get; protected set; } = ImmutableList<string>.Empty;
 
 
@@ -49,12 +51,18 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
         public void BeginNamespace(string name)
-            => Namespaces.Push(name);
+        {
+            Namespaces.Push(name);
+            CurrentNamespaceContext = new NamespaceContext(Namespaces);
+        }
 
         public void EndNameSpace()
-            => Namespaces.Pop();
+        {
+            Namespaces.Pop();
+            CurrentNamespaceContext = new NamespaceContext(Namespaces);
+        }
 
-        public InterMethod AddMethod(string name, string returnType, ArgumentSymbol[] vars, List<string> flags)
+        public InterMethod AddMethod(string name, TypeName returnType, ArgumentSymbol[] vars, List<string> flags)
         {
             var method = new InterMethod(name, returnType, vars, CurrentType, flags);
             CurrentMethod = method;
@@ -86,7 +94,7 @@ namespace Redmond.Parsing.CodeGeneration
             CurrentMethod.AddInstruction(inst);
             return inst;
         }
-        public LocalSymbol AddLocal(string name, string type, object value = null)
+        public LocalSymbol AddLocal(string name, TypeName type, object value = null)
         {
             LocalSymbol sym = new LocalSymbol(name, type, CurrentMethod.Locals.Count, value);
             CurrentMethod.Locals.Add(sym);
@@ -96,7 +104,7 @@ namespace Redmond.Parsing.CodeGeneration
             return sym;
         }
 
-        public InterField AddField(string name, string type, string access, List<string> keywords)
+        public InterField AddField(string name, TypeName type, string access, List<string> keywords)
         {
             InterField field = new InterField(name, type, access, keywords, new InterUserType(CurrentType));
             _tables.Peek().AddSymbol(field.Symbol);
@@ -104,50 +112,65 @@ namespace Redmond.Parsing.CodeGeneration
             return field;
         }
 
+
+        public void ClearImports() => ImportedNamespaces = ImmutableList<string>.Empty;
+
         public void AddImport(string nameSpace)
             => ImportedNamespaces = ImportedNamespaces.Add(nameSpace);
 
-        public void AddReference(IAssemblyReference reference)
+        public void AddReference(AssemblyReference reference)
             => AssemblyReferences = AssemblyReferences.Add(reference);
 
         
-        public CodeType ResolveType(string name)
+        public CodeType ResolveType(TypeName name)
         {
-            if (name.Length > 2 && name[^2..] == "[]")
-                return new ArrayType(ResolveType(name[0..^2]));
+            if (name.Name.Length > 2 && name.Name[^2..] == "[]")
+                return new ArrayType(ResolveType(new TypeName(name.Name[0..^2], name.NamespaceContext)));
 
-            var ctype = CodeType.ByName(name);
+            var ctype = CodeType.ByName(name.Name);
             if (ctype != null) return ctype;
 
-            foreach(InterType type in Types)
+            foreach (string ns in name.NamespaceContext.TravelUpHierarchy())
             {
-                if (type.FullName == name) return new InterUserType(type);
-                if (type.FullName == "First" + "." + name) return new InterUserType(type);
+                foreach (InterType type in Types)
+                {
+                    if (type.FullName == ns + '.' + name.Name) return new InterUserType(type);
+                }
             }
 
 
             foreach (string ns in ImportedNamespaces)
             {
                 foreach (InterType type in Types)
-                    if (type.FullName == ns + "." + name) return new InterUserType(type);
+                    if (type.FullName == ns + "." + name.Name) return new InterUserType(type);
 
                 foreach (var a in AssemblyReferences)
                 {
-                    var type = a.ResolveType(ns + "." + name);
-                    if (type == null) type = a.ResolveType(name);
-                    if (type != null) return UserType.NewUserType(type);
+                    var type = a.ResolveType(ns + "." + name.Name);
+                    if (type == null) type = a.ResolveType(name.Name);
+                    if (type != null)
+                    {
+                        ReferenceTracker.AddUsedReference(type);
+                        return UserType.NewUserType(type);
+                    }
                 }
             }
 
             return null;
         }
 
-        public CodeType ResolveType(Type type)
+        public CodeType ToCodeType(Type type)
         {
             if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
 
-            if (type.IsArray) return new ArrayType(ResolveType(type.GetElementType()));
-            return UserType.NewUserType(type);
+            UserType ut = null;
+
+            if (type.IsArray) ut = new ArrayType(ToCodeType(type.GetElementType()));
+            ut = UserType.NewUserType(type);
+
+            if (ut != null) ReferenceTracker.AddUsedReference(ut.GetAssembly());
+
+            return ut;
         }
 
 
@@ -247,8 +270,8 @@ namespace Redmond.Parsing.CodeGeneration
 
             builder.EmitLine();
 
-            foreach(var reference in AssemblyReferences)
-                builder.EmitLine($".assembly extern {reference.Name} {{}}");
+            foreach (var reference in ReferenceTracker.UsedReferences)
+                reference.Emit(builder);
 
             builder.EmitLine(".module TestModule");
 

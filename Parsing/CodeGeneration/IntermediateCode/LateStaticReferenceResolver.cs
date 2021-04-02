@@ -17,9 +17,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsFieldOrProperty => !IsStatic;
 
         private FieldOrPropertySymbol _field = null;
+        private NamespaceContext _namespaceContext;
         
-        public LateStaticReferenceResolver(SyntaxTreeNode node)
+        public LateStaticReferenceResolver(SyntaxTreeNode node, NamespaceContext namespaceContext)
         {
+            _namespaceContext = namespaceContext;
+
             var n = node;
             List<string> ids = new List<string>();
 
@@ -33,35 +36,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             _ids = ids.ToArray();
             Array.Reverse(_ids);
-
-            //switch (node.Op)
-            //{
-            //    case "Identifier":
-            //        _ids = new string[] { node.ValueString};
-            //        break;
-
-            //    case "IdentifierExpression":
-            //        _ids = new string[] { node.ValueNode.ValueString };
-            //        break;
-
-            //    case "Qualifier":
-            //    case "QualifiedIdentifier":
-            //    case "MemberAccess":
-            //        var n = node;
-            //        List<string> ids = new List<string>();
-
-            //        while(n.Op == "MemberAccess")
-            //        {
-            //            ids.Add(n[0].ValueString);
-            //            n = n[1];
-            //        }
-
-            //        ids.Add(n.ValueNode.ValueString);
-
-            //        _ids = ids.ToArray();
-            //        Array.Reverse(_ids);
-            //        break;
-            //}
         }
 
         public override void Bind(IntermediateBuilder context)
@@ -69,7 +43,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             int i = 0;
             for(; i < _ids.Length; i++)
             {
-                Type = context.ResolveType(string.Join('.', _ids[0..(i+1)]));
+                Type = context.ResolveType(new TypeName(string.Join('.', _ids[0..(i+1)]), _namespaceContext));
                 if (Type != null) break;
             }
 
@@ -104,5 +78,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             return Type;
         }
+
+        public override bool IsSymbol() => !IsStatic;
+        public override CodeSymbol ToSymbol() => GetReferencedFieldOrProperty();
     }
 }

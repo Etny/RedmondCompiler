@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public ImmutableList<InterMethod> Methods = ImmutableList<InterMethod>.Empty;
         public ImmutableList<InterField> Fields = ImmutableList<InterField>.Empty;
 
-
+        public readonly NamespaceContext NamespaceContext;
         public readonly string Name;
         public readonly UserType BaseType;
 
@@ -21,16 +21,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
 
         //TODO: add interface support
-        public InterType(string name, UserType baseType = null)
+        public InterType(string name, NamespaceContext names, UserType baseType = null)
         {
             Name = name;
+            NamespaceContext = names;
             BaseType = baseType ?? (UserType)CodeType.Object;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
             Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this, new List<string>());
         }
 
-        public string FullName => Name;
+        public string FullName => string.Join('.', NamespaceContext.NamespaceHierarchy.Add(Name));
 
         public void AddFlag(string flag)
             => Flags = Flags.Add(flag);
@@ -48,7 +49,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private auto ansi beforefieldinit {Name} extends {BaseType.ShortName}");
+            builder.EmitLine($".class private auto ansi beforefieldinit {FullName} extends {BaseType.ShortName}");
             builder.EmitLine("{");
             builder.EmitLine();
             builder.Output.AddIndentation();

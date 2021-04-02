@@ -16,7 +16,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public ImmutableList<InterInst> Instructions = ImmutableList<InterInst>.Empty;
 
-        public readonly string Name, ReturnTypeName;
+        public readonly string Name;
+        public readonly TypeName ReturnTypeName;
         public CodeType ReturnType;
         public readonly ArgumentSymbol ThisPointer = null;
         public readonly ArgumentSymbol[] Arguments;
@@ -28,7 +29,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public LabelManager LabelManager = new LabelManager();
         public string NextLabel { get { LabelManager.LabelNext = true; return LabelManager.CurrentLabel; } }
 
-        public InterMethod(string name, string returnTypeName, ArgumentSymbol[] args, InterType owner, List<string> flags)
+        public InterMethod(string name, TypeName returnTypeName, ArgumentSymbol[] args, InterType owner, List<string> flags)
         {
             Name = name;
             ReturnTypeName = returnTypeName;

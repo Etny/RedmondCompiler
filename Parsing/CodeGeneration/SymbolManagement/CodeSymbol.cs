@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public string ID;
 
         protected CodeSymbol() { }
-        public CodeSymbol(string typeName, object value = null) : base(typeName, value) { }
+        public CodeSymbol(TypeName typeName, object value = null) : base(typeName, value) { }
         public CodeSymbol(CodeType type, object value = null) : base(type, value) { }
 
 
@@ -21,6 +21,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public abstract void PushAddress(IlBuilder builder);
 
         public abstract void Store(IlBuilder builder, CodeValue source);
+
+        public override bool IsSymbol() => true;
+        public override CodeSymbol ToSymbol() => this;
 
 
 

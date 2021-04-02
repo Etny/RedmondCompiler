@@ -10,18 +10,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     class InterNewArray : InterOp
     {
 
-        private string _type = null;
+        private TypeName _type = TypeName.Unknown;
         private CodeValue _rank = null;
         private CodeValue[] _entries = null;
         private CodeType _typeof;
 
-        public InterNewArray(string type, CodeValue rank)
+        public InterNewArray(TypeName type, CodeValue rank)
         {
             _type = type;
             _rank = rank;
         }
 
-        public InterNewArray(string type, CodeValue[] entries)
+        public InterNewArray(TypeName type, CodeValue[] entries)
         {
             _type = type;
             _entries = entries;
@@ -47,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
 
 
-            _typeof = _type == null ? new ArrayType(_entries[0].Type) : context.ResolveType(_type);
+            _typeof = _type == TypeName.Unknown ? new ArrayType(_entries[0].Type) : context.ResolveType(_type);
         }
 
         public override void Emit(IlBuilder builder)

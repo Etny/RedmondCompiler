@@ -11,7 +11,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
         public int Index;
         
-        public ArgumentSymbol(string id, string typeName, int index, object value = null) : base(typeName, value)
+        public ArgumentSymbol(string id, TypeName typeName, int index, object value = null) : base(typeName, value)
         {
             ID = id;
             Index = index;

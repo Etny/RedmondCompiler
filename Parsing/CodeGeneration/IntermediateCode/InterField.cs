@@ -14,9 +14,11 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly List<string> Keywords;
 
         public CodeType Type;
-        private string _typeName;
+        private TypeName _typeName;
 
-        public InterField(string name, string typeName, string access, List<string> keywords, UserType owner)
+        public CodeValue Initializer = null;
+
+        public InterField(string name, TypeName typeName, string access, List<string> keywords, UserType owner)
         {
             Name = name;
             Owner = owner;

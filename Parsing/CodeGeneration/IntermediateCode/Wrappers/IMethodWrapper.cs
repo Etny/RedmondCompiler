@@ -63,7 +63,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             _method = method;
             _context = context;
 
-            ReturnType = context.ResolveType(method.ReturnType).StoredType;
+            ReturnType = context.ToCodeType(method.ReturnType).StoredType;
         }
 
         public bool IsVirtual => _method.IsVirtual;
@@ -79,7 +79,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _method.GetParameters().Length;
 
-        public CodeType[] Arguments => (from p in _method.GetParameters() select _context.ResolveType(p.ParameterType).StoredType).ToArray();
+        public CodeType[] Arguments => (from p in _method.GetParameters() select _context.ToCodeType(p.ParameterType).StoredType).ToArray();
 
         private string functionPrefixes
         {
@@ -124,7 +124,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public int ArgumentCount => _constructor.GetParameters().Length;
 
-        public CodeType[] Arguments => (from p in _constructor.GetParameters() select _context.ResolveType(p.ParameterType).StoredType).ToArray();
+        public CodeType[] Arguments => (from p in _constructor.GetParameters() select _context.ToCodeType(p.ParameterType).StoredType).ToArray();
 
         private string functionPrefixes
         {

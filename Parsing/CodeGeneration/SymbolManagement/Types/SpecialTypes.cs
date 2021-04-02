@@ -26,6 +26,20 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             //Don't shrink stack, value is popped and then string is pushed
         }
 
+        public override IMethodWrapper GetConversionMethod(IntermediateBuilder context, CodeValue from)
+        {
+            UserType user = UserType.ToUserType(from.Type);
+
+            IMethodWrapper match = null;
+
+            foreach (var f in user.GetFunctions(context))
+                if (f.Name == "ToString") { match = f; break; }
+
+            Debug.Assert(match != null);
+
+            return match;
+        }
+
         public override void BindConversion(IntermediateBuilder context, CodeValue from)
         {
             if (convCalls.ContainsKey(from.Type)) return;

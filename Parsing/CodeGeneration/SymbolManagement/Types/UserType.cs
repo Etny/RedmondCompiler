@@ -1,6 +1,7 @@
 ﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
@@ -42,7 +43,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
             ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
         }
-        
+
+        public virtual Assembly GetAssembly() => _type.Assembly;
 
         public override bool Equals(object obj)
            => obj is UserType type && type.Name == Name;
@@ -130,6 +132,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             throw new NotImplementedException();
         }
+
+        public virtual NamespaceContext GetNamespaceContext() => new NamespaceContext(_type.Namespace);
     }
 
     class InterUserType : UserType
@@ -166,6 +170,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             return new List<IPropertyWrapper>();
         }
+
+        public override NamespaceContext GetNamespaceContext() => _intertype.NamespaceContext;
+
     }
 
 }

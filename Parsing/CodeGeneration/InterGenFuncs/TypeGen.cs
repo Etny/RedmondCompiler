@@ -17,7 +17,7 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileClass(SyntaxTreeNode node)
         {
             string name = node[0].ValueString;
-            builder.AddType(new InterType(builder.CurrentNameSpace + "." + name));
+            builder.AddType(new InterType(name, new NamespaceContext(builder.Namespaces)));
             CompileNode(node[1]);
         }
 
@@ -33,8 +33,9 @@ namespace Redmond.Parsing.CodeGeneration
 
             var field = builder.AddField(node[1].ValueString, TypeNameFromNode(decHeader[2]), access, keywords);
 
-            if(node.Children.Length > 2)
-                builder.CurrentType.Initializer.AddInstruction(new InterCopy(field.Symbol, ToIntermediateExpression(node[2])));
+            if (node.Children.Length > 2)
+                field.Initializer = ToIntermediateExpression(node[2]);
+            
            
         }
 

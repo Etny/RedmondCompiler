@@ -8,5 +8,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     abstract class InterOp : InterInst
     { 
         public abstract CodeType GetResultType();
+
+        public virtual bool IsSymbol() => false;
+        public virtual CodeSymbol ToSymbol() => null;
     }
 }

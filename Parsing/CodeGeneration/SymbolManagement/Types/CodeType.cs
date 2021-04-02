@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Text;
@@ -43,6 +44,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
 
         public virtual void BindConversion(IntermediateBuilder context, CodeValue from) { }
+        public virtual IMethodWrapper GetConversionMethod(IntermediateBuilder context, CodeValue from) { return null; }
 
         public override bool Equals(object obj)
            => obj is CodeType type && type.Name == Name;

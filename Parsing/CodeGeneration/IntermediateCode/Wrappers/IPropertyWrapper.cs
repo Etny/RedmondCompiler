@@ -46,7 +46,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string Name => _property.Name;
 
-        public CodeType Type => _context.ResolveType(_property.PropertyType);
+        public CodeType Type => _context.ToCodeType(_property.PropertyType);
 
     }
 }

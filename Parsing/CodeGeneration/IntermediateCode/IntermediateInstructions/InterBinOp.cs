@@ -60,14 +60,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                 if(overload != null)
                 {
                     _overload = new InterCall(overload, new CodeValue[]{ _op1, _op2 }, true);
+                    _overload.SetOwner(Owner);
                     _overload.Bind(context);
                     return;
                 }
             }
 
-            if (_op1.Type != wideType) { _op1 = new ConvertedValue(_op1, wideType); _op1.Bind(context); }
+            if (_op1.Type != wideType) { _op1 = new ConvertedValue(_op1, wideType, Owner); _op1.Bind(context); }
 
-            if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType); _op2.Bind(context); }
+            if (_op2.Type != wideType) { _op2 = new ConvertedValue(_op2, wideType, Owner); _op2.Bind(context); }
 
 
         }

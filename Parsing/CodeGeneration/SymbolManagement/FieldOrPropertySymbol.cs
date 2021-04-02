@@ -67,6 +67,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             }
         }
 
+        public bool HasOwner()
+        {
+            if (IsField)
+                return _field.HasOwner();
+            else
+                return _property.HasOwner();
+        }
+
         public void SetOwner(CodeValue owner)
         {
             if (IsField)
