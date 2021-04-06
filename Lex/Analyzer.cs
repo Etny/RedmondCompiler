@@ -52,8 +52,10 @@ namespace Redmond.Lex
 
                 //if (_input[_index + i] == '\n') { _lineIndex++; _lastLine = _index + i+1; }
 
+                char c = _input.CurrentChar(i);
+
                 foreach (var dfa in test)
-                    if (dfa.Progress(_input.CurrentChar(i)))
+                    if (dfa.Progress(c))
                         newLiving.Add(dfa);
 
                 if (newLiving.Count <= 0) break; 

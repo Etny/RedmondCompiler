@@ -18,7 +18,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public NamespaceContext(string ns)
         {
-            NamespaceHierarchy = ImmutableArray<string>.Empty.AddRange(ns.Split('.'));
+            NamespaceHierarchy = ImmutableArray<string>.Empty;
+            var s = ns.Split('.');
+            if (s.Length > 1 || s[0].Length > 0) NamespaceHierarchy = NamespaceHierarchy.AddRange(s);
         }
 
         public IEnumerable<string> TravelUpHierarchy()

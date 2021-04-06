@@ -109,7 +109,7 @@ namespace Redmond.Lex.LexCompiler.RegexTree
         {
             OperatorNode clone = new OperatorNode(Operator);
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < Children.Length; i++)
                 if (Children[i] != null)
                     clone.AddChild(Children[i].Clone(), i);
 

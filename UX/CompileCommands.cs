@@ -20,8 +20,7 @@ namespace Redmond.UX
             Console.WriteLine("Reading parse file..");
 
             var output = GetSelectedOutput(opts);
-            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\CompileTestProject\Program.cs",
-                                                                                 @"C:\Users\yveem\source\repos\CompileTestProject\AnotherFile.cs"}));
+            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt"}));
 
             ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse").Read();
 
@@ -44,6 +43,8 @@ namespace Redmond.UX
             parseFile.SetParseTableLines(gram.SerializeParsingTable());
             parseFile.SetTokenIdLines(ProductionEntry.Register.Serialize());
             parseFile.Save();
+
+            Console.WriteLine("Done!");
 
             //var parser = gram.GetParser();
 

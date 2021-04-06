@@ -37,5 +37,7 @@ namespace Redmond.Parsing.SyntaxAnalysis
         [SyntaxFunction("concat")]
         public static string Concat(string s1, string s2) => s1 + s2;
 
+
+
     }
 }

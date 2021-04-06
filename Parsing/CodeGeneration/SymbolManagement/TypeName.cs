@@ -33,7 +33,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override string ToString()
         {
-            return Name == "" ? "Unknown" : NamespaceContext.ToString() + '.' + Name;
+            return Name == "" ? "Unknown" : (NamespaceContext.NamespaceHierarchy.Length == 0 ? Name : NamespaceContext.ToString() + '.' + Name);
         }
 
     }

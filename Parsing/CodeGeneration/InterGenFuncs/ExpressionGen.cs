@@ -27,6 +27,7 @@ namespace Redmond.Parsing.CodeGeneration
                 case "CharLiteral":
                 case "StringLiteral":
                 case "NumericalLiteral":
+                case "RealLiteral":
                     return node.Val as CodeValue;
 
                 case "IdentifierExpression":
@@ -67,24 +68,6 @@ namespace Redmond.Parsing.CodeGeneration
             if (op is InterOp) return new InterOpValue(op as InterOp, builder.CurrentMethod);
 
             return null;
-        }
-
-       
-
-        private TypeName TypeNameFromNode(SyntaxTreeNode node)
-        {
-            string GetName(SyntaxTreeNode node)
-            {
-                if (node.Op == "Array")
-                    return GetName(node[0]) + "[]";
-
-                if (node.Children.Length == 1)
-                    return node[0].ValueString;
-                else
-                    return GetName(node[0]) + '.' + node[1].ValueString;
-            }
-
-            return new TypeName(GetName(node), builder.CurrentNamespaceContext);
         }
 
         public void PushExpression(SyntaxTreeNode node)

@@ -28,16 +28,18 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
             ParserAction nextAction()
             {
+                var t = input.NextToken;
+
                 try
                 {
-                    if (stateStack.Peek().State.Action.ContainsKey(new Terminal(input.NextToken.Text, false).ID))
-                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Text, false).ID];
+                    if (stateStack.Peek().State.Action.ContainsKey(new Terminal(t.Text, false).ID))
+                        return stateStack.Peek().State.Action[new Terminal(t.Text, false).ID];
                     else
-                        return stateStack.Peek().State.Action[new Terminal(input.NextToken.Type, true).ID];
+                        return stateStack.Peek().State.Action[new Terminal(t.Type, true).ID];
                 } 
                 catch
                 {
-                    ErrorManager.ExitWithError(new ParserActionNotFoundException(stateStack.Peek().State, input.NextToken));
+                    ErrorManager.ExitWithError(new ParserActionNotFoundException(stateStack.Peek().State, t));
                 }
                 return new AcceptAction();
             }

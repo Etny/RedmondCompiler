@@ -15,9 +15,21 @@ namespace Redmond
             LexAction.Init();
             IntermediateGenerator.Init();
 
-            if (args.Length < 1) args = Console.ReadLine().Split(' ');
-
-            if(!SubCommandInvoker.TryInvokeSubcommand(args)) Console.WriteLine($"Unkown Redmond command '{args[0]}'");
+            if (args.Length < 1)
+            {
+                do
+                {
+                    if (args.Length > 0)
+                    {
+                        if (!SubCommandInvoker.TryInvokeSubcommand(args)) Console.WriteLine($"Unkown Redmond command '{args[0]}'");
+                    }
+                    args = Console.ReadLine().Split(' ');
+                } while (args[0] != "");
+            }
+            else
+            {
+                if (!SubCommandInvoker.TryInvokeSubcommand(args)) Console.WriteLine($"Unkown Redmond command '{args[0]}'");
+            }
         }
     }
 }

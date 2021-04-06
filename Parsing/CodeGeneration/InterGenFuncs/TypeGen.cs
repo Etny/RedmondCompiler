@@ -39,7 +39,24 @@ namespace Redmond.Parsing.CodeGeneration
            
         }
 
+        private TypeName TypeNameFromNode(SyntaxTreeNode node)
+        {
+            string GetName(SyntaxTreeNode node)
+            {
+                if (node.Op == "Array")
+                    return GetName(node[0]) + "[]";
 
+                if (node.Op == "Type")
+                    return CodeType.ByName(node.ValueString).Name;
+
+                if (node.Children.Length == 1)
+                    return node[0].ValueString;
+                else
+                    return GetName(node[0]) + '.' + node[1].ValueString;
+            }
+
+            return new TypeName(GetName(node), builder.CurrentNamespaceContext);
+        }
 
     }
 }
