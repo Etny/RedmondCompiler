@@ -17,8 +17,10 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileClass(SyntaxTreeNode node)
         {
             string name = node[0].ValueString;
-            builder.AddType(new InterType(name, new NamespaceContext(builder.Namespaces)));
-            CompileNode(node[1]);
+            var type = new InterType(name, new NamespaceContext(builder.Namespaces), TypeNameFromNode(node[1][0]));
+            foreach (var n in node[2].Children) type.AddFlag(n.ValueString);
+            builder.AddType(type);
+            CompileNode(node[3]);
         }
 
         [CodeGenFunction("FieldDec")]

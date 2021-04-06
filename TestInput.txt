@@ -6,7 +6,27 @@ namespace FloatTest
     {
         static void Main()
         {
+            new DerivedType().Test();
+        }
+    }
+
+    class DerivedType : BaseType{
+        
+        override void Test()
+        {
             Console.WriteLine(1.2f / .6d);
         }
+
+        virtual void SomethingElse()
+        {
+
+        }
+
+    }
+
+    abstract class BaseType { 
+        
+        abstract void Test();
+
     }
 }

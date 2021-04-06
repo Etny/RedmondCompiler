@@ -51,7 +51,12 @@ class_list
 					;
 
 class_dec			
-					:	CLASS IDENTIFIER '\{' member_list '\}' {$$ = makeNode("Class", $2, $4)}
+					:	modifier_list CLASS IDENTIFIER class_base '\{' member_list '\}' {$$ = makeNode("Class", $3, $4, $1, $6)}
+					;
+
+class_base
+					:	':' type_name	{$$ = makeNode("BaseType", $2)}
+					|					{$$ = makeNode("BaseType", makeLeaf("Type", "object"))}
 					;
 
 member_list			
@@ -85,6 +90,7 @@ constructor_dec
 
 function			
 					:	function_dec function_body	{$$ = makeNode("Function", $1, $2)}
+					|	function_dec ';'	{$$ = makeNode("Function", $1)}
 					;
 
 function_dec		
@@ -112,6 +118,7 @@ modifier
 					|	VIRTUAL		{$$ = makeLeaf("Modifier", "virtual")}
 					|	CONST		{$$ = makeLeaf("Modifier", "literal")}
 					|	READONLY	{$$ = makeLeaf("Modifier", "initonly")}
+					|	OVERRIDE	{$$ = makeLeaf("Modifier", "virtual")}
 					;
 
 function_body		
@@ -235,11 +242,12 @@ array_access_expression
 					;
 
 literal_expression
-					:	StringLiteral	{$$ = makeLeaf("StringLiteral", $1)}
+					:	STRING_LITERAL	{$$ = makeLeaf("StringLiteral", $1)}
 					|	REAL_LITERAL	{$$ = makeLeaf("RealLiteral", $1)}
-					|	CharLiteral		{$$ = makeLeaf("CharLiteral", $1)}
-					|	BoolLiteral		{$$ = makeLeaf("BoolLiteral", $1)}
-					|	Digit			{$$ = makeLeaf("NumericalLiteral", $1}
+					|	CHAR_LITERAL	{$$ = makeLeaf("CharLiteral", $1)}
+					|	BOOL_LITERAL	{$$ = makeLeaf("BoolLiteral", $1)}
+					|	INT_LITERAL		{$$ = makeLeaf("IntLiteral", $1}
+					|	NULL			{$$ = makeLeaf("NullLiteral")}
 					;
 
 binary_expression	
@@ -325,10 +333,12 @@ non_array_type
 
 simple_type
 					:	primitive_type
+					|	class_type
 					;
 
 primitive_type
 					:	numeric_type
+					|	BOOL	{$$ = makeLeaf("Type", "bool")}
 					;
 
 numeric_type
@@ -347,6 +357,11 @@ int_type
 					|	CHAR	{$$ = makeLeaf("Type", "char")}
 					|	INT		{$$ = makeLeaf("Type", "int")}
 					|	LONG	{$$ = makeLeaf("Type", "long")}
+					;
+
+class_type
+					:	OBJECT	{$$ = makeLeaf("Type", "object")}
+					|	STRING	{$$ = makeLeaf("Type", "string")}
 					;
 
 type_name			
@@ -380,18 +395,15 @@ AutoValueInheritance: true
 IDENTIFIER
 Operator
 Punctuation
-Digit
 Whitespace
 NewLine
-StringLiteral
-BoolLiteral
-CharLiteral
 
-BYTE SHORT CHAR INT LONG FLOAT DOUBLE DECIMAL
+BYTE SHORT CHAR INT LONG FLOAT DOUBLE DECIMAL BOOL
+OBJECT STRING
 
-REAL_LITERAL
+REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
-STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT
+STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR
 
 PLUSPLUS MINUSMINUS
@@ -428,8 +440,9 @@ private		{PRIVATE}
 protected	{PROTECTED}
 sealed		{SEALED}
 virtual		{VIRTUAL}
-abstratc	{ABSTRACT}
+abstract	{ABSTRACT}
 readonly	{READONLY}
+override	{OVERRIDE}
 const		{CONST}
 class		{CLASS}
 namespace	{NAMESPACE}
@@ -463,17 +476,22 @@ long	{LONG}
 float	{FLOAT}
 double	{DOUBLE}
 decimal	{DECIMAL}
+bool	{BOOL}
+object	{OBJECT}
+string	{STRING}
 
 real1	{REAL_LITERAL; $$ = makeValue(realType($), parseReal($))}
 real2	{REAL_LITERAL; $$ = makeValue(realType($), parseReal($))}
+null	{NULL}
 
-true												{BoolLiteral; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
+true												{BOOL_LITERAL; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
+false												{BOOL_LITERAL; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
 (letter|_)character*								{IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}
-decimal_digit+										{Digit; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
+decimal_digit+										{INT_LITERAL; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
 [=\*/+-]											{Operator}
 [,();:>.,\{\}\[\]]									{Punctuation}
 [\w\t\r\n]											{Whitespace}
-\'character\'										{CharLiteral; $$ = makeValue("char", parseChar($))}
-"((letter|decimal_digit)|[\w\t\r\n:,!/\(\)?\'])*"			{StringLiteral; $$ = makeValue("string", $)}
+\'character\'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
+"((letter|decimal_digit)|[\w\t\r\n:,!/\(\)?\'])*"			{STRING_LITERAL; $$ = makeValue("string", $)}
 
 #End

@@ -2,6 +2,7 @@
 using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode
@@ -20,16 +21,25 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             }
             else if (name == ".cctor")
                 AddFlag("static");
+
+            ReturnType = new InterUserType(owner);
+        }
+
+        public override void Emit(IlBuilder builder)
+        {
+            if (Name == ".cctor" && Instructions.Count == 0) return;
+            base.Emit(builder);
         }
 
         public override void Bind(IntermediateBuilder builder)
         {
             base.Bind(builder);
 
-            if (Name == ".ctor")
-            {
-                if (Owner.BaseType == CodeType.Object)
-                    AddInstruction(new InterCall(new ConstructorInfoWrapper(typeof(object).GetConstructor(new Type[0]), builder), false, ThisPointer), 0);
+            if (Name == ".ctor") {
+
+                var con = (Owner.BaseType as UserType).GetConstructors(builder).First();
+
+                AddInstruction(new InterCall(con, false, ThisPointer), 0);
 
                 foreach (var field in Owner.Fields)
                 {
@@ -37,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                     AddInstruction(new InterCopy(field.Symbol, field.Initializer), 0);
                 }
             }
-            else if (Name == ".cctor") ;
+            else if (Name == ".cctor") 
             {
                 foreach (var field in Owner.Fields)
                 {

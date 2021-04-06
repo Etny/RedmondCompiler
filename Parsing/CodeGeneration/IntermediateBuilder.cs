@@ -174,7 +174,7 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
 
-        public IMethodWrapper FindClosestFunction(string name, CodeType owner, params CodeValue[] args)
+        public IMethodWrapper FindClosestFunction(string name, CodeType owner, CodeValue[] args, bool canBeNull = false)
         {
             var type = UserType.ToUserType(owner);
             Debug.Assert(type != null);
@@ -185,9 +185,9 @@ namespace Redmond.Parsing.CodeGeneration
                 if (f.Name == name && f.ArgumentCount == args.Length)
                     applicableFunctions.Add(f);
 
-            Debug.Assert(applicableFunctions.Count > 0);
+            Debug.Assert(applicableFunctions.Count > 0 || canBeNull);
 
-            return FindClosest(applicableFunctions, args);
+            return FindClosest(applicableFunctions, args, canBeNull);
         }
 
         public IMethodWrapper FindClosestIndexerGet(CodeType owner, params CodeValue[] args)
@@ -207,10 +207,10 @@ namespace Redmond.Parsing.CodeGeneration
         }
 
 
-        public IMethodWrapper FindMostApplicableConstructor(UserType type, params CodeValue[] args)
+        public IMethodWrapper FindMostApplicableConstructor(UserType type, CodeValue[] args)
             => FindClosest(type.GetConstructors(this), args);
 
-        private IMethodWrapper FindClosest(IEnumerable<IMethodWrapper> funcs, params CodeValue[] args)
+        private IMethodWrapper FindClosest(IEnumerable<IMethodWrapper> funcs, CodeValue[] args, bool canBeNull = false)
         {
             //TODO: Merge this part with FindClosestFunction
             IMethodWrapper closest = null;
@@ -241,7 +241,7 @@ namespace Redmond.Parsing.CodeGeneration
                 }
             }
 
-            Debug.Assert(closest != null);
+            Debug.Assert(closest != null || canBeNull);
 
             return closest;
         }
@@ -255,6 +255,9 @@ namespace Redmond.Parsing.CodeGeneration
 
             foreach (InterType t in Types)
                 t.BindSubMembers(this);
+
+            foreach (InterType t in Types)
+                t.BindSubSubMembers(this);
 
             EmitCLRHeader(builder);
 

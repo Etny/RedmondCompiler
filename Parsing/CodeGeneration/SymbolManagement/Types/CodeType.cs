@@ -83,7 +83,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public static StringType String = new StringType();
         public static VoidType Void = new VoidType();
-        public static CodeType Object = new ObjectType();
+        public static ObjectType Object = new ObjectType();
+        public static NullType Null = new NullType();
 
     }
 }

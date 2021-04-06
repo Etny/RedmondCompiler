@@ -14,24 +14,28 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public readonly NamespaceContext NamespaceContext;
         public readonly string Name;
-        public readonly UserType BaseType;
+        public CodeType BaseType;
+
+        private TypeName _baseTypeName;
 
         public readonly InterMethodSpecialName Initializer;
         public readonly List<InterMethodSpecialName> Constructors = new List<InterMethodSpecialName>();
 
 
         //TODO: add interface support
-        public InterType(string name, NamespaceContext names, UserType baseType = null)
+        public InterType(string name, NamespaceContext names, TypeName baseTypeName)
         {
             Name = name;
             NamespaceContext = names;
-            BaseType = baseType ?? (UserType)CodeType.Object;
+            _baseTypeName = baseTypeName;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
             Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this, new List<string>());
         }
 
         public string FullName => string.Join('.', NamespaceContext.NamespaceHierarchy.Add(Name));
+
+        public bool IsAbstract => Flags.Contains("abstract");
 
         public void AddFlag(string flag)
             => Flags = Flags.Add(flag);
@@ -49,7 +53,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private auto ansi beforefieldinit {FullName} extends {BaseType.ShortName}");
+            builder.EmitLine($".class private {string.Join(' ', Flags)} auto ansi beforefieldinit {FullName} extends {BaseType.ShortName}");
             builder.EmitLine("{");
             builder.EmitLine();
             builder.Output.AddIndentation();
@@ -74,6 +78,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Bind(IntermediateBuilder builder)
         {
+            BaseType = builder.ResolveType(_baseTypeName);
+            if (Constructors.Count == 0) Constructors.Add(new InterMethodSpecialName(".ctor", new ArgumentSymbol[] { }, this, new List<string>()));
+
+            
+           
+        }
+
+        public void BindSubMembers(IntermediateBuilder builder)
+        {
             foreach (var field in Fields)
                 field.Bind(builder);
 
@@ -84,11 +97,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             foreach (var method in Methods)
                 method.Bind(builder);
-
-           
         }
 
-        public void BindSubMembers(IntermediateBuilder builder)
+            public void BindSubSubMembers(IntermediateBuilder builder)
         {
             Initializer.BindSubMembers(builder);
 

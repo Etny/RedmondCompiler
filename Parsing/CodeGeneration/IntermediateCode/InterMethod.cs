@@ -48,6 +48,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         private string ArgList => string.Join(',', from a in Arguments select a.Type.Name);
 
+
         public string Signature => $"{Owner.FullName}.{Name}";
 
         public string CallSignature => $"{(IsInstance ? "instance " : "")}{ReturnType.Name} {Owner.FullName}::{Name}({ArgList})";
@@ -55,9 +56,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override");
 
         public bool IsStatic => Flags.Contains("static");
+        public bool IsAbstract => Flags.Contains("abstract");
 
         public void AddFlag(string flag)
-            => Flags = Flags.Add(flag);
+        { 
+            //if(Name[0] != '.')
+            //{
+            //    if (flag == "abstract") AddFlag("newlot");
+            //}
+
+            if (Flags.Contains(flag)) return;
+            Flags = Flags.Add(flag);
+        }
 
         public void AddInstruction(InterInst inst)
         {
@@ -84,25 +94,29 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             builder.EmitLine($" {ReturnType.Name} {Name}({ArgList}) cil managed");
             builder.EmitLine("{");
 
-            builder.Output.AddIndentation();
-
-            //TODO: Allow for selection of entrypoint
-            if (Name == "Main") builder.EmitLine(".entrypoint");
-
-            int startLoc = builder.Output.ReserveLocation();
-
-            if (Locals.Count > 0)
+            if (!IsAbstract && Instructions.Count > 0)
             {
-                string types = "";
-                foreach (var t in Locals) types += t.Type.Name + ",";
-                builder.EmitLine(".locals init (" + types[..^1] + ")");
+                builder.Output.AddIndentation();
+
+                //TODO: Allow for selection of entrypoint
+                if (Name == "Main") builder.EmitLine(".entrypoint");
+
+                int startLoc = builder.Output.ReserveLocation();
+
+                if (Locals.Count > 0)
+                {
+                    string types = "";
+                    foreach (var t in Locals) types += t.Type.Name + ",";
+                    builder.EmitLine(".locals init (" + types[..^1] + ")");
+                }
+
+                foreach (var inst in Instructions)
+                    inst.Emit(builder);
+
+                builder.Output.WriteStringAtLocation(startLoc, ".maxstack " + builder.GetMaxStack());
+                builder.Output.ReduceIndentation();
             }
 
-            foreach (var inst in Instructions)
-                inst.Emit(builder);
-
-            builder.Output.WriteStringAtLocation(startLoc, ".maxstack " + builder.GetMaxStack());
-            builder.Output.ReduceIndentation();
             builder.EmitLine("}");
             builder.EmitLine("");
         }
@@ -110,6 +124,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public virtual void Bind(IntermediateBuilder builder)
         {
             ReturnType = builder.ResolveType(ReturnTypeName);
+            if (!IsStatic) AddFlag("instance");
+
+            if (IsVirtual || IsAbstract)
+            {
+                var inBase = builder.FindClosestFunction(Name, Owner.BaseType, Arguments, true);
+                if (inBase == null) AddFlag("newslot");
+            }
 
             foreach (var a in Arguments)
                 a.Bind(builder);
@@ -120,7 +141,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void BindSubMembers(IntermediateBuilder builder)
         {
-            if (Instructions.Count == 0 || !(Instructions[^1] is InterRet)) AddInstruction(new InterRet());
+            if (Instructions.Count > 0 && !(Instructions[^1] is InterRet)) AddInstruction(new InterRet());
 
             foreach (var inst in Instructions)
                 inst.Bind(builder);

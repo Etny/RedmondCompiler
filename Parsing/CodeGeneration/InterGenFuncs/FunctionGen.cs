@@ -70,7 +70,8 @@ namespace Redmond.Parsing.CodeGeneration
         {
             MatchNode(node.Children[0], "FunctionDec");
 
-            MatchNode(node.Children[1], "FunctionBody");
+            if(node.Children.Length > 1)
+                MatchNode(node.Children[1], "FunctionBody");
 
             Tables.Pop();
         }

@@ -102,4 +102,21 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
         }
     }
+
+    class NullType : CodeType
+    {
+        public NullType() : base("null") { }
+
+        public override AssignType CanAssignTo(CodeType fieldType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void ConvertFrom(CodeValue val, IlBuilder builder)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override CodeType GetWiderType(CodeType otherType) => otherType;
+    }
 }

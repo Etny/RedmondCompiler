@@ -12,13 +12,6 @@ namespace Redmond.Parsing.CodeGeneration
 {
     internal partial class IntermediateGenerator
     {
-
-        //[CodeGenFunction("StringLiteral")]
-        //[CodeGenFunction("NumericalLiteral")]
-        //[CodeGenFunction("IdentiferExpression")]
-        //    public void CompileValueExpression(SyntaxTreeNode node) { }
-
-
         private CodeValue ToValue(SyntaxTreeNode node)
         {
             switch (node.Op)
@@ -26,9 +19,12 @@ namespace Redmond.Parsing.CodeGeneration
                 case "BoolLiteral":
                 case "CharLiteral":
                 case "StringLiteral":
-                case "NumericalLiteral":
+                case "IntLiteral":
                 case "RealLiteral":
                     return node.Val as CodeValue;
+
+                case "NullLiteral":
+                    return new NullValue();
 
                 case "IdentifierExpression":
                     return GetFirst((node.Val as SyntaxTreeNode).ValueString);
