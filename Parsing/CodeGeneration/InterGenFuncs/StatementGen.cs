@@ -79,6 +79,7 @@ namespace Redmond.Parsing.CodeGeneration
             CompileNode(node[2]);
             branchAfterTrue.SetLabel(builder.CurrentMethod.NextLabel);
 
+
             Tables.Pop();
         }
 
@@ -99,6 +100,11 @@ namespace Redmond.Parsing.CodeGeneration
             checkBranch.SetLabel(beginLabel);
             builder.AddInstruction(checkBranch);
 
+            string endLabel = builder.CurrentMethod.NextLabel;
+
+            foreach (var b in builder.GetBreaks())
+                b.SetLabel(endLabel);
+
             Tables.Pop();
         }
 
@@ -115,6 +121,11 @@ namespace Redmond.Parsing.CodeGeneration
             checkBranch.SetLabel(beginLabel);
             builder.AddInstruction(checkBranch);
 
+            string endLabel = builder.CurrentMethod.NextLabel;
+
+            foreach (var b in builder.GetBreaks())
+                b.SetLabel(endLabel);
+
             Tables.Pop();
         }
 
@@ -123,7 +134,7 @@ namespace Redmond.Parsing.CodeGeneration
         {
             PushNewTable();
 
-            if(node[0].Op != "Empty") CompileNode(node[0]);
+            if (node[0].Op != "Empty") CompileNode(node[0]);
 
             InterBranch initialBranch = new InterBranch();
 
@@ -131,14 +142,84 @@ namespace Redmond.Parsing.CodeGeneration
 
             string beginLabel = builder.CurrentMethod.NextLabel;
             if (node[3].Op != "Empty") CompileNode(node[3]);
-            if (node[2].Op != "Empty")  CompileStatementExpressionList(node[2]);
+            if (node[2].Op != "Empty") CompileStatementExpressionList(node[2]);
             initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
 
             InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[1]), InterBranch.BranchCondition.OnTrue);
             checkBranch.SetLabel(beginLabel);
             builder.AddInstruction(checkBranch);
 
+            string endLabel = builder.CurrentMethod.NextLabel;
+
+            foreach (var b in builder.GetBreaks())
+                b.SetLabel(endLabel);
+
             Tables.Pop();
         }
+
+        [CodeGenFunction("SwitchStatement")]
+        public void CompileSwitchStatement(SyntaxTreeNode node)
+        {
+            var exp = ToIntermediateExpression(node[0]);
+
+            InterBranch[] branches = new InterBranch[node[1].Children.Length];
+
+            SyntaxTreeNode defaultCase = null;
+            InterBranch defaultBranch = null;
+
+            for(int i = 0; i < branches.Length; i++)
+            {
+                var sect = node[1][i];
+
+                if(sect[0].Op == "DefaultLabel") { defaultCase = sect; continue; }
+
+                var bin = new InterBinOp(new Operator(Operator.OperatorType.Ceq), ToIntermediateExpression(sect[0][0]), exp);
+                var branch = new InterBranch(new InterOpValue(bin), InterBranch.BranchCondition.OnTrue);
+                builder.AddInstruction(branch);
+                branches[i] = branch;
+            }
+
+            if(defaultCase == null)
+                builder.AddBreakStatement();
+            else
+            {
+                defaultBranch = new InterBranch();
+                builder.AddInstruction(defaultBranch);
+            }
+
+            for (int i = 0; i < branches.Length; i++)
+            {
+                var sect = node[1][i];
+
+                if (sect[0].Op == "DefaultLabel") continue;
+
+                string label = builder.CurrentMethod.NextLabel;
+
+                CompileNode(sect[1]);
+
+                branches[i].SetLabel(label);
+            }
+
+            if (defaultCase != null)
+            {
+                string defaultLabel = builder.CurrentMethod.NextLabel;
+                CompileNode(defaultCase[1]);
+                defaultBranch.SetLabel(defaultLabel);
+            }
+
+            string endLabel = builder.CurrentMethod.NextLabel;
+
+            foreach (var b in builder.GetBreaks())
+                b.SetLabel(endLabel);
+        }
+
+        public void CompileSwitchSection(SyntaxTreeNode node, CodeValue val)
+        {
+
+        }
+
+        [CodeGenFunction("BreakStatement")]
+        public void CompileBreakStatement(SyntaxTreeNode node)
+            => builder.AddBreakStatement();
     }
 }

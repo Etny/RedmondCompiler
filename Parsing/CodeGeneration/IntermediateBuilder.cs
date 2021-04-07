@@ -28,6 +28,7 @@ namespace Redmond.Parsing.CodeGeneration
         public ImmutableList<AssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<AssemblyReference>.Empty;
         public ImmutableList<string> ImportedNamespaces { get; protected set; } = ImmutableList<string>.Empty;
 
+        private List<InterBranch> _breakInstruction = new List<InterBranch>();
 
         private string assemblyName = "Redmond";
 
@@ -60,6 +61,20 @@ namespace Redmond.Parsing.CodeGeneration
         {
             Namespaces.Pop();
             CurrentNamespaceContext = new NamespaceContext(Namespaces);
+        }
+
+        public InterBranch[] GetBreaks()
+        {
+            var temp = _breakInstruction.ToArray();
+            _breakInstruction.Clear();
+            return temp;
+        }
+
+        public void AddBreakStatement()
+        {
+            var b = new InterBranch();
+            AddInstruction(b);
+            _breakInstruction.Add(b);
         }
 
         public InterMethod AddMethod(string name, TypeName returnType, ArgumentSymbol[] vars, List<string> flags)

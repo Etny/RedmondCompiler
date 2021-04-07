@@ -9,7 +9,23 @@ namespace FloatTest
         static void Main()
         {
             int i = int.Parse(Console.ReadLine());
-            float j = i >= 5 ? 1.2 : .5;
+            int j = 0;            
+
+            switch(i)
+            {
+                case 1:
+                    j = 1;
+
+                case 2:
+                    j = 3;
+                    break;
+
+                default:
+                    Console.WriteLine("Default!");
+                    j = 12;
+                    break;
+            }
+
             Console.WriteLine(j);
         }
     }

@@ -145,6 +145,8 @@ statement
 					|	if_statement
 					|	while_statement
 					|	for_statement
+					|	switch_statement
+					|	break_statement	';'	{$$ = $1}
 					;
 
 return_statement	
@@ -188,12 +190,41 @@ for_initializer
 					|	{$$ = makeLeaf("Empty")}
 					;
 
-for_condition		:	expression
+for_condition		
+					:	expression
 					|	{$$ = makeLeaf("Empty")}
 					;
 
-for_iterator		:	statement_expression_list
+for_iterator		
+					:	statement_expression_list
 					|	{$$ = makeLeaf("Empty")}
+					;
+
+switch_statement
+					:	SWITCH '(' expression ')' switch_block	{$$ = makeNode("SwitchStatement", $3, $5)}
+					;
+
+switch_block
+					:	'\{' switch_sections '\}'	{$$ = $2}
+					;
+
+switch_sections		
+					:	switch_sections switch_section	{addChild($1, $2); $$ = $1}
+					|	switch_section					{$$ = makeNode("SwitchSections", $1)}
+					|									{$$ = makeNode("SwitchSections")}
+					;
+
+switch_section
+					:	switch_label statement_list	{$$ = makeNode("SwitchSection", $1, $2)}
+					;
+
+switch_label
+					:	CASE expression ':'	{$$ = makeNode("SwitchLabel", $2)}
+					|	DEFAULT	':'			{$$ = makeNode("DefaultLabel")}
+					;
+
+break_statement
+					:	BREAK	{$$ = makeNode("BreakStatement")}
 					;
 
 call_statement		
@@ -425,7 +456,8 @@ OBJECT STRING
 REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
-READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR
+READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
+CASE BREAK DEFAULT
 
 PLUSPLUS MINUSMINUS
 
@@ -469,6 +501,10 @@ else		{ELSE}
 while		{WHILE}
 do			{DO}
 for			{FOR}
+switch		{SWITCH}
+case		{CASE}
+break		{BREAK}
+default		{DEFAULT}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}
