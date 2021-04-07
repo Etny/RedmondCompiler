@@ -33,11 +33,13 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var c in decHeader[1].Children)
                 keywords.Add(c.ValueString);
 
-            var field = builder.AddField(node[1].ValueString, TypeNameFromNode(decHeader[2]), access, keywords);
+            foreach(var n in node[1].Children)
+            {
+                var field = builder.AddField(n[0].ValueString, TypeNameFromNode(decHeader[2]), access, keywords);
 
-            if (node.Children.Length > 2)
-                field.Initializer = ToIntermediateExpression(node[2]);
-            
+                if (n.Children.Length > 1)
+                    field.Initializer = ToIntermediateExpression(n[1]);
+            }
            
         }
 

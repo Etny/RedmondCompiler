@@ -38,7 +38,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsAbstract => Flags.Contains("abstract");
 
         public void AddFlag(string flag)
-            => Flags = Flags.Add(flag);
+        {
+            if(flag == "static")
+            {
+                AddFlag("sealed");
+                AddFlag("abstract");
+                return;
+            }
+
+            if (Flags.Contains(flag)) return;
+            Flags = Flags.Add(flag);
+        }
 
 
         public void AddMethod(InterMethod method)

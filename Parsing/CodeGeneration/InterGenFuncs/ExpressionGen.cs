@@ -29,6 +29,9 @@ namespace Redmond.Parsing.CodeGeneration
                 case "IdentifierExpression":
                     return GetFirst((node.Val as SyntaxTreeNode).ValueString);
 
+                case "CastExpression":
+                    return new ConvertedValue(ToValue(node[1]), TypeNameFromNode(node[0]), builder.CurrentMethod);
+
                 case "Identifier":
                     return GetFirst(node.ValueString);
 
@@ -81,6 +84,17 @@ namespace Redmond.Parsing.CodeGeneration
             if (node.Op == "BinaryBoolExpression") op.IsBooleanExpression = true;
 
             return op;
+        }
+
+        [CodeGenFunction("TernaryExpression")]
+        public InterOp CompileTernaryExpression(SyntaxTreeNode node)
+        {
+            var op1 = ToIntermediateExpression(node[1]);
+            var op2 = ToIntermediateExpression(node[2]);
+
+            var bin = CompileBinaryExpression(node[0]);
+
+            return new InterTernary(op1, op2, bin); ;
         }
 
         [CodeGenFunction("BoolCheckExpression")]

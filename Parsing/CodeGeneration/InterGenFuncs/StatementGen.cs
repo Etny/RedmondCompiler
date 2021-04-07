@@ -22,15 +22,23 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("DeclarationStatement")]
         public void CompileDeclarationStatement(SyntaxTreeNode node)
         {
+            TypeName type = TypeNameFromNode(node[0]);
+
+            foreach (var n in node[1].Children)
+                CompileVarDec(type, n);
+        }
+
+        public void CompileVarDec(TypeName type, SyntaxTreeNode node)
+        {
             string name = node[0].ValueString;
 
             if (CurrentTable.Contains(name))
                 ErrorManager.ExitWithError(new Exception("Duplicate ID: " + name));
 
-            CodeSymbol symbol = builder.AddLocal(name, TypeNameFromNode(node[1]));//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
+            CodeSymbol symbol = builder.AddLocal(name, type);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
 
-            if(node.Children.Length > 2)
-                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[2])));
+            if (node.Children.Length > 1)
+                builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
         }
 
         [CodeGenFunction("ReturnStatement")]

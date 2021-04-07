@@ -44,7 +44,6 @@ namespace Redmond.Lex
             List<DFA> living = new List<DFA>();
 
             //DFACompiler.PrintDFA(_dfas[0]);
-
             int i = 0;
             while(true)
             {
@@ -81,7 +80,7 @@ namespace Redmond.Lex
                     }
                 }
 
-                if (final == null) { throw new Exception(); }
+                if (final == null) { throw new Exception("Final was null"); }
             }
 
             if (living.Count > 1) i--;
@@ -117,7 +116,7 @@ namespace Redmond.Lex
                 /*{ Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex + 1 }*/;
             else
             {
-                ErrorManager.ExitWithError(new Exception());
+                ErrorManager.ExitWithError(new Exception("No Token found"));
                 // ErrorManager.ExitWithError(new FailedToParseTokenException(_lines[_lineIndex], _index - _lastLine - 1, i + 1));
             }
 

@@ -32,7 +32,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 n = n[0];
             }
 
-            ids.Add(n.Op == "Identifier" ? n.ValueString : n[0].ValueString);
+            ids.Add(n.Op == "Identifier" || n.Op == "Type" ? n.ValueString : n[0].ValueString);
 
             _ids = ids.ToArray();
             Array.Reverse(_ids);

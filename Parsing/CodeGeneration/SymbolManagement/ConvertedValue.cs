@@ -12,6 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeValue Original;
         private InterCall _convertCall;
         private InterMethod _owner;
+        private TypeName _convertName;
 
         public ConvertedValue(CodeValue orignal, CodeType convert, InterMethod owner)
         {
@@ -20,8 +21,18 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _owner = owner;
         }
 
+        public ConvertedValue(CodeValue orignal, TypeName convertName, InterMethod owner)
+        {
+            Original = orignal;
+            _convertName = convertName;
+            _owner = owner;
+        }
+
+
         public override void Bind(IntermediateBuilder context)
         {
+            if (Type == null) Type = context.ResolveType(_convertName);
+
             Original.Bind(context);
             var method = Type.GetConversionMethod(context, Original);
             if (method == null) return;

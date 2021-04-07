@@ -99,7 +99,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_thisPtr == null) return;
             if (_thisPtr.Type is UserType && (_thisPtr.Type as UserType).ValueType) _valueType = true;
-            if(!_thisPtr.IsSymbol() && _thisPtr.Type is BasicType)
+            if(_method.IsInstance && !_thisPtr.IsSymbol() && _thisPtr.Type is BasicType)
             {
                 if (_thisPtr.ToSymbol() == null)
                 {

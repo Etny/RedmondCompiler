@@ -4,29 +4,13 @@ namespace FloatTest
 {
     class Program
     {
+        static int Field1 = 2, Field2 = Field1 + 2;
+
         static void Main()
         {
-            new DerivedType().Test();
+            int i = int.Parse(Console.ReadLine());
+            float j = i >= 5 ? 1.2 : .5;
+            Console.WriteLine(j);
         }
-    }
-
-    class DerivedType : BaseType{
-        
-        override void Test()
-        {
-            Console.WriteLine(1.2f / .6d);
-        }
-
-        virtual void SomethingElse()
-        {
-
-        }
-
-    }
-
-    abstract class BaseType { 
-        
-        abstract void Test();
-
     }
 }

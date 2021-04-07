@@ -62,7 +62,10 @@ namespace Redmond.Lex.LexCompiler
             switch (GetRealType(s1))
             {
                 case "float":
-                    return float.Parse(s1[0..^1]);
+                    if (s1[^1..].ToLower() == "f")
+                        return float.Parse(s1[0..^1]);
+                    else
+                        return float.Parse(s1);
 
                 case "double":
                     return double.Parse(s1[0..^1]);
