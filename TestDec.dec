@@ -86,7 +86,13 @@ constructor
 					;
 
 constructor_dec		
-					:	member_header '\(' parameter_dec_list '\)' {$$ = makeNode("ConstructorDec", $1, $3)}
+					:	member_header '\(' parameter_dec_list '\)' constructor_initializer	{$$ = makeNode("ConstructorDec", $1, $3, $5)}
+					;
+
+constructor_initializer
+					:	':' BASE '\(' parameter_list '\)'	{$$ = makeNode("BaseInitializer", $4)}
+					|	':' THIS '\(' parameter_list '\)'	{$$ = makeNode("ThisInitializer", $4)}
+					|										{$$ = makeNode("BaseInitializer", makeLeaf("ParameterList")}
 					;
 
 function			
@@ -465,7 +471,7 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT BASE
+CASE BREAK DEFAULT BASE THIS
 
 PLUSPLUS MINUSMINUS
 
@@ -514,6 +520,7 @@ case		{CASE}
 break		{BREAK}
 default		{DEFAULT}
 base		{BASE}
+this		{THIS}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}

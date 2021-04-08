@@ -19,7 +19,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly TypeName BaseTypeName;
 
         public readonly InterMethodSpecialName Initializer;
-        public readonly List<InterMethodSpecialName> Constructors = new List<InterMethodSpecialName>();
+        public readonly List<InterConstructor> Constructors = new List<InterConstructor>();
 
 
         //TODO: add interface support
@@ -54,7 +54,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void AddMethod(InterMethod method)
             => Methods = Methods.Add(method);
 
-        public void AddConstructor(InterMethodSpecialName method)
+        public void AddConstructor(InterConstructor method)
             => Constructors.Add(method);
 
 
@@ -89,7 +89,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void Bind(IntermediateBuilder builder)
         {
             BaseType = builder.ResolveType(BaseTypeName);
-            if (Constructors.Count == 0) Constructors.Add(new InterMethodSpecialName(".ctor", new ArgumentSymbol[] { }, this, new List<string>()));
+            if (Constructors.Count == 0) Constructors.Add(new InterConstructor(this));
 
             
            

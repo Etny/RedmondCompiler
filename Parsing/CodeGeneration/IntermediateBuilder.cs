@@ -92,14 +92,15 @@ namespace Redmond.Parsing.CodeGeneration
             return method;
         }
 
-        public InterMethod AddConstructor(ArgumentSymbol[] vars, List<string> flags)
+        public InterConstructor AddConstructor(ArgumentSymbol[] vars, List<string> flags, bool callThis)
         {
-            var method = new InterMethodSpecialName(".ctor", vars, CurrentType, flags);
+            var method = new InterConstructor(vars, CurrentType, flags, callThis);
             CurrentMethod = method;
             CurrentType.AddConstructor(method);
 
             foreach (var arg in vars)
                 _tables.Peek().AddSymbol(arg);
+
 
             return method;
         }

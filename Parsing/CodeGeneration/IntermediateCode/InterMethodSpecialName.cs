@@ -12,18 +12,19 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public InterMethodSpecialName(string name, ArgumentSymbol[] args, InterType owner, List<string> flags) : base(name, new TypeName("void"), args, owner, flags)
         {
-            AddFlag("rtspecialname");
-            AddFlag("specialname");
+            
 
-            if (name == ".ctor")
+            if (name == ".cctor")
             {
-                AddFlag("instance");
-            }
-            else if (name == ".cctor")
                 AddFlag("static");
+                AddFlag("rtspecialname");
+                AddFlag("specialname");
 
-            ReturnType = new InterUserType(owner);
+
+                ReturnType = new InterUserType(owner);
+            }
         }
+
 
         public override void Emit(IlBuilder builder)
         {
@@ -34,20 +35,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public override void Bind(IntermediateBuilder builder)
         {
             base.Bind(builder);
-
-            if (Name == ".ctor") {
-
-                var con = (Owner.BaseType as UserType).GetConstructors(builder).First();
-
-                AddInstruction(new InterCall(con, false, ThisPointer), 0);
-
-                foreach (var field in Owner.Fields)
-                {
-                    if (field.IsStatic) continue;
-                    AddInstruction(new InterCopy(field.Symbol, field.Initializer), 0);
-                }
-            }
-            else if (Name == ".cctor") 
+            if (Name == ".cctor") 
             {
                 foreach (var field in Owner.Fields)
                 {

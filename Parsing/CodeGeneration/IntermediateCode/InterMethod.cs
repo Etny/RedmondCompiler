@@ -141,7 +141,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 l.Bind(builder);
         }
 
-        public void BindSubMembers(IntermediateBuilder builder)
+        public virtual void BindSubMembers(IntermediateBuilder builder)
         {
             if (Instructions.Count > 0 && !(Instructions[^1] is InterRet)) AddInstruction(new InterRet());
 

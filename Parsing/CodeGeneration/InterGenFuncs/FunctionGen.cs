@@ -126,7 +126,7 @@ namespace Redmond.Parsing.CodeGeneration
 
         [CodeGenFunction("ConstructorDec")]
         public void CompileConstructorDeclaration(SyntaxTreeNode node)
-        {  
+        {
             List<string> functionKeywords = new List<string>();
             ArgumentSymbol[] args = CompileParameterDecList(node[1]);
             var decHeader = node[0];
@@ -137,7 +137,13 @@ namespace Redmond.Parsing.CodeGeneration
 
             PushNewTable();
 
-            builder.AddConstructor(args, functionKeywords);
+            bool callThis = node[2].Op == "ThisInitializer";
+
+            var con = builder.AddConstructor(args, functionKeywords, callThis);
+
+            CodeValue[] baseArgs = new CodeValue[node[2][0].Children.Length];
+            for (int i = 0; i < baseArgs.Length; i++) baseArgs[i] = ToIntermediateExpression(node[2][0][i]);
+            con.SetBaseArgs(baseArgs);
         }
 
         private ArgumentSymbol[] CompileParameterDecList(SyntaxTreeNode node)
