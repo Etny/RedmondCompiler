@@ -50,19 +50,33 @@ namespace Redmond.Parsing.CodeGeneration
 
             CodeValue thisPtr = null;
             string functionName = "";
+            bool baseAccess = false;
 
-            if(node[0].Op == "QualifiedIdentifier" || node[0].Op == "MemberAccess")
+            switch (node[0].Op)
             {
-                if (node[0].Children.Length > 1)
-                {
-                    functionName = node[0][1].ValueString;
-                    thisPtr = ToIntermediateExpression(node[0][0]);
-                }
-                else functionName = node[0][0].ValueString;
-            }else 
-                thisPtr = ToIntermediateExpression(node[0]);
+                case "QualifiedIdentifier":
+                case "MemberAccess":
+                    if (node[0].Children.Length > 1)
+                    {
+                        functionName = node[0][1].ValueString;
+                        thisPtr = ToIntermediateExpression(node[0][0]);
+                    }
+                    else functionName = node[0][0].ValueString;
+                    break;
 
-            return new InterCall(functionName, parameters, exp, thisPtr);
+                case "BaseAccess":
+                    functionName = node[0][0].ValueString;
+                    baseAccess = true;
+                    break;
+
+                default:
+                    thisPtr = ToIntermediateExpression(node[0]);
+                    break;
+            }
+
+            var call = new InterCall(functionName, parameters, exp, thisPtr, baseAccess);
+
+            return call;
         }
 
         [CodeGenFunction("Function")]

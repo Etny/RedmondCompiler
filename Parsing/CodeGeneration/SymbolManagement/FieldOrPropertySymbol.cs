@@ -49,6 +49,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             ID = name;
         }
 
+        public FieldOrPropertySymbol(CodeValue owner, TypeName owningTypeName, string name) : base()
+        {
+            _field = new FieldSymbol(owner, owningTypeName, name);
+            _property = new PropertySymbol(owner, name);
+            ID = name;
+        }
+
         public FieldOrPropertySymbol(UserType owner, string name) : base()
         {
             _field = new FieldSymbol(owner, name);

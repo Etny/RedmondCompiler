@@ -13,6 +13,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         private CodeValue _owner = null;
         private UserType _owningType = null;
+        private TypeName _owningTypeName = TypeName.Unknown;
         private InterField _field = null;
 
         private bool _initFromInterField = false;
@@ -23,6 +24,14 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _owner = owner;
             ID = name;
         }
+
+        public FieldSymbol(CodeValue owner, TypeName owningTypeName, string name) : base()
+        {
+            _owner = owner;
+            _owningTypeName = owningTypeName;
+            ID = name;
+        }
+
 
         public FieldSymbol(UserType owner, string name) : base()
         {
@@ -42,10 +51,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override void Bind(IntermediateBuilder context)
         {
             _owner?.Bind(context);
+            if (_owningTypeName != TypeName.Unknown) 
+                _owningType = UserType.ToUserType(context.ResolveType(_owningTypeName));
 
             if (Field != null) { Type = Field.Type; return; }
 
-            UserType type = (_owner != null ? _owner.Type : _owningType) as UserType;
+            UserType type = (_owningType != null ? _owningType : _owner.Type) as UserType;
 
             if (_owningType == null) _owningType = type;
 

@@ -124,13 +124,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public virtual void Bind(IntermediateBuilder builder)
         {
             ReturnType = builder.ResolveType(ReturnTypeName);
-            if (!IsStatic) AddFlag("instance");
 
             if (IsVirtual || IsAbstract)
             {
                 var inBase = builder.FindClosestFunction(Name, Owner.BaseType, Arguments, true);
                 if (inBase == null) AddFlag("newslot");
             }
+
+
+            if (!IsStatic) AddFlag("instance");
 
             foreach (var a in Arguments)
                 a.Bind(builder);

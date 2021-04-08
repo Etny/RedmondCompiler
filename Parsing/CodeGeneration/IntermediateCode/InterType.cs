@@ -16,7 +16,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly string Name;
         public CodeType BaseType;
 
-        private TypeName _baseTypeName;
+        public readonly TypeName BaseTypeName;
 
         public readonly InterMethodSpecialName Initializer;
         public readonly List<InterMethodSpecialName> Constructors = new List<InterMethodSpecialName>();
@@ -27,7 +27,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             Name = name;
             NamespaceContext = names;
-            _baseTypeName = baseTypeName;
+            BaseTypeName = baseTypeName;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
             Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this, new List<string>());
@@ -88,7 +88,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Bind(IntermediateBuilder builder)
         {
-            BaseType = builder.ResolveType(_baseTypeName);
+            BaseType = builder.ResolveType(BaseTypeName);
             if (Constructors.Count == 0) Constructors.Add(new InterMethodSpecialName(".ctor", new ArgumentSymbol[] { }, this, new List<string>()));
 
             

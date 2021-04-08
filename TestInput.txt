@@ -1,32 +1,36 @@
 ﻿using System;
 
-namespace FloatTest
+namespace BaseTest
 {
     class Program
     {
-        static int Field1 = 2, Field2 = Field1 + 2;
-
         static void Main()
         {
-            int i = int.Parse(Console.ReadLine());
-            int j = 0;            
+            new Derived().Func();
+        }
+    }
 
-            switch(i)
-            {
-                case 1:
-                    j = 1;
+    class Base
+    {
 
-                case 2:
-                    j = 3;
-                    break;
+        string s = "lol";
 
-                default:
-                    Console.WriteLine("Default!");
-                    j = 12;
-                    break;
-            }
+    
+        virtual void Func()
+        {
+            Console.WriteLine("Base Func");
+        }
+        
+    }
 
-            Console.WriteLine(j);
+    class Derived : Base
+    {
+
+        Base b = new Base();
+    
+        override void Func()
+        {
+            Console.WriteLine(base.s);
         }
     }
 }

@@ -161,6 +161,8 @@ namespace Redmond.Parsing.CodeGeneration
         public void CompileSwitchStatement(SyntaxTreeNode node)
         {
             var exp = ToIntermediateExpression(node[0]);
+            var loc = builder.AddLocal("switchLocl" + builder.CurrentMethod.Locals.Count, exp);
+            builder.AddInstruction(new InterCopy(loc, exp));
 
             InterBranch[] branches = new InterBranch[node[1].Children.Length];
 
@@ -173,7 +175,7 @@ namespace Redmond.Parsing.CodeGeneration
 
                 if(sect[0].Op == "DefaultLabel") { defaultCase = sect; continue; }
 
-                var bin = new InterBinOp(new Operator(Operator.OperatorType.Ceq), ToIntermediateExpression(sect[0][0]), exp);
+                var bin = new InterBinOp(new Operator(Operator.OperatorType.Ceq), ToIntermediateExpression(sect[0][0]), loc);
                 var branch = new InterBranch(new InterOpValue(bin), InterBranch.BranchCondition.OnTrue);
                 builder.AddInstruction(branch);
                 branches[i] = branch;
@@ -211,11 +213,6 @@ namespace Redmond.Parsing.CodeGeneration
 
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
-        }
-
-        public void CompileSwitchSection(SyntaxTreeNode node, CodeValue val)
-        {
-
         }
 
         [CodeGenFunction("BreakStatement")]

@@ -42,6 +42,9 @@ namespace Redmond.Parsing.CodeGeneration
                 case "MemberAccess":
                     return new FieldOrPropertySymbol(ToIntermediateExpression(node[0]), node[1].ValueString);
 
+                case "BaseAccess":
+                    return new FieldOrPropertySymbol(builder.CurrentMethod.ThisPointer, builder.CurrentType.BaseTypeName, node[0].ValueString);
+
                 case "ArrayAccessExpression":
                     return new ArrayEntryValue(ToIntermediateExpression(node[0]), ToIntermediateExpression(node[1]));
 

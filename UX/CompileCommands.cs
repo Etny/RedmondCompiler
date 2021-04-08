@@ -45,6 +45,7 @@ namespace Redmond.UX
             parseFile.Save();
 
             Console.WriteLine("Done!");
+            Console.Beep();
 
             //var parser = gram.GetParser();
 

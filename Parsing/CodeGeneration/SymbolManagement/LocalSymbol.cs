@@ -1,4 +1,5 @@
 ﻿using Redmond.Common;
+using Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions;
 using Redmond.Parsing.SyntaxAnalysis;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     class LocalSymbol : CodeSymbol
     {
         public int Index;
+        private CodeValue _op = null;
+
         public LocalSymbol(string id, TypeName typeName, int index, object value = null) : base(typeName, value)
         {
             ID = id;
@@ -20,6 +23,25 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             ID = id;
             Index = index;
+        }
+
+        public LocalSymbol(string id, CodeValue val, int index, object value = null) : base(null, value)
+        {
+            ID = id;
+            Index = index;
+            _op = val;
+        }
+
+        public override void Bind(IntermediateBuilder context)
+        {
+            if (_op == null)
+                base.Bind(context);
+            else
+            {
+                _op.Bind(context);
+                Type = _op.Type;
+            }
+
         }
 
 

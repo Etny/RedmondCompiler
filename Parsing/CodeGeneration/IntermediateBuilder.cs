@@ -119,6 +119,16 @@ namespace Redmond.Parsing.CodeGeneration
             return sym;
         }
 
+        public LocalSymbol AddLocal(string name, CodeValue op, object value = null)
+        {
+            LocalSymbol sym = new LocalSymbol(name, op, CurrentMethod.Locals.Count, value);
+            CurrentMethod.Locals.Add(sym);
+
+            _tables.Peek().AddSymbol(sym);
+
+            return sym;
+        }
+
         public InterField AddField(string name, TypeName type, string access, List<string> keywords)
         {
             InterField field = new InterField(name, type, access, keywords, new InterUserType(CurrentType));
@@ -180,8 +190,10 @@ namespace Redmond.Parsing.CodeGeneration
 
             UserType ut = null;
 
-            if (type.IsArray) ut = new ArrayType(ToCodeType(type.GetElementType()));
-            ut = UserType.NewUserType(type);
+            if (type.IsArray) 
+                ut = new ArrayType(ToCodeType(type.GetElementType()));
+            else
+                ut = UserType.NewUserType(type);
 
             if (ut != null) ReferenceTracker.AddUsedReference(ut.GetAssembly());
 

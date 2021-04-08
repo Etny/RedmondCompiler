@@ -173,6 +173,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override NamespaceContext GetNamespaceContext() => _intertype.NamespaceContext;
 
+        public override UserType GetBaseType()
+        {
+            return ToUserType(_intertype.BaseType);
+        }
+
     }
 
 }

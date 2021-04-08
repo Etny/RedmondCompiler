@@ -15,6 +15,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private CodeValue[] _parameters;
         private bool _expression, _staticCall;
         private CodeValue _thisPtr;
+        //private TypeName _searchType = TypeName.Unknown;
+        private bool _baseAccess = false;
         private LateStaticReferenceResolver _resolver;
 
         private IMethodWrapper _method = null;
@@ -22,13 +24,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private bool _valueType = false;
         private InterCopy _symbolConversion = null;
 
-        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null)
+        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null, bool baseAccess = false)
         {
             _targetName = name;
             _parameters = parameters;
             _expression = isExpression;
             _staticCall = false;
             _thisPtr = thisPtr;
+            _baseAccess = baseAccess;
         }
 
         public InterCall(string name, CodeValue[] parameters, bool isExpression = false, LateStaticReferenceResolver resolver = null)
@@ -77,7 +80,18 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                         _thisPtr = _resolver.GetReferencedFieldOrProperty();
                 }
 
-                CodeType type = _staticCall ? _resolver.Type : (_thisPtr == null ? new InterUserType(Owner.Owner) : _thisPtr.Type);
+                CodeType type;
+                if (_staticCall) type = _resolver.Type;
+                else if (_thisPtr == null)
+                {
+                    if (!_baseAccess) type = new InterUserType(Owner.Owner);
+                    else type = UserType.ToUserType(Owner.Owner.BaseType);
+                }
+                else
+                {
+                    if (!_baseAccess) type = _thisPtr.Type;
+                    else type = UserType.ToUserType(_thisPtr.Type).GetBaseType();
+                }
 
                 _method = context.FindClosestFunction(_targetName, type, _parameters);
             }
@@ -140,7 +154,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             foreach (var p in _parameters)
                 builder.PushValue(p);
 
-            if (_method.IsVirtual)
+            if (_method.IsVirtual && !_baseAccess)
             {
                 if (_valueType)
                     //NOTE: This is sometimes emitted while not needed, like with System.Int32.ToString(), as these methods appear

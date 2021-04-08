@@ -9,7 +9,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeType TypeOf;
         public ArrayType(CodeType type) : base()
         {
-            TypeOf = type;
+            TypeOf = type.StoredType;
             _type = typeof(Array);
             Name  = TypeOf.Name + "[]";
             ShortName += TypeOf.ShortName + "[]";

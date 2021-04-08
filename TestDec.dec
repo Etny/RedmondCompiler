@@ -11,6 +11,8 @@ none RANK_SPECIFIER
 
 %%
 
+//Based on http://www.cs.may.ie/~jpower/Research/csharp/csharp.y
+
 compilation_unit
 					:	files	{$$ = $1}
 					;
@@ -324,6 +326,7 @@ primary_expression_no_parenthesis
 					|	call_statement							{$$ = makeNode("CallExpression", $1)}
 					|	array_access_expression
 					|   new_expression
+					|	base_access
 					;
 
 
@@ -368,6 +371,10 @@ member_access
 					|	primitive_type	'.'	IDENTIFIER		{$$ = makeNode("MemberAccess", $1, $3)}
 					|	class_type	'.'	IDENTIIER			{$$ = makeNode("MemberAccess", $1, $3)}
 					;
+
+base_access
+					:	BASE '.' IDENTIFIER	{$$ = makeNode("BaseAccess", $3)}
+					;
 					
 type	
 					:	array_type
@@ -376,6 +383,7 @@ type
 
 array_type	
 					:	qualified_identifier RANK_SPECIFIER	{$$ = makeNode("Array", $1)}
+					|	simple_type	RANK_SPECIFIER			{$$ = makeNode("Array", $1)}
 					;
 
 non_array_type		
@@ -457,7 +465,7 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT
+CASE BREAK DEFAULT BASE
 
 PLUSPLUS MINUSMINUS
 
@@ -505,6 +513,7 @@ switch		{SWITCH}
 case		{CASE}
 break		{BREAK}
 default		{DEFAULT}
+base		{BASE}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}
