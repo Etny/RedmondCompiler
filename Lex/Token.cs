@@ -14,16 +14,18 @@ namespace Redmond.Lex
         public string Line;
         public int LineIndex;
         public int LineNumber;
+        public string Info;
 
-        public Token(string text, string type = "Unkown")
+        public Token(string text, string type = "Unkown", string info = "")
         {
             Text = text;
             Type = type;
+            Info = info;
         }
 
         public string GetHighlightOnLine()
         {
-            return Text;
+            return Info;
 
             string under = "";
             int endIndex = LineIndex + (Text.Length - 1);

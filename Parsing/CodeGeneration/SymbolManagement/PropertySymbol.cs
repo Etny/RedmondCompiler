@@ -51,8 +51,16 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             IPropertyWrapper matchProperty = null;
 
-            foreach (var f in type.GetProperties(context))
-                if (f.Name == ID) { matchProperty = f; break; }
+            var t = type;
+
+            while (matchProperty == null && t != CodeType.Object)
+            {
+                foreach (var f in t.GetProperties(context))
+                    if (f.Name == ID) { matchProperty = f; break; }
+                if (matchProperty == null) t = t.GetBaseType();
+            }
+
+            _owningType = t;
 
             Debug.Assert(matchProperty != null);
 

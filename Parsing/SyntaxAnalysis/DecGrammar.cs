@@ -23,7 +23,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         private void CompileFile(DecFile file)
         {
-            _tokenNames = new List<string>(file.TokenLines);
+
+            _tokenNames = new List<string>();
+            foreach (var line in file.TokenLines)
+                _tokenNames.AddRange(line.Split(' '));
+
 
             var lines = file.GrammarLines;
             int linesIndex = 0;

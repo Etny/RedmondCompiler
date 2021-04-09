@@ -52,6 +52,10 @@ namespace Redmond.Parsing.CodeGeneration
                     builder.EmitOpCode(OpCodes.Div);
                     break;
 
+                case OperatorType.Rem:
+                    builder.EmitOpCode(OpCodes.Rem);
+                    break;
+
                 case OperatorType.Ceq:
                     builder.EmitOpCode(OpCodes.Ceq);
                     break;
@@ -81,13 +85,18 @@ namespace Redmond.Parsing.CodeGeneration
                     builder.EmitOpCode(OpCodes.Ldc_I4_0);
                     builder.EmitOpCode(OpCodes.Ceq);
                     break;
+
+                case OperatorType.Neg:
+                    builder.EmitOpCode(OpCodes.Ldc_I4_0);
+                    builder.EmitOpCode(OpCodes.Ceq);
+                    break;
             }
         }
 
 
         public enum OperatorType
         {
-            Add, Sub, Mul, Div, Ceq, Clt, Cgt, Ngt, Nlt, Neq, Or, And
+            Add, Sub, Mul, Div, Ceq, Clt, Cgt, Ngt, Nlt, Neq, Or, And, Neg, Rem
         }
 }
 }

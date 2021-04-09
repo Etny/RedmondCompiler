@@ -16,6 +16,8 @@ namespace Redmond.IO
         public abstract char CurrentChar(int offset = 0);
         public abstract string GetSubString(int length);
 
+        public virtual string GetInfo() { return ""; }
+
         public virtual void Advance(int advance)
             => Position += advance;
     }

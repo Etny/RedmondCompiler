@@ -10,9 +10,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
     {
 
         private CodeValue _op1, _op2;
-        private InterOp _exp;
+        private CodeValue _exp;
 
-        public InterTernary(CodeValue op1, CodeValue op2, InterOp exp)
+        public InterTernary(CodeValue op1, CodeValue op2, CodeValue exp)
         {
             _op1 = op1;
             _op2 = op2;
@@ -35,7 +35,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             string label1 = Owner.LabelManager.NextLabel;
             string label2 = Owner.LabelManager.NextLabel;
 
-            _exp.Emit(builder);
+            builder.PushValue(_exp);
             
             builder.EmitOpCode(OpCodes.Brfalse, label1);
 

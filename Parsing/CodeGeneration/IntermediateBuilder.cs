@@ -213,7 +213,11 @@ namespace Redmond.Parsing.CodeGeneration
                 if (f.Name == name && f.ArgumentCount == args.Length)
                     applicableFunctions.Add(f);
 
-            Debug.Assert(applicableFunctions.Count > 0 || canBeNull);
+            if(applicableFunctions.Count == 0 && !canBeNull && type.GetBaseType() != CodeType.Object)
+                return FindClosestFunction(name, type.GetBaseType(), args, canBeNull);
+            
+
+            //Debug.Assert(applicableFunctions.Count > 0 || canBeNull);
 
             return FindClosest(applicableFunctions, args, canBeNull);
         }
@@ -255,7 +259,8 @@ namespace Redmond.Parsing.CodeGeneration
                     var argType = args[i].Type;
                     var funcType = f.Arguments[i];
 
-                    if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
+                    //if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
+                    canConvert = argType.CanAssignTo(funcType) != AssignType.CannotAssign;
 
                     if (funcType != argType) diff++;
                 }

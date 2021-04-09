@@ -13,12 +13,18 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public int Index;
 
 #warning Remove this!
-        private readonly List<GrammarItem> _i;
+        private readonly List<GrammarItem> _i = null;
 
-        public ParserState(List<GrammarItem> I)
+        public ParserState()
         {
            // _i = I;
         }
+
+        public ParserState(List<GrammarItem> I)
+        {
+             _i = I;
+        }
+
 
         public ParserState(int id, string serialized)
         {
@@ -56,10 +62,12 @@ namespace Redmond.Parsing.SyntaxAnalysis
         //TODO: this
         public override string ToString()
         {
-            string s = "state";
+            if (_i == null) return "state";
 
-            //foreach (var g in _i)
-            //    s += "["+g + "] \n";
+            string s = "";
+
+            foreach (var g in _i)
+                s += "["+g + "] \n";
 
             return s;
         }

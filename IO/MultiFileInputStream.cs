@@ -61,6 +61,20 @@ namespace Redmond.IO
                 return _buffer1.Substring(Position, length);
         }
 
+        public override string GetInfo()
+        {
+            string s;
+
+            int index = _fileIndex < 2 ? 0 : _fileIndex - 2;
+
+            int size = 40;
+
+            int startIndex = Position < size/2 ? 0 : Position - size/2;
+            int length = Position + size/2 > _buffer1.Length ? _buffer1.Length - startIndex : size;
+
+            return "File: " + _paths[index] + " " + _buffer1.Substring(startIndex, length);
+        }
+
         public override void Advance(int advance)
         {
             base.Advance(advance);

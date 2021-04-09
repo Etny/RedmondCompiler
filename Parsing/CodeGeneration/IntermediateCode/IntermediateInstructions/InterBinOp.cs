@@ -52,9 +52,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
 
 
-            if (_op1.Type is UserType)
+            if (wideType is UserType)
             {
-                var user = UserType.ToUserType(_op1.Type);
+                var user = UserType.ToUserType(wideType);
                 var overload = user.GetOperatorOverload(Op, context);
 
                 if(overload != null)

@@ -1,33 +1,37 @@
 ﻿using Redmond.Parsing.CodeGeneration.SymbolManagement;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
 {
-    class InterRet : InterInst
+    class InterUnOp : InterOp
     {
-        private CodeValue _exp;
-        private bool hasValue = true;
 
-        public InterRet(CodeValue exp ) { _exp = exp; }
-        public InterRet() { hasValue = false; }
+        private readonly Operator _op;
+        private readonly CodeValue _val;
+
+        public InterUnOp(Operator op, CodeValue val)
+        {
+            _op = op;
+            _val = val;
+        }
 
         public override void Bind(IntermediateBuilder context)
         {
             base.Bind(context);
-            if(hasValue) _exp.Bind(context);
+            _val.Bind(context);
         }
 
         public override void Emit(IlBuilder builder)
         {
             base.Emit(builder);
 
-            if (hasValue)
-                _exp.Push(builder);
-
-            builder.EmitOpCode(OpCodes.Ret);
+            builder.PushValue(_val);
+            _op.Emit(builder);
         }
+
+        public override CodeType GetResultType()
+            => _val.Type;
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructions
@@ -57,7 +58,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                     _target = forp;
                 }
             }
-
             _target.Store(builder, _source);
             //builder.EmitOpCode(_target.Location.GetStoreOpcode(), "For ID " + _target.ID);
         }

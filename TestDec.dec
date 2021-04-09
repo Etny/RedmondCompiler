@@ -1,7 +1,7 @@
 ﻿#Grammar
 
 left + -
-left * /
+left * / %
 left OR AND
 left CGT CLT CEQ NEQ
 left .
@@ -129,8 +129,9 @@ modifier
 					;
 
 function_body		
-					:	compound_statement				{$$ = makeNode("FunctionBody", $1)}
-					|	'=>' statement					{$$ = makeNode("FunctionBody", $3)}
+					:	compound_statement		{$$ = makeNode("FunctionBody", $1)}
+					|	ARROW statement			{$$ = makeNode("FunctionBody", makeNode("FunctionBodyStatement", $2))}
+					|	ARROW expression ';'	{$$ = makeNode("FunctionBody", makeNode("FunctionBodyStatement", $2))}
 					;
 
 
@@ -170,13 +171,21 @@ dec_list
 					|	var_dec					{$$ = makeNode("DecList", $1)}
 					;
 
-var_dec				:	IDENTIFIER					{$$ = makeNode("VarDec", $1)}
+var_dec				
+					:	IDENTIFIER					{$$ = makeNode("VarDec", $1)}
 					|	IDENTIFIER EQ expression	{$$ = makeNode("VarDec", $1, $3)}
 					;
 
 assign_statement	
-					: unary_expression EQ expression			{$$ = makeNode("AssignExpression", $1, $3)}
+					:	unary_expression EQ expression		{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "None"))}
+					|	unary_expression PLUSEQ expression	{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "Add"))}
+					|	unary_expression MINUSEQ expression	{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "Sub"))}
+					|	unary_expression DIVEQ expression	{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "Div"))}
+					|	unary_expression MULEQ expression	{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "Mul"))}
+					|	unary_expression MODEQ expression	{$$ = makeNode("AssignExpression", $1, $3, makeLeaf("AssignOperator", "Rem"))}
 					;
+
+
 
 if_statement		
 					:	IF parenthesized_expression statement ELSE statement	{$$ = makeNode("IfElseStatement", $2, $3, $5)}
@@ -236,8 +245,8 @@ break_statement
 					;
 
 call_statement		
-					:	primary_expression_no_parenthesis '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
-					|	qualified_identifier '\(' parameter_list '\)' {$$ = makeNode("Call", $1, $3)}
+					:	primary_expression_no_parenthesis '\(' parameter_list '\)'	{$$ = makeNode("Call", $1, $3)}
+					|	qualified_identifier '\(' parameter_list '\)'				{$$ = makeNode("Call", $1, $3)}
 					;
 
 parameter_list		
@@ -301,6 +310,7 @@ binary_expression
 					|	binary_expression '-' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Sub"));}
 					|	binary_expression '/' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Div"));}
 					|	binary_expression '*' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Mul"));}
+					|	binary_expression '\%' unary_expression				{$$ = makeNode("BinaryExpression", $1, $3, makeLeaf("BinaryOperator", "Rem"));}
 					|	unary_expression
 					;
 					
@@ -329,10 +339,11 @@ primary_expression_no_parenthesis
 					:	literal_expression
 					|	array_dec_expression
 					|	member_access
-					|	call_statement							{$$ = makeNode("CallExpression", $1)}
+					|	call_statement							
 					|	array_access_expression
 					|   new_expression
 					|	base_access
+					|	this_access
 					;
 
 
@@ -349,6 +360,7 @@ expression
 unary_expression	
 					:	postfix_expression
 					|	cast_expression
+					|	'!'	postfix_expression	{$$ = makeNode("UnaryExpression", $2, makeLeaf("UnaryOperator", "Neg"))}
 					;
 
 post_inc_or_dec_expression
@@ -380,6 +392,10 @@ member_access
 
 base_access
 					:	BASE '.' IDENTIFIER	{$$ = makeNode("BaseAccess", $3)}
+					;
+
+this_access
+					:	THIS {$$ = makeLeaf("ThisAccess")}
 					;
 					
 type	
@@ -471,9 +487,11 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT BASE THIS
+CASE BREAK DEFAULT BASE THIS ARROW
 
 PLUSPLUS MINUSMINUS
+
+PLUSEQ MINUSEQ MULEQ DIVEQ MODEQ
 
 EQ CEQ CLT CGT NLT NGT NEQ AND OR
 
@@ -521,6 +539,7 @@ break		{BREAK}
 default		{DEFAULT}
 base		{BASE}
 this		{THIS}
+=>			{ARROW}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}
@@ -534,6 +553,12 @@ this		{THIS}
 <=			{NGT}
 >=			{NLT}
 =			{EQ}
+
+\+=			{PLUSEQ}
+\-=			{MINUSEQ}
+\*=			{MULEQ}
+/=			{DIVEQ}
+\%=			{MODEQ}
 
 \[[\w\t\r\n]*\]		{RANK_SPECIFIER}
 
@@ -557,10 +582,10 @@ true												{BOOL_LITERAL; $$.type = "bool"; $$ = makeValue("bool", parseBoo
 false												{BOOL_LITERAL; $$.type = "bool"; $$ = makeValue("bool", parseBool($))}
 (letter|_)character*								{IDENTIFIER; $$ = makeLeaf("Identifier", $); $$.text = $}
 decimal_digit+										{INT_LITERAL; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
-[=\*/+-]											{Operator}
-[,();:>.,\{\}\[\]?]									{Punctuation}
+[=\*/+\-%]											{Operator}
+[,();:>.\{\}\[\]?!]								{Punctuation}
 [\w\t\r\n]											{Whitespace}
-\'character\'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
-"((letter|decimal_digit)|[\w\t\r\n:,!/\(\)?\'])*"			{STRING_LITERAL; $$ = makeValue("string", $)}
+\'(character|[\w\t\r\n:,!/\(\)?\'\=\:\-\{\} ])\'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
+\"(character|[\w\t\r\n:,!/\(\)?\'\%\-\. ])*\"			{STRING_LITERAL; $$ = makeValue("string", $)}
 
 #End

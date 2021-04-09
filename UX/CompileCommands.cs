@@ -20,7 +20,8 @@ namespace Redmond.UX
             Console.WriteLine("Reading parse file..");
 
             var output = GetSelectedOutput(opts);
-            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt"}));
+            //var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt"}));
+            var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\CompileTestProject");
 
             ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse").Read();
 
@@ -47,21 +48,20 @@ namespace Redmond.UX
             Console.WriteLine("Done!");
             Console.Beep();
 
-            //var parser = gram.GetParser();
+            var parser = gram.GetParser();
 
-            //string inputFile = opts.FindOption("input", "i")?.Argument ??
-            //    @"C:\Users\yveem\source\repos\Redmond\TestInput.txt";
+            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt" }));
+            //var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\CompileTestProject");
 
-            //string inputString = File.ReadAllText(inputFile) + GrammarConstants.EndChar;
 
-            //TokenStream Input = new TokenStream(inputString, Dec.LexLines, new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
+            TokenStream Input = new TokenStream(input, Dec.LexLines, new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
 
-            //parser.Parse(Input);
-            //var tree = SyntaxTreeNode.CurrentNode;
-            //Console.WriteLine(tree.ToTreeString());
-            //Console.WriteLine("============\n");
-            //new IntermediateGenerator().Start(tree);
-            //Console.WriteLine("============\n");
+            parser.Parse(Input);
+            var tree = SyntaxTreeNode.CurrentNode;
+            Console.WriteLine(tree.ToTreeString());
+            Console.WriteLine("============\n");
+            new IntermediateGenerator(new ConsoleStream()).Start(tree);
+            Console.WriteLine("============\n");
         }
 
         private static OutputStream GetSelectedOutput(ParsedCommandOptions options)
@@ -70,6 +70,25 @@ namespace Redmond.UX
 
             if (o == null || o.ToLower() == "console") return new ConsoleStream();
             else return new FileOutputStream(o);
+        }
+
+        private static InputStream GetAllCSFiles(string path)
+        {
+            List<string> FindAllInFolder(string path)
+            {
+                List<string> files = new List<string>();
+
+                foreach(var v in Directory.GetFiles(path))
+                    if (Path.GetExtension(v) == ".cs")
+                        files.Add(v);
+
+                foreach (var d in Directory.GetDirectories(path))
+                    if(Path.GetFileName(d) != "obj") files.AddRange(FindAllInFolder(d));
+
+                return files;
+            }
+
+            return new MultiFileInputStream(FindAllInFolder(path));
         }
 
 

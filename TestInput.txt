@@ -6,35 +6,25 @@ namespace BaseTest
     {
         static void Main()
         {
-            new Derived().Func();
+            Thing t = new Thing(2);
+            Console.WriteLine(t.i);
         }
     }
 
-    class Base
+
+    class Thing
     {
+        public int i = 0;
 
-        string s = "lol";
-
-        Base(int i){ Console.WriteLine("Constructor " + i); }
-
-    
-        virtual void Func()
+        public Thing(int i)
         {
-            Console.WriteLine("Base Func");
+            this.i = i;
+            this.i *= 8;
+            this.print();
         }
+
+        private void print() {Console.WriteLine("lol");}
         
     }
-
-    class Derived : Base
-    {
-
-        Derived() : this(2) {}
-
-        Derived(int i) : base(i * 2) {}
     
-        override void Func()
-        {
-            Console.WriteLine(base.s);
-        }
-    }
 }

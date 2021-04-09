@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public InterOpValue(InterOp op, InterMethod owner = null)
         {
             _op = op;
-            _op.SetOwner(owner);
+            if(owner != null) _op.SetOwner(owner);
         }
 
         public override void Bind(IntermediateBuilder context)

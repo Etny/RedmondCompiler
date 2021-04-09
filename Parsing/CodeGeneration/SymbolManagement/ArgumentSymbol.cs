@@ -47,10 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override void Store(IlBuilder builder, CodeValue val)
         {
             builder.PushValue(val);
-            if (Index <= 3)
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("Starg_" + Index));
-            else
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("Starg"), Index);
+            builder.EmitOpCode(OpCodeUtil.GetOpcode("Starg"), Index);
         }
 
 

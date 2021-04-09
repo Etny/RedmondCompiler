@@ -15,6 +15,9 @@ namespace Redmond
             LexAction.Init();
             IntermediateGenerator.Init();
 
+            Type t = typeof(char);
+            var m = t.GetMethods();
+
             if (args.Length < 1)
             {
                 do

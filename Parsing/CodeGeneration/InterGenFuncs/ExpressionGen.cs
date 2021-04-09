@@ -30,7 +30,7 @@ namespace Redmond.Parsing.CodeGeneration
                     return GetFirst((node.Val as SyntaxTreeNode).ValueString);
 
                 case "CastExpression":
-                    return new ConvertedValue(ToValue(node[1]), TypeNameFromNode(node[0]), builder.CurrentMethod);
+                    return new ConvertedValue(ToIntermediateExpression(node[1]), TypeNameFromNode(node[0]), builder.CurrentMethod);
 
                 case "Identifier":
                     return GetFirst(node.ValueString);
@@ -44,6 +44,10 @@ namespace Redmond.Parsing.CodeGeneration
 
                 case "BaseAccess":
                     return new FieldOrPropertySymbol(builder.CurrentMethod.ThisPointer, builder.CurrentType.BaseTypeName, node[0].ValueString);
+
+                case "ThisAccess":
+                    return builder.CurrentMethod.ThisPointer;
+
 
                 case "ArrayAccessExpression":
                     return new ArrayEntryValue(ToIntermediateExpression(node[0]), ToIntermediateExpression(node[1]));
@@ -60,6 +64,9 @@ namespace Redmond.Parsing.CodeGeneration
             if (value != null)
                 return value;
 
+            if (node.Op == "Call")
+                return new InterOpValue(CompileCallExp(node));
+
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
             {
                 return new InterOpValue(new LateStaticReferenceResolver(node, builder.CurrentType.NamespaceContext), builder.CurrentMethod);
@@ -74,6 +81,18 @@ namespace Redmond.Parsing.CodeGeneration
 
         public void PushExpression(SyntaxTreeNode node)
             => builder.AddInstruction(CompileNode(node) as InterInst);
+
+        [CodeGenFunction("UnaryExpression")]
+        public InterOp UnaryExpression(SyntaxTreeNode node)
+        {
+            var op = new InterUnOp(
+                Operator.FromName(node[1].ValueString),
+                ToIntermediateExpression(node.Children[0]));
+
+            //if (node.Op == "BinaryBoolExpression") op.IsBooleanExpression = true;
+
+            return op;
+        }
 
         [CodeGenFunction("BinaryExpression")]
         [CodeGenFunction("BinaryBoolExpression")]
@@ -95,7 +114,7 @@ namespace Redmond.Parsing.CodeGeneration
             var op1 = ToIntermediateExpression(node[1]);
             var op2 = ToIntermediateExpression(node[2]);
 
-            var bin = CompileBinaryExpression(node[0]);
+            var bin = ToIntermediateExpression(node[0]);
 
             return new InterTernary(op1, op2, bin); ;
         }
@@ -131,10 +150,19 @@ namespace Redmond.Parsing.CodeGeneration
 
             InterCopy copy;
 
+            CodeValue source;
+
+            if (node[2].ValueString == "None")
+                source = ToIntermediateExpression(node[1]);
+            else
+            {
+                var i = new InterBinOp(Operator.FromName(node[2].ValueString), symbol, ToIntermediateExpression(node[1]));
+                source = new InterOpValue(i, builder.CurrentMethod);
+            }
             if (symbol == null)
-                copy = new InterCopy(new LateStaticReferenceResolver(node[0], builder.CurrentType.NamespaceContext), ToIntermediateExpression(node[1]));
-            else 
-                 copy = new InterCopy(symbol, ToIntermediateExpression(node[1]));
+                copy = new InterCopy(new LateStaticReferenceResolver(node[0], builder.CurrentType.NamespaceContext), source);
+            else
+                copy = new InterCopy(symbol, source);
 
             copy.SetOwner(builder.CurrentMethod);
             return copy;
@@ -147,10 +175,9 @@ namespace Redmond.Parsing.CodeGeneration
                 builder.AddInstruction(new InterPush(ToIntermediateExpression(c)));
         }
 
-        [CodeGenFunction("CallExpression")]
-        public InterOp CompileCallExpression(SyntaxTreeNode node)
+        public InterOp CompileCallExp(SyntaxTreeNode node)
         {
-            var ret = CompileCall(node[0], true);
+            var ret = CompileCall(node, true);
             ret.SetOwner(builder.CurrentMethod);
 
             return ret;

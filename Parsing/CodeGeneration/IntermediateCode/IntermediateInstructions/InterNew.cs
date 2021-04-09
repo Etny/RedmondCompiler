@@ -33,7 +33,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             for (int i = 0; i < _parameters.Length; i++)
             {
-                if (_constructor.Arguments[i] == _parameters[i].Type) continue;
+                if (_parameters[i].Type.CanAssignTo(_constructor.Arguments[i]) == AssignType.CanAssign) continue;
 
                 _parameters[i] = new ConvertedValue(_parameters[i], _constructor.Arguments[i], Owner);
                 _parameters[i].Bind(context);

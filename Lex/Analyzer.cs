@@ -44,6 +44,7 @@ namespace Redmond.Lex
             List<DFA> living = new List<DFA>();
 
             //DFACompiler.PrintDFA(_dfas[0]);
+            char c1 = _input.CurrentChar(0);
             int i = 0;
             while(true)
             {
@@ -112,11 +113,11 @@ namespace Redmond.Lex
             }
 
             if (accepted)
-                t = new Token(_input.GetSubString(i), final.Name)
-                /*{ Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex + 1 }*/;
+                t = new Token(_input.GetSubString(i), final.Name, _input.GetInfo());
+            /*{ Line = _lines[_lineIndex], LineIndex = _index - _lastLine, LineNumber = _lineIndex + 1 }*/
             else
             {
-                ErrorManager.ExitWithError(new Exception("No Token found"));
+                ErrorManager.ExitWithError(new Exception("No Token found in " + _input.GetInfo()));
                 // ErrorManager.ExitWithError(new FailedToParseTokenException(_lines[_lineIndex], _index - _lastLine - 1, i + 1));
             }
 

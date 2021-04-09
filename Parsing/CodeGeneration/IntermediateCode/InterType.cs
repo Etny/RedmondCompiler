@@ -18,7 +18,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public readonly TypeName BaseTypeName;
 
-        public readonly InterMethodSpecialName Initializer;
+        public readonly InterInitializer Initializer;
         public readonly List<InterConstructor> Constructors = new List<InterConstructor>();
 
 
@@ -30,7 +30,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             BaseTypeName = baseTypeName;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
-            Initializer = new InterMethodSpecialName(".cctor", new ArgumentSymbol[] { }, this, new List<string>());
+            Initializer = new InterInitializer(this, new List<string>());
         }
 
         public string FullName => string.Join('.', NamespaceContext.NamespaceHierarchy.Add(Name));

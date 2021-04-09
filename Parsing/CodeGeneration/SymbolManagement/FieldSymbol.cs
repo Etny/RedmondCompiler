@@ -62,8 +62,16 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
             IFieldWrapper matchField = null;
 
-            foreach (var f in type.GetFields(context))
-                if (f.Name == ID) { matchField = f; break; }
+            var t = type;
+
+            while (matchField == null && t != CodeType.Object)
+            {
+                foreach (var f in t.GetFields(context))
+                    if (f.Name == ID) { matchField = f; break; }
+                if (matchField == null) t = t.GetBaseType();
+            }
+
+            _owningType = t;
 
             //Debug.Assert(matchField != null);
 

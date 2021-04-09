@@ -18,8 +18,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public InterConstructor(ArgumentSymbol[] args, InterType owner, List<string> flags, bool callThis) : base(".ctor", args, owner, flags)
         {
-            AddFlag("rtspecialname");
-            AddFlag("specialname");
             AddFlag("instance");
 
             _callThis = callThis;
@@ -49,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             foreach (var field in Owner.Fields)
             {
-                if (field.IsStatic) continue;
+                if (field.IsStatic || field.Initializer == null) continue;
                 AddInstruction(new InterCopy(field.Symbol, field.Initializer), 0);
             }
 
