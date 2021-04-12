@@ -30,9 +30,8 @@ namespace Redmond.IO
             int index = Position + offset;
             if (index >= _buffer1.Length)
             {
-                if (_buffer2 == null) return GrammarConstants.EndChar;
                 index -= _buffer1.Length;
-                if (index > _buffer2.Length) return GrammarConstants.EndChar;
+                if (_buffer2 == null || index >= _buffer2.Length) { AtEnd = true; return GrammarConstants.EndChar; }
                 return _buffer2[index];
             }
             else return _buffer1[index];
@@ -44,7 +43,7 @@ namespace Redmond.IO
 
             if (endIndex >= _buffer1.Length)
             {
-                string s1 = _buffer1.Substring(Position);
+                string s1 = Position < _buffer1.Length ? _buffer1.Substring(Position) : "";
                 endIndex = length - (_buffer1.Length - Position) ;
                 string s2;
                 if (_buffer2 == null || endIndex >= _buffer2.Length)

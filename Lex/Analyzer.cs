@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Redmond.IO;
+using PCRE;
 
 namespace Redmond.Lex
 {
@@ -18,7 +19,7 @@ namespace Redmond.Lex
         //private int _index = 0;
 
         private readonly string defaultAlphabet = new string(Enumerable.Range(32, (126 - 32) + 1).Select(i => (char)i).ToArray());
-        private readonly List<DFA> _dfas = new List<DFA>();
+        private readonly List<RegexDFA> _dfas = new List<RegexDFA>();
 
         public Analyzer(InputStream input, string[] lexLines, string alphabet = "")
         {
@@ -27,7 +28,7 @@ namespace Redmond.Lex
 
             List<string> lex = new List<string>();
             lex.AddRange(lexLines);
-            lex.Add(GrammarConstants.EndChar + " {EndOfFile}");
+            lex.Add('\\'+GrammarConstants.EndChar + " {EndOfFile}");
 
             _dfas = DFACompiler.CompileFile(lex.ToArray(), alphabet == "" ? defaultAlphabet : alphabet);
         }
@@ -40,19 +41,22 @@ namespace Redmond.Lex
 
             Token t = Token.Unknown;
 
-            List<DFA> test = _dfas;
-            List<DFA> living = new List<DFA>();
+            List<RegexDFA> test = _dfas;
+            List<RegexDFA> living = new List<RegexDFA>();
+
 
             //DFACompiler.PrintDFA(_dfas[0]);
             char c1 = _input.CurrentChar(0);
+            if (c1 == GrammarConstants.EndChar)
+                Console.WriteLine();
             int i = 0;
             while(true)
             {
-                List<DFA> newLiving = new List<DFA>();
+                List<RegexDFA> newLiving = new List<RegexDFA>();
 
                 //if (_input[_index + i] == '\n') { _lineIndex++; _lastLine = _index + i+1; }
 
-                char c = _input.CurrentChar(i);
+                string c = _input.GetSubString(i+1);
 
                 foreach (var dfa in test)
                     if (dfa.Progress(c))
@@ -65,8 +69,8 @@ namespace Redmond.Lex
                 i++;
             }
 
-
-            DFA final = null;
+            string cc = _input.GetSubString(i);
+            RegexDFA final = null;
 
             if (living.Count == 1) 
                 final = living[0];
@@ -74,41 +78,42 @@ namespace Redmond.Lex
             {
                 foreach (var dfa in living)
                 {
-                    if (dfa.CurrentState.IsAcceptingState)
+                    if (dfa.Accepted(cc))
                     {
                         final = dfa;
                         break;
                     }
                 }
-
+                i--;
                 if (final == null) { throw new Exception("Final was null"); }
             }
 
-            if (living.Count > 1) i--;
+
             bool accepted = false;
+            cc = _input.GetSubString(i + 1);
+
 
             if (final != null)
             {
-                accepted = final.CurrentState.IsAcceptingState; ;
+                accepted = final.Accepted(cc);
 
                 i++;
                 while (!_input.AtEnd &&
-                       final.Progress(_input.CurrentChar(i)))
+                       final.Progress(_input.GetSubString(i)))
                 {
-                    if (final.CurrentState.IsAcceptingState) accepted = true;
+                    if (final.Accepted(_input.GetSubString(i))) accepted = true;
                     i++;
                 }
 
-                if (final.LastJumpAhead != -1) i = final.LastJumpAhead;
+                //if (final.LastJumpAhead != -1) i = final.LastJumpAhead;
             }
+            if(!_input.AtEnd) i--;
 
 
             //Discard White Spaces
             if(final?.Name == "Whitespace")
             {
                 _input.Advance(i);
-                foreach (var dfa in _dfas)
-                    dfa.Reset();
                 return GetNextToken();
             }
 
@@ -128,9 +133,6 @@ namespace Redmond.Lex
                 t.Values["val"] = t.Text;
 
             _input.Advance(i);
-
-            foreach (var dfa in _dfas)
-                dfa.Reset();
 
 
             return t;

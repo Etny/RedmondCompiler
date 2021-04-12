@@ -14,7 +14,7 @@ none RANK_SPECIFIER
 //Based on http://www.cs.may.ie/~jpower/Research/csharp/csharp.y
 
 compilation_unit
-					:	files	{$$ = $1}
+					:	files
 					;
 
 files
@@ -509,7 +509,9 @@ character = letter|decimal_digit|_
 real_suffix = [FfDdMm]
 
 real1 = decimal_digit+ real_suffix
-real2 = decimal_digit* . decimal_digit+ real_suffix*
+real2 = decimal_digit* \. decimal_digit+ real_suffix*
+
+string_char = [^\\\"]
 
 %%
 
@@ -560,7 +562,7 @@ this		{THIS}
 /=			{DIVEQ}
 \%=			{MODEQ}
 
-\[[\w\t\r\n]*\]		{RANK_SPECIFIER}
+\[\s*\]		{RANK_SPECIFIER}
 
 byte	{BYTE}
 short	{SHORT}
@@ -584,8 +586,9 @@ false												{BOOL_LITERAL; $$.type = "bool"; $$ = makeValue("bool", parseBo
 decimal_digit+										{INT_LITERAL; $$.num = parseInt($); $$.type = "int"; $$ = makeValue("int32", parseInt($));}
 [=\*/+\-%]											{Operator}
 [,();:>.\{\}\[\]?!]								{Punctuation}
-[\w\t\r\n]											{Whitespace}
-\'(character|[\w\t\r\n:,!/\(\)?\'\=\:\-\{\} ])\'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
-\"(character|[\w\t\r\n:,!/\(\)?\'\%\-\. ])*\"			{STRING_LITERAL; $$ = makeValue("string", $)}
+[\s]											{Whitespace}
+\/\/[^\n\r]*[\n\r]								{Whitespace
+'string_char'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
+"string_char*"			{STRING_LITERAL; $$ = makeValue("string", $)}
 
 #End

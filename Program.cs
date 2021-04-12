@@ -3,6 +3,8 @@ using Redmond.Parsing.CodeGeneration;
 using Redmond.Parsing.SyntaxAnalysis;
 using Redmond.UX;
 using System;
+using System.Text.RegularExpressions;
+using PCRE;
 
 namespace Redmond
 {
@@ -15,8 +17,9 @@ namespace Redmond
             LexAction.Init();
             IntermediateGenerator.Init();
 
-            Type t = typeof(char);
-            var m = t.GetMethods();
+            var pcre = new PcreRegex("asdf");
+            var m = pcre.Match("as", PcreMatchOptions.PartialSoft);
+            bool b = m.IsPartialMatch;
 
             if (args.Length < 1)
             {
