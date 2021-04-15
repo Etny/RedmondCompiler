@@ -161,6 +161,9 @@ namespace Redmond.Parsing.SyntaxAnalysis
 
         private void SetAction(ParserState state, ProductionEntry key, ParserAction newAction)
         {
+            if (key is NonTerminal nt)
+                Console.WriteLine();
+
             if (state.Action.ContainsKey(key.ID))
             {
                 var oldAction = state.Action[key.ID];

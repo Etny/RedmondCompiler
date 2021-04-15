@@ -17,9 +17,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsFieldOrProperty => !IsStatic;
 
         private FieldOrPropertySymbol _field = null;
-        private NamespaceContext _namespaceContext;
+        private ResolutionContext _namespaceContext;
         
-        public LateStaticReferenceResolver(SyntaxTreeNode node, NamespaceContext namespaceContext)
+        public LateStaticReferenceResolver(SyntaxTreeNode node, ResolutionContext namespaceContext)
         {
             _namespaceContext = namespaceContext;
 
@@ -43,7 +43,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             int i = 0;
             for(; i < _ids.Length; i++)
             {
-                Type = context.ResolveType(new TypeName(string.Join('.', _ids[0..(i+1)]), _namespaceContext));
+                Type = context.ResolveType(new BasicTypeName(string.Join('.', _ids[0..(i+1)]), _namespaceContext));
                 if (Type != null) break;
             }
 

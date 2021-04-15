@@ -100,9 +100,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             for (int i = 0; i < _parameters.Length; i++)
             {
-                if (_parameters[i].Type.CanAssignTo(_method.Arguments[i]) == AssignType.CanAssign) continue;
+                if (_parameters[i].Type.CanAssignTo(_method.Arguments[i].StoredType) == AssignType.CanAssign) continue;
 
-                _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i], Owner);
+                _parameters[i] = new ConvertedValue(_parameters[i], _method.Arguments[i].StoredType, Owner);
                 _parameters[i].Bind(context);
             }
 

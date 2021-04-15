@@ -69,7 +69,7 @@ namespace Redmond.IO
             int size = 40;
 
             int startIndex = Position < size/2 ? 0 : Position - size/2;
-            int length = Position + size/2 > _buffer1.Length ? _buffer1.Length - startIndex : size;
+            int length = startIndex + size > _buffer1.Length ? _buffer1.Length - startIndex : size;
 
             return "File: " + _paths[index] + " " + _buffer1.Substring(startIndex, length);
         }

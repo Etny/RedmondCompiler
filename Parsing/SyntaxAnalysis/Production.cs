@@ -80,10 +80,10 @@ namespace Redmond.Parsing.SyntaxAnalysis
                         switch (ss[0])
                         {
                             case "prec":
-                                //var term = new Terminal(ss[1], _tokenNames.Contains(ss[1]));
-                                //_precedence = term.Precedence;
-                                //_associatvity = term.Associativity;
-                                Debug.Assert(false);
+                                var term = new Terminal(ss[1], true);
+                                _precedence = term.Precedence;
+                                _associatvity = term.Associativity;
+                                //Debug.Assert(false);
                                 break;
                         }
                         continue;

@@ -103,7 +103,7 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("FunctionBody")]
         public void CompileFunctionBody(SyntaxTreeNode node)
         {
-            if(node[0].Op == "FunctionBodyStatement" && builder.CurrentMethod.ReturnTypeName != new TypeName("void"))
+            if(node[0].Op == "FunctionBodyStatement" && builder.CurrentMethod.ReturnTypeName != new BasicTypeName("void"))
                 builder.AddInstruction(new InterRet(ToIntermediateExpression(node[0][0])));
             else
                 CompileNodes(node.Children);

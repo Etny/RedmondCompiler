@@ -46,7 +46,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         }
 
 
-        private string ArgList => string.Join(',', from a in Arguments select a.Type.Name);
+        public string ArgList => string.Join(',', from a in Arguments select a.Type.Name);
 
 
         public string Signature => $"{Owner.FullName}.{Name}";

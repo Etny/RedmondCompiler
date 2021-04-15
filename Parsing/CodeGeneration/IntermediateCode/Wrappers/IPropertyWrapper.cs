@@ -26,8 +26,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
     class PropertyInfoWrapper : IPropertyWrapper
     {
 
-        private PropertyInfo _property;
-        private IntermediateBuilder _context;
+        protected PropertyInfo _property;
+        protected IntermediateBuilder _context;
 
         public PropertyInfoWrapper(PropertyInfo property, IntermediateBuilder context)
         {
@@ -38,15 +38,40 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool CanRead => _property.CanRead;
         public bool CanWrite => _property.CanWrite;
 
-        public IMethodWrapper GetFunction => new MethodInfoWrapper(_property.GetGetMethod(), _context);
-        public IMethodWrapper SetFunction => new MethodInfoWrapper(_property.GetSetMethod(), _context);
+        public virtual IMethodWrapper GetFunction => new MethodInfoWrapper(_property.GetGetMethod(), _context);
+        public virtual IMethodWrapper SetFunction => new MethodInfoWrapper(_property.GetSetMethod(), _context);
 
 
         public bool IsStatic => _property.GetGetMethod().IsStatic;
 
         public string Name => _property.Name;
 
-        public CodeType Type => _context.ToCodeType(_property.PropertyType);
+        public virtual CodeType Type => _context.ToCodeType(_property.PropertyType);
+
+    }
+
+    class GenericPropertyInfoWrapper : PropertyInfoWrapper
+    {
+        private GenericType _type;
+
+        public GenericPropertyInfoWrapper(PropertyInfo property, IntermediateBuilder context, GenericType type) : base(property, context)
+        {
+            _type = type;
+        }
+
+        public override IMethodWrapper GetFunction => new GenericMethodInfoWrapper(_property.GetGetMethod(), _context, _type);
+        public override IMethodWrapper SetFunction => new GenericMethodInfoWrapper(_property.GetSetMethod(), _context, _type);
+
+        public override CodeType Type {
+            get
+            {
+                if (!_property.PropertyType.IsGenericParameter)
+                    return _context.ToCodeType(_property.PropertyType);
+                else
+                    return new GenericParameterType(_type.GenericParameters[_property.PropertyType.GenericParameterPosition], _property.PropertyType.GenericParameterPosition);
+            }
+        }
+
 
     }
 }

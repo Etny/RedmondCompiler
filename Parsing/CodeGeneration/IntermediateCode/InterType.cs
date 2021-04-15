@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public ImmutableList<InterMethod> Methods = ImmutableList<InterMethod>.Empty;
         public ImmutableList<InterField> Fields = ImmutableList<InterField>.Empty;
 
-        public readonly NamespaceContext NamespaceContext;
+        public readonly ResolutionContext NamespaceContext;
         public readonly string Name;
         public CodeType BaseType;
 
@@ -21,21 +21,26 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public readonly InterInitializer Initializer;
         public readonly List<InterConstructor> Constructors = new List<InterConstructor>();
 
+        public readonly int GenericParametersCount;
 
         //TODO: add interface support
-        public InterType(string name, NamespaceContext names, TypeName baseTypeName)
+        public InterType(string name, ResolutionContext names, TypeName baseTypeName, int genericParamCount = 0)
         {
             Name = name;
             NamespaceContext = names;
             BaseTypeName = baseTypeName;
+            GenericParametersCount = genericParamCount;
 
             //Constructor = new InterMethodSpecialName(".ctor", new CodeSymbol[] { }, this);
             Initializer = new InterInitializer(this, new List<string>());
         }
 
-        public string FullName => string.Join('.', NamespaceContext.NamespaceHierarchy.Add(Name));
+        public string FullName => string.Join('.', NamespaceContext.NamespaceHierarchy.Add(Name)) 
+                                    + (GenericParametersCount == 0 ? "" : "`" + GenericParametersCount);
 
         public bool IsAbstract => Flags.Contains("abstract");
+
+        public bool IsGeneric => GenericParametersCount > 0;
 
         public void AddFlag(string flag)
         {
@@ -63,7 +68,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public void Emit(IlBuilder builder)
         {
-            builder.EmitLine($".class private {string.Join(' ', Flags)} auto ansi beforefieldinit {FullName} extends {BaseType.ShortName}");
+            string genericParams =
+                IsGeneric ? '<' + string.Join(',', NamespaceContext.GenericParameters) + '>' : "";
+
+            builder.EmitLine($".class private {string.Join(' ', Flags)} auto ansi beforefieldinit {FullName}{genericParams} extends {BaseType.ShortName}");
             builder.EmitLine("{");
             builder.EmitLine();
             builder.Output.AddIndentation();

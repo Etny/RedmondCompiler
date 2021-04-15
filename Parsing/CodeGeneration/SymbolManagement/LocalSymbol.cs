@@ -25,7 +25,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Index = index;
         }
 
-        public LocalSymbol(string id, CodeValue val, int index, object value = null) : base(null, value)
+        public LocalSymbol(string id, CodeValue val, int index, object value = null) : base(val.Type, value)
         {
             ID = id;
             Index = index;

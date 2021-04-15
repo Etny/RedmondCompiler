@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BaseTest
 {
@@ -6,25 +7,24 @@ namespace BaseTest
     {
         static void Main()
         {
-            Thing t = new Thing(2);
-            Console.WriteLine(t.i);
+            Generic<int, string> g = new Generic<int, string>(2);
+            Console.WriteLine(g.Get("Lol"));
         }
     }
 
-
-    class Thing
+    class Generic<T, U>
     {
-        public int i = 0;
+        T Thing;
 
-        public Thing(int i)
+        public Generic(T i)
         {
-            this.i = i;
-            this.i *= 8;
-            this.print();
+            Thing = i;
         }
-
-        private void print() {Console.WriteLine("lol");}
         
+        public T Get(U u) 
+        {
+            Console.WriteLine(u);
+            return Thing;
+        }
     }
-    
 }

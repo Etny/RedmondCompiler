@@ -29,9 +29,13 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public override string Name => "shift";
 
         public readonly int StateIndex;
+        public ParserState debugState;
 
         public ShiftAction(ParserState state)
-            => StateIndex = state.Index;
+        {
+            debugState = state;
+            StateIndex = state.Index;
+        }
 
         public ShiftAction(string[] parsed)
         {
@@ -53,9 +57,11 @@ namespace Redmond.Parsing.SyntaxAnalysis
         public readonly int GotoID;
         public readonly GrammarAction Action;
         public readonly Production Production;
+        public Production debugProd;
 
         public ReduceAction(Production prod)
         {
+            debugProd = prod;
             PopCount = prod.Rhs.Length;
             GotoID = prod.Lhs.ID;
             Action = prod.HasAction ? prod.Action : null;

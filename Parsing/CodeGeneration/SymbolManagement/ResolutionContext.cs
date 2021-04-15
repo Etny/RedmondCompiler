@@ -6,21 +6,25 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
-    class NamespaceContext
+    class ResolutionContext
     {
 
         public ImmutableArray<string> NamespaceHierarchy;
+        public List<string> GenericParameters;
 
-        public NamespaceContext(Stack<string> currentNamespaceStack)
+
+        public ResolutionContext(Stack<string> currentNamespaceStack)
         {
             NamespaceHierarchy = ImmutableArray<string>.Empty.AddRange(currentNamespaceStack);
+            GenericParameters = new List<string>();
         }
 
-        public NamespaceContext(string ns)
+        public ResolutionContext(string ns)
         {
             NamespaceHierarchy = ImmutableArray<string>.Empty;
             var s = ns.Split('.');
             if (s.Length > 1 || s[0].Length > 0) NamespaceHierarchy = NamespaceHierarchy.AddRange(s);
+            GenericParameters = new List<string>();
         }
 
         public IEnumerable<string> TravelUpHierarchy()
@@ -39,7 +43,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override bool Equals(object obj)
         {
-            return obj is NamespaceContext context && Enumerable.SequenceEqual(NamespaceHierarchy, context.NamespaceHierarchy);
+            return obj is ResolutionContext context && Enumerable.SequenceEqual(NamespaceHierarchy, context.NamespaceHierarchy);
         }
 
         public override string ToString()

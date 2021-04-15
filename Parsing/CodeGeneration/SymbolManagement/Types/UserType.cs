@@ -44,6 +44,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
         }
 
+        public Type GetNativeType() => _type;
+
         public virtual Assembly GetAssembly() => _type.Assembly;
 
         public override bool Equals(object obj)
@@ -133,12 +135,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             throw new NotImplementedException();
         }
 
-        public virtual NamespaceContext GetNamespaceContext() => new NamespaceContext(_type.Namespace);
+        public virtual ResolutionContext GetNamespaceContext() => new ResolutionContext(_type.Namespace);
     }
 
     class InterUserType : UserType
     {
-        private InterType _intertype;
+        protected InterType _intertype;
 
         public InterUserType(InterType type) : base()
         {
@@ -147,6 +149,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Name = $"class {_intertype.FullName}";
             ShortName = $"{_intertype.FullName}";
         }
+
+        public InterType GetInterType() => _intertype;
 
         public override IEnumerable<IMethodWrapper> GetFunctions(IntermediateBuilder context)
         {
@@ -171,7 +175,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             return new List<IPropertyWrapper>();
         }
 
-        public override NamespaceContext GetNamespaceContext() => _intertype.NamespaceContext;
+        public override ResolutionContext GetNamespaceContext() => _intertype.NamespaceContext;
 
         public override UserType GetBaseType()
         {

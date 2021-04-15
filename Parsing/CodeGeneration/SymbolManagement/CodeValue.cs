@@ -18,7 +18,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         [LexFunction("makeValue")]
         [SyntaxFunction("makeValue")]
         public static CodeValue MakeValue(string type, object value)
-          => new CodeValue(new TypeName(type), value);
+          => new CodeValue(new BasicTypeName(type), value);
 
         protected CodeValue() { }
 

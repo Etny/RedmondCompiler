@@ -20,8 +20,6 @@ namespace Redmond.Parsing.CodeGeneration
         public InterMethod CurrentMethod = null;
         public Stack<string> Namespaces = new Stack<string>();
 
-        public NamespaceContext CurrentNamespaceContext = null;
-
         private Stack<SymbolTable> _tables;
 
         private AssemblyReferenceTracker ReferenceTracker = new AssemblyReferenceTracker();
@@ -43,6 +41,18 @@ namespace Redmond.Parsing.CodeGeneration
             _tables = tables;
         }
 
+
+        public ResolutionContext CurrentNamespaceContext
+        {
+            get
+            {
+                if (CurrentType != null)
+                    return CurrentType.NamespaceContext;
+                else
+                    return new ResolutionContext(Namespaces);
+            }
+        }
+
         public InterType AddType(InterType type)
         {
             CurrentType = type;
@@ -54,13 +64,11 @@ namespace Redmond.Parsing.CodeGeneration
         public void BeginNamespace(string name)
         {
             Namespaces.Push(name);
-            CurrentNamespaceContext = new NamespaceContext(Namespaces);
         }
 
         public void EndNameSpace()
         {
             Namespaces.Pop();
-            CurrentNamespaceContext = new NamespaceContext(Namespaces);
         }
 
         public InterBranch[] GetBreaks()
@@ -150,8 +158,25 @@ namespace Redmond.Parsing.CodeGeneration
         
         public CodeType ResolveType(TypeName name)
         {
-            if (name.Name.Length > 2 && name.Name[^2..] == "[]")
-                return new ArrayType(ResolveType(new TypeName(name.Name[0..^2], name.NamespaceContext)));
+            if(name is ArrayTypeName)
+            {
+                var array = name as ArrayTypeName;
+                return new ArrayType(ResolveType(array.ElementType));
+            }else if(name is GenericTypeName)
+            {
+                var generic = name as GenericTypeName;
+
+                CodeType[] parameters = new CodeType[generic.GenericParameters.Length];
+                var genericName = UserType.ToUserType(ResolveType(new BasicTypeName(generic.baseName.Name + '`' + parameters.Length, generic.baseName.NamespaceContext)));
+
+                for (int i = 0; i < parameters.Length; i++)
+                    parameters[i] = ResolveType(generic.GenericParameters[i]);
+
+                return GenericType.NewGenericType(genericName, parameters);
+            }
+
+            if (name.NamespaceContext.GenericParameters.Contains(name.Name))
+                return new GenericParameterType(CodeType.Void, name.NamespaceContext.GenericParameters.IndexOf(name.Name));
 
             var ctype = CodeType.ByName(name.Name);
             if (ctype != null) return ctype;
@@ -191,8 +216,16 @@ namespace Redmond.Parsing.CodeGeneration
 
             UserType ut = null;
 
-            if (type.IsArray) 
+            if (type.IsArray)
                 ut = new ArrayType(ToCodeType(type.GetElementType()));
+            else if (type.IsGenericType)
+            {
+                CodeType[] parameters = new CodeType[type.GetGenericArguments().Length];
+                for (int i = 0; i < parameters.Length; i++) 
+                    parameters[i] = ToCodeType(type.GetGenericArguments()[i]);
+
+                ut = GenericType.NewGenericType(UserType.NewUserType(type), parameters);
+            }
             else
                 ut = UserType.NewUserType(type);
 
@@ -260,9 +293,9 @@ namespace Redmond.Parsing.CodeGeneration
                     var funcType = f.Arguments[i];
 
                     //if (argType != funcType && (argType.GetWiderType(funcType) == null || argType.GetWiderType(funcType) == argType)) { canConvert = false; break; }
-                    canConvert = argType.CanAssignTo(funcType) != AssignType.CannotAssign;
+                    canConvert = argType.StoredType.CanAssignTo(funcType.StoredType) != AssignType.CannotAssign;
 
-                    if (funcType != argType) diff++;
+                    if (funcType.StoredType != argType.StoredType) diff++;
                 }
 
                 if (!canConvert) continue;
