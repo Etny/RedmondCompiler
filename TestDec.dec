@@ -199,7 +199,8 @@ return_statement
 					|	RETURN expression	{$$ = makeNode("ReturnStatement", $2)}
 					;
 
-dec_statement		:	type dec_list	{$$ = makeNode("DeclarationStatement", $1, $2);}
+dec_statement		:	type dec_list					{$$ = makeNode("DeclarationStatement", $1, $2);}
+					|	VAR IDENTIFIER EQ expression	{$$ = makeNode("VarDeclarationStatement", $2, $4)}
 					;
 
 dec_list	
@@ -533,7 +534,7 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE
+CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE VAR
 
 PLUSPLUS MINUSMINUS
 
@@ -591,6 +592,7 @@ this		{THIS}
 get			{GET}
 set			{SET}
 value		{VALUE}
+var			{VAR}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}

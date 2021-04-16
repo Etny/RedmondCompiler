@@ -8,23 +8,11 @@ namespace BaseTest
 
         static void Main()
         {
-            Derived t = new Derived();
-            printThing(t);
+            var a = GetInt();
+
+            Console.WriteLine(a);
         }
 
-        static void printThing(Thing t)
-        {
-            Console.WriteLine(t.Property);
-        }
-    }
-
-    class Thing
-    {
-        public virtual int Property => 2;
-    }
-
-    class Derived : Thing
-    {
-        public override int Property => 5;
+        static int GetInt() => 5;
     }
 }

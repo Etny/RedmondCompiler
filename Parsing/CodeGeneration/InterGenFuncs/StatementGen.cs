@@ -41,6 +41,21 @@ namespace Redmond.Parsing.CodeGeneration
                 builder.AddInstruction(new InterCopy(symbol, ToIntermediateExpression(node[1])));
         }
 
+        [CodeGenFunction("VarDeclarationStatement")]
+        public void CompileVarDeclarationStatement(SyntaxTreeNode node)
+        {
+            string name = node[0].ValueString;
+            var value = ToIntermediateExpression(node[1]);
+
+            if (CurrentTable.Contains(name))
+                ErrorManager.ExitWithError(new Exception("Duplicate ID: " + name));
+
+            CodeSymbol symbol = builder.AddLocal(name, value);//CurrentTable.AddSymbol(new CodeSymbol(name, node[2].ValueString));
+
+            if (node.Children.Length > 1)
+                builder.AddInstruction(new InterCopy(symbol, value));
+        }
+
         [CodeGenFunction("ReturnStatement")]
         public void CompileReturnStatement(SyntaxTreeNode node)
         {
