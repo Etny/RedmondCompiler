@@ -5,26 +5,26 @@ namespace BaseTest
 {
     class Program
     {
+
         static void Main()
         {
-            Generic<int, string> g = new Generic<int, string>(2);
-            Console.WriteLine(g.Get("Lol"));
+            Derived t = new Derived();
+            printThing(t);
+        }
+
+        static void printThing(Thing t)
+        {
+            Console.WriteLine(t.Property);
         }
     }
 
-    class Generic<T, U>
+    class Thing
     {
-        T Thing;
+        public virtual int Property => 2;
+    }
 
-        public Generic(T i)
-        {
-            Thing = i;
-        }
-        
-        public T Get(U u) 
-        {
-            Console.WriteLine(u);
-            return Thing;
-        }
+    class Derived : Thing
+    {
+        public override int Property => 5;
     }
 }

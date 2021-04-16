@@ -10,13 +10,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
     {
 
         public ImmutableArray<string> NamespaceHierarchy;
-        public List<string> GenericParameters;
+        public Dictionary<string, GenericParameterType> GenericParameters;
 
 
         public ResolutionContext(Stack<string> currentNamespaceStack)
         {
             NamespaceHierarchy = ImmutableArray<string>.Empty.AddRange(currentNamespaceStack);
-            GenericParameters = new List<string>();
+            GenericParameters = new Dictionary<string, GenericParameterType>();
         }
 
         public ResolutionContext(string ns)
@@ -24,7 +24,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             NamespaceHierarchy = ImmutableArray<string>.Empty;
             var s = ns.Split('.');
             if (s.Length > 1 || s[0].Length > 0) NamespaceHierarchy = NamespaceHierarchy.AddRange(s);
-            GenericParameters = new List<string>();
+            GenericParameters = new Dictionary<string, GenericParameterType>();
+        }
+
+        public void AddGenericParameter(string ID)
+        {
+            GenericParameters.Add(ID, new GenericParameterType(CodeType.Void, GenericParameters.Count));
         }
 
         public IEnumerable<string> TravelUpHierarchy()

@@ -12,7 +12,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
         private CodeSymbol _target = null;
         private CodeValue _source;
-        private LateStaticReferenceResolver _resolver;
+        private LateReferenceResolver _resolver;
 
         public InterCopy(CodeSymbol target, CodeValue source)
         {
@@ -20,7 +20,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _source = source;                
         }
 
-        public InterCopy(LateStaticReferenceResolver resolver, CodeValue source)
+        public InterCopy(LateReferenceResolver resolver, CodeValue source)
         {
             _resolver = resolver;
             _source = source;
@@ -32,6 +32,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             if (_target == null)
             {
+                _resolver.SetOwner(Owner);
+                _resolver.CanBeType = false;
                 _resolver.Bind(context);
                 Debug.Assert(_resolver.IsFieldOrProperty);
                 _target = _resolver.GetReferencedFieldOrProperty();

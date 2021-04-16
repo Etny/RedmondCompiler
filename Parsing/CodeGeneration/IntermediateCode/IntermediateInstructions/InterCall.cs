@@ -17,7 +17,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private CodeValue _thisPtr;
         //private TypeName _searchType = TypeName.Unknown;
         private bool _baseAccess = false;
-        private LateStaticReferenceResolver _resolver;
+        private LateReferenceResolver _resolver;
 
         private IMethodWrapper _method = null;
         private CodeType _return = null;
@@ -34,7 +34,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             _baseAccess = baseAccess;
         }
 
-        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, LateStaticReferenceResolver resolver = null)
+        public InterCall(string name, CodeValue[] parameters, bool isExpression = false, LateReferenceResolver resolver = null)
         {
             _targetName = name;
             _parameters = parameters;
@@ -47,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         {
             _method = method;
             _return = method.ReturnType;
-            _parameters = new CodeValue[0];
+            _parameters = new CodeValue[method.ArgumentCount];
             _expression = expression;
             _thisPtr = thisPtr;
         }
@@ -74,6 +74,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
                 if (_resolver != null)
                 {
+                    _resolver.SetOwner(Owner);
                     _resolver.Bind(context);
                     _staticCall = _resolver.IsStatic;
                     if (!_staticCall)

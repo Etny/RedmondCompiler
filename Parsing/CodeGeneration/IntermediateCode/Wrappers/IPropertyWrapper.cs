@@ -23,6 +23,58 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         CodeType Type { get; }
     }
 
+    class InterPropertyWrapper : IPropertyWrapper
+    {
+        protected InterProperty _property;
+        protected IntermediateBuilder _context;
+        public InterPropertyWrapper(InterProperty property, IntermediateBuilder context)
+        {
+            _property = property;
+            _context = context;
+        }
+
+        public bool CanRead => _property.Get != null;
+
+        public bool CanWrite => _property.Set != null;
+
+        public virtual IMethodWrapper GetFunction => new InterMethodWrapper(_property.Get, _context);
+        public virtual IMethodWrapper SetFunction => new InterMethodWrapper(_property.Set, _context);
+
+        public bool IsStatic => _property.IsStatic;
+
+        public string Name => _property.Name;
+
+        public virtual CodeType Type => _property.Type;
+    }
+
+    class GenericInterPropertyWrapper : InterPropertyWrapper
+    {
+        private InterGenericType _type;
+
+        private CodeType _propertyType;
+
+        public GenericInterPropertyWrapper(InterProperty property, IntermediateBuilder context, InterGenericType type)
+            : base(property, context)
+        {
+            _type = type;
+
+            if (property.Type is GenericParameterType)
+            {
+                var par = property.Type as GenericParameterType;
+                _propertyType = new GenericParameterType(type.GenericParameters[par.Index], par.Index);
+            }
+            else
+                _propertyType = property.Type;
+
+        }
+
+        public override IMethodWrapper GetFunction => new GenericInterMethodWrapper(_property.Get, _context, _type);
+        public override IMethodWrapper SetFunction => new GenericInterMethodWrapper(_property.Set, _context, _type);
+
+
+        public override CodeType Type => _propertyType;
+    }
+
     class PropertyInfoWrapper : IPropertyWrapper
     {
 

@@ -69,7 +69,7 @@ namespace Redmond.Parsing.CodeGeneration
 
             if (!_codeGenFunctions.ContainsKey(node.Op.ToLower()))
             {
-                return new InterOpValue(new LateStaticReferenceResolver(node, builder.CurrentType.NamespaceContext), builder.CurrentMethod);
+                return new InterOpValue(new LateReferenceResolver(node, builder.CurrentType.NamespaceContext), builder.CurrentMethod);
             }
 
             var op = CompileNode(node);
@@ -160,7 +160,7 @@ namespace Redmond.Parsing.CodeGeneration
                 source = new InterOpValue(i, builder.CurrentMethod);
             }
             if (symbol == null)
-                copy = new InterCopy(new LateStaticReferenceResolver(node[0], builder.CurrentType.NamespaceContext), source);
+                copy = new InterCopy(new LateReferenceResolver(node[0], builder.CurrentType.NamespaceContext), source);
             else
                 copy = new InterCopy(symbol, source);
 

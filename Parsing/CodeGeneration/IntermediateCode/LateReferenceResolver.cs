@@ -8,7 +8,7 @@ using System.Text;
 namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 {
     //TODO: Come up with a catchy name
-    class LateStaticReferenceResolver : InterOp
+    class LateReferenceResolver : InterOp
     {
         private string[] _ids;
 
@@ -16,10 +16,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public bool IsStatic = false;
         public bool IsFieldOrProperty => !IsStatic;
 
+        public bool CanBeType = true;
+
         private FieldOrPropertySymbol _field = null;
         private ResolutionContext _namespaceContext;
-        
-        public LateStaticReferenceResolver(SyntaxTreeNode node, ResolutionContext namespaceContext)
+
+        public LateReferenceResolver(SyntaxTreeNode node, ResolutionContext namespaceContext)
         {
             _namespaceContext = namespaceContext;
 
@@ -38,8 +40,31 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             Array.Reverse(_ids);
         }
 
+        public LateReferenceResolver(ResolutionContext namespaceContext, params string[] ids)
+        {
+            _namespaceContext = namespaceContext;
+            _ids = ids;
+        }
+
         public override void Bind(IntermediateBuilder context)
         {
+
+            if(_ids.Length == 1)
+            {
+                string name = _ids[0];
+                foreach (var field in Owner.Owner.Fields)
+                {
+                    if (field.Name != name) continue;
+                    IsStatic = field.IsStatic;
+                    _field = new FieldOrPropertySymbol(field.Symbol);
+                    _field.Bind(context);
+                    Type = _field.Type;
+                    return;
+                }
+
+                //TODO: Add properties
+            }
+
             int i = 0;
             for(; i < _ids.Length; i++)
             {
@@ -63,7 +88,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public FieldOrPropertySymbol GetReferencedFieldOrProperty()
         {
-            if (IsStatic) return null;
+            //if (IsStatic) return null;
+            if (!_field.IsStatic && !_field.HasOwner())
+                _field.SetOwner(Owner.ThisPointer);
             return _field;
         }
 

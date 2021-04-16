@@ -146,6 +146,12 @@ namespace Redmond.Parsing.CodeGeneration
             return field;
         }
 
+        public InterProperty AddProperty(string name, TypeName type, string access, List<string> keywords)
+        {
+            InterProperty property = new InterProperty(name, type, access, keywords, new InterUserType(CurrentType));
+            CurrentType.AddProperty(property);
+            return property;
+        }
 
         public void ClearImports() => ImportedNamespaces = ImmutableList<string>.Empty;
 
@@ -175,8 +181,8 @@ namespace Redmond.Parsing.CodeGeneration
                 return GenericType.NewGenericType(genericName, parameters);
             }
 
-            if (name.NamespaceContext.GenericParameters.Contains(name.Name))
-                return new GenericParameterType(CodeType.Void, name.NamespaceContext.GenericParameters.IndexOf(name.Name));
+            if (name.NamespaceContext.GenericParameters.ContainsKey(name.Name))
+                return name.NamespaceContext.GenericParameters[name.Name];
 
             var ctype = CodeType.ByName(name.Name);
             if (ctype != null) return ctype;

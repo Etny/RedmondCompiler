@@ -41,7 +41,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public virtual void ConvertTo(CodeValue val, IlBuilder builder, CodeType to) { to.ConvertFrom(val, builder); }
 
-
+        public virtual bool IsGeneric => false;
 
         public virtual void BindConversion(IntermediateBuilder context, CodeValue from) { }
         public virtual IMethodWrapper GetConversionMethod(IntermediateBuilder context, CodeValue from) { return null; }

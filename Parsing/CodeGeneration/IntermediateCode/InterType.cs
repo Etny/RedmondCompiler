@@ -11,6 +11,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public ImmutableList<string> Flags = ImmutableList<string>.Empty;
         public ImmutableList<InterMethod> Methods = ImmutableList<InterMethod>.Empty;
         public ImmutableList<InterField> Fields = ImmutableList<InterField>.Empty;
+        public ImmutableList<InterProperty> Properties = ImmutableList<InterProperty>.Empty;
 
         public readonly ResolutionContext NamespaceContext;
         public readonly string Name;
@@ -62,14 +63,16 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public void AddConstructor(InterConstructor method)
             => Constructors.Add(method);
 
-
         public void AddField(InterField field)
             => Fields = Fields.Add(field);
+
+        public void AddProperty(InterProperty property)
+            => Properties = Properties.Add(property);
 
         public void Emit(IlBuilder builder)
         {
             string genericParams =
-                IsGeneric ? '<' + string.Join(',', NamespaceContext.GenericParameters) + '>' : "";
+                IsGeneric ? '<' + string.Join(',', NamespaceContext.GenericParameters.Keys) + '>' : "";
 
             builder.EmitLine($".class private {string.Join(' ', Flags)} auto ansi beforefieldinit {FullName}{genericParams} extends {BaseType.ShortName}");
             builder.EmitLine("{");
@@ -78,6 +81,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
             foreach (var field in Fields)
                 field.Emit(builder);
+
+            foreach (var property in Properties)
+                property.Emit(builder);
 
             builder.EmitLine();
 
@@ -108,6 +114,9 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             foreach (var field in Fields)
                 field.Bind(builder);
 
+            foreach (var property in Properties)
+                property.Bind(builder);
+
             Initializer.Bind(builder);
 
             foreach (var constructor in Constructors)
@@ -117,7 +126,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 method.Bind(builder);
         }
 
-            public void BindSubSubMembers(IntermediateBuilder builder)
+        public void BindSubSubMembers(IntermediateBuilder builder)
         {
             Initializer.BindSubMembers(builder);
 

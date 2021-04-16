@@ -24,7 +24,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             return value as FieldOrPropertySymbol;
         }
 
-        private FieldOrPropertySymbol(FieldSymbol field) : base()
+        public FieldOrPropertySymbol(FieldSymbol field) : base()
         {
             _field = field;
             IsField = true;
@@ -33,7 +33,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Type = field.Type;
         }
 
-        private FieldOrPropertySymbol(PropertySymbol property) : base()
+        public FieldOrPropertySymbol(PropertySymbol property) : base()
         {
             _property = property;
             IsProperty = true;

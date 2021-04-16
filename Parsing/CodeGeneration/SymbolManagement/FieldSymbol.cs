@@ -88,15 +88,18 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (Field.IsStatic) return;
             _owner = owner;
         }
+
+        private string ReferenceName => _owningType.IsGeneric ? _owningType.Name : _owningType.ShortName;
+
         public override void Push(IlBuilder builder)
         {
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{ReferenceName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{ReferenceName}::{ID}");
 
         }
 
@@ -105,10 +108,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{ReferenceName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{ReferenceName}::{ID}");
         }
 
         public override void Store(IlBuilder builder, CodeValue store)
@@ -117,12 +120,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             {
                 builder.PushValue(_owner);
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{ReferenceName}::{ID}");
             }
             else
             {
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{_owningType.ShortName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{ReferenceName}::{ID}");
             }
         }
 

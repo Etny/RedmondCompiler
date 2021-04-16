@@ -79,6 +79,7 @@ member_list
 
 member				
 					:	field
+					|	property
 					|	function
 					|	constructor
 					;
@@ -89,6 +90,31 @@ member_header
 
 field				
 					:	member_header dec_list ';'	{$$ = makeNode("FieldDec", $1, $2)}
+					;
+
+property
+					:	member_header IDENTIFIER '\{' property_accessors_def '\}' property_default_value	{$$ = makeNode("PropertyDec", $1, $2, $4, $6)}
+					|	member_header IDENTIFIER ARROW expression ';'										{$$ = makeNode("ReadonlyPropertyDec", $1, $2, $4)}
+					;
+
+property_accessors_def
+					:	accessor_dec accessor_dec	{$$ = makeNode("PropertyAccessorsDef", $1, $2)}
+					|	accessor_dec				{$$ = makeNode("PropertyAccessorsDef", $1)}
+					;
+
+accessor_dec
+					:	access_dec accessor_kind function_body		{$$ = makeNode("AccessorDec", $2, $1, $3)}
+					|	access_dec accessor_kind ';'				{$$ = makeNode("AutoAccessorDec", $2, $1)}
+					;
+
+accessor_kind
+					:	GET		{$$ = makeLeaf("AccessorKind", "get")}
+					|	SET		{$$ = makeLeaf("AccessorKind", "set")}
+					;
+
+property_default_value
+					:	EQ expression ';'	{$$ = makeNode("DefaultValue", $2)}
+					|						{$$ = makeNode("EmptyDefaultValue")}
 					;
 
 constructor			
@@ -507,7 +533,7 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT BASE THIS ARROW
+CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE
 
 PLUSPLUS MINUSMINUS
 
@@ -562,6 +588,9 @@ default		{DEFAULT}
 base		{BASE}
 this		{THIS}
 =>			{ARROW}
+get			{GET}
+set			{SET}
+value		{VALUE}
 
 \+\+		{PLUSPLUS}
 \-\-		{MINUSMINUS}

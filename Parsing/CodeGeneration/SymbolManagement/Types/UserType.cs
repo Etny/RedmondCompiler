@@ -172,7 +172,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override IEnumerable<IPropertyWrapper> GetProperties(IntermediateBuilder context)
         {
-            return new List<IPropertyWrapper>();
+            foreach (var f in _intertype.Properties)
+                yield return new InterPropertyWrapper(f, context);
         }
 
         public override ResolutionContext GetNamespaceContext() => _intertype.NamespaceContext;

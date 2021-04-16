@@ -27,7 +27,29 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string Name => _field.Name;
 
-        public CodeType Type => _field.Type;
+        public virtual CodeType Type => _field.Type;
+    }
+
+    class GenericInterFieldWrapper : InterFieldWrapper
+    {
+        private InterGenericType _type;
+        private CodeType _fieldType;
+
+        public GenericInterFieldWrapper(InterField field, InterGenericType type) : base(field)
+        {
+            _type = type;
+
+            if (field.Type is GenericParameterType)
+            {
+                var par = field.Type as GenericParameterType;
+                _fieldType = new GenericParameterType(_type.GenericParameters[par.Index], par.Index);
+            }
+            else
+                _fieldType = field.Type;
+        }
+
+        public override CodeType Type => _fieldType;
+
     }
 
     class FieldInfoWrapper : IFieldWrapper
@@ -46,7 +68,27 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         public string Name => _field.Name;
 
-        public CodeType Type => _context.ToCodeType(_field.FieldType);
+        public virtual CodeType Type => _context.ToCodeType(_field.FieldType);
 
+    }
+
+    class GenericFieldInfoWrapper : FieldInfoWrapper
+    {
+        private GenericType _type;
+        private CodeType _fieldType;
+
+        public GenericFieldInfoWrapper(FieldInfo field, IntermediateBuilder context, GenericType type) : base(field, context)
+        {
+            _type = type;
+
+            if (field.FieldType.IsGenericParameter)
+            {
+                _fieldType = new GenericParameterType(type.GenericParameters[field.FieldType.GenericParameterPosition], field.FieldType.GenericParameterPosition);
+            }
+            else
+                _fieldType = context.ToCodeType(field.FieldType);
+        }
+
+        public override CodeType Type => _fieldType;
     }
 }

@@ -41,6 +41,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             StoredType = this;
         }
 
+        public override bool IsGeneric => true;
+
         public override IEnumerable<IMethodWrapper> GetConstructors(IntermediateBuilder context)
         {
             foreach (var f in _type.GetConstructors())
@@ -68,6 +70,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new GenericPropertyInfoWrapper(f, context, this);
         }
 
+        public override IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
+        {
+            foreach (var f in _type.GetFields())
+                yield return new GenericFieldInfoWrapper(f, context, this);
+        }
+
     }
 
     class InterGenericType : InterUserType
@@ -93,6 +101,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             StoredType = this;
         }
 
+        public override bool IsGeneric => true;
+
         public override IEnumerable<IMethodWrapper> GetConstructors(IntermediateBuilder context)
         {
             foreach (var f in _intertype.Constructors)
@@ -105,20 +115,18 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new GenericInterMethodWrapper(f, context, this);
         }
 
-        //public override IEnumerable<IPropertyWrapper> GetIndexers(IntermediateBuilder context)
-        //{
-        //    foreach (var f in _type.GetProperties())
-        //    {
-        //        if (f.GetIndexParameters().Length > 0)
-        //            yield return new GenericPropertyInfoWrapper(f, context, this);
-        //    }
-        //}
+        public override IEnumerable<IFieldWrapper> GetFields(IntermediateBuilder context)
+        {
+            foreach (var f in _intertype.Fields)
+                yield return new GenericInterFieldWrapper(f, this);
+        }
 
-        //public override IEnumerable<IPropertyWrapper> GetProperties(IntermediateBuilder context)
-        //{
-        //    foreach (var f in _type.GetProperties())
-        //        yield return new GenericPropertyInfoWrapper(f, context, this);
-        //}
+        public override IEnumerable<IPropertyWrapper> GetProperties(IntermediateBuilder context)
+        {
+            foreach (var f in _intertype.Properties)
+                yield return new GenericInterPropertyWrapper(f, context, this);
+        }
+
 
     }
 

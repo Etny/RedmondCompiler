@@ -21,7 +21,7 @@ namespace Redmond.Parsing.CodeGeneration
             var context = new ResolutionContext(builder.Namespaces);
 
             foreach (var gen in node[3].Children)
-                context.GenericParameters.Add(gen.ValueString);
+                context.AddGenericParameter(gen.ValueString);
 
             var type = new InterType(name, context, TypeNameFromNode(node[1][0]), context.GenericParameters.Count);
             foreach (var n in node[2].Children) type.AddFlag(n.ValueString);
@@ -50,31 +50,104 @@ namespace Redmond.Parsing.CodeGeneration
            
         }
 
-        private TypeName TypeNameFromNode1(SyntaxTreeNode node)
+        [CodeGenFunction("PropertyDec")]
+        public void CompilePropertyDecleration(SyntaxTreeNode node)
         {
-            string GetName(SyntaxTreeNode node)
+            var decHeader = node[0];
+            string access = decHeader[0].ValueString;
+            var type = TypeNameFromNode(decHeader[2]);
+            List<string> keywords = new List<string>();
+
+            foreach (var c in decHeader[1].Children)
+                keywords.Add(c.ValueString);
+
+            string name = node[1].ValueString;
+
+            InterMethod getMethod = null, setMethod = null;
+
+            bool auto = false;
+
+            InterProperty property = builder.AddProperty(name, type, access, keywords);
+            InterField backingField = null;
+
+            foreach (var dec in node[2].Children)
             {
-                if (node.Op == "Array")
-                    return GetName(node[0]) + "[]";
+                if (!auto && dec.Op == "AutoAccessorDec")
+                {
+                    auto = true;
+                    backingField = builder.AddField(name + "__backingField", type, access, keywords);
+                }
 
-                if (node.Op == "Type")
-                    return CodeType.ByName(node.ValueString).Name;
+                bool get = dec[0].ValueString == "get";
 
-                if (node.Children.Length == 1)
-                    return node[0].ValueString;
+                
+                List<string> funcKeywords = new List<string>(keywords);
+                funcKeywords.Add(dec[1].ValueString);
+
+                PushNewTable();
+
+                if (get)
+                    getMethod = builder.AddMethod("get_" + name, type, new ArgumentSymbol[] { }, funcKeywords);
                 else
-                    return GetName(node[0]) + '.' + node[1].ValueString;
+                {
+                    var arg = new ArgumentSymbol("value", type, 0);
+                    setMethod = builder.AddMethod("set_" + name, new BasicTypeName("void"), new ArgumentSymbol[] { arg }, funcKeywords);
+                }
+
+                if (!auto) 
+                    CompileNode(dec[2]);
+                else
+                {
+                    if (get)
+                    {
+                        var resolver = new LateReferenceResolver(builder.CurrentNamespaceContext, backingField.Name);
+                        resolver.SetOwner(builder.CurrentMethod);
+                        builder.AddInstruction(new InterRet(new InterOpValue(resolver)));
+                    }
+                    else
+                        builder.AddInstruction(new InterCopy(backingField.Symbol, GetFirst("value")));
+                }
+
+                Tables.Pop();
             }
 
-            return new BasicTypeName(GetName(node), builder.CurrentNamespaceContext);
+            if (auto && node[3].Children.Length > 0)
+                backingField.Initializer = ToIntermediateExpression(node[3][0]);
+        
+            if (getMethod != null) property.SetGet(getMethod);
+            if (setMethod != null) property.SetSet(setMethod);
+
         }
 
-        private string GetName1(SyntaxTreeNode node)
+        [CodeGenFunction("ReadonlyPropertyDec")]
+        public void CompileReadonlyPropertyDecleration(SyntaxTreeNode node)
+        {
+            var decHeader = node[0];
+            string access = decHeader[0].ValueString;
+            var type = TypeNameFromNode(decHeader[2]);
+            List<string> keywords = new List<string>();
+
+            foreach (var c in decHeader[1].Children)
+                keywords.Add(c.ValueString);
+
+            string name = node[1].ValueString;
+
+            var property = builder.AddProperty(name, type, access, keywords);
+
+            PushNewTable();
+            var get = builder.AddMethod("get_" + name, type, new ArgumentSymbol[] { }, keywords);
+            builder.AddInstruction(new InterRet(ToIntermediateExpression(node[2])));
+            Tables.Pop();
+
+            property.SetGet(get);
+        }
+
+        private string GetName(SyntaxTreeNode node)
         {
             if (node.Children.Length == 1)
                 return node[0].ValueString;
             else
-                return GetName1(node[0]) + '.' + node[1].ValueString;
+                return GetName(node[0]) + '.' + node[1].ValueString;
         }
 
         private TypeName TypeNameFromNode(SyntaxTreeNode node)
@@ -82,22 +155,22 @@ namespace Redmond.Parsing.CodeGeneration
             switch (node.Op)
             {
                 case "GenericType":
-                    TypeName name = TypeNameFromNode1(node[0]);
+                    TypeName name = TypeNameFromNode(node[0]);
                     TypeName[] parameters = new TypeName[node[1].Children.Length];
 
                     for (int i = 0; i < parameters.Length; i++)
-                        parameters[i] = TypeNameFromNode1(node[1][i]);
+                        parameters[i] = TypeNameFromNode(node[1][i]);
 
                     return new GenericTypeName(name, builder.CurrentNamespaceContext, parameters);
 
                 case "Array":
-                    return new ArrayTypeName(TypeNameFromNode1(node[0]), builder.CurrentNamespaceContext);
+                    return new ArrayTypeName(TypeNameFromNode(node[0]), builder.CurrentNamespaceContext);
 
                 case "Type":
                     return new BasicTypeName(CodeType.ByName(node.ValueString).Name);
 
                 default:
-                    return new BasicTypeName(GetName1(node), builder.CurrentNamespaceContext);
+                    return new BasicTypeName(GetName(node), builder.CurrentNamespaceContext);
 
             }
         }
