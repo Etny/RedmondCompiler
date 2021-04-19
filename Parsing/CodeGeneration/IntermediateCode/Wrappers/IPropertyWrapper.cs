@@ -58,13 +58,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             _type = type;
 
-            if (property.Type is GenericParameterType)
-            {
-                var par = property.Type as GenericParameterType;
-                _propertyType = new GenericParameterType(type.GenericParameters[par.Index], par.Index);
-            }
-            else
-                _propertyType = property.Type;
+            _propertyType = InterGenericType.FinalizeInterGenericType(property.Type, _type.GenericParameters);
 
         }
 

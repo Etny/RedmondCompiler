@@ -10,6 +10,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeType[] GenericParameters;
         public int Arity => GenericParameters.Length;
 
+        public readonly UserType UninstantiatedType;
 
         public override string ArgumentName => _argumentName;
         private string _argumentName;
@@ -63,6 +64,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             _type = type.GetNativeType();
             _valuetype = type.ValueType;
+            UninstantiatedType = type;
 
             string paramsNames = "";
 
@@ -130,12 +132,43 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeType[] GenericParameters;
         public int Arity => GenericParameters.Length;
 
-
         public override string ArgumentName => _argumentName;
         private string _argumentName;
 
+        public static CodeType FinalizeInterGenericType(CodeType t, CodeType[] typeParams)
+        {
+            if (t is GenericParameterType)
+                return (t as GenericParameterType).Instatiate(typeParams);
+            else if (t is ArrayType)
+                return new ArrayType(FinalizeInterGenericType((t as ArrayType).TypeOf, typeParams));
+            else if (t is GenericType)
+            {
+                var g = t as GenericType;
+                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
+
+                for (int i = 0; i < _argTypes.Length; i++)
+                    _argTypes[i] = FinalizeInterGenericType(g.GenericParameters[i], typeParams);
+
+                return GenericType.NewGenericType(g.UninstantiatedType, _argTypes);
+            }
+            else if (t is InterGenericType)
+            {
+                var g = t as InterGenericType;
+                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
+
+                for (int i = 0; i < _argTypes.Length; i++)
+                    _argTypes[i] = FinalizeInterGenericType(g.GenericParameters[i], typeParams);
+
+                return GenericType.NewGenericType(new InterUserType(g.GetInterType()), _argTypes);
+            }
+            else
+                return t;
+        }
+
         public InterGenericType(InterType interType, params CodeType[] parameters) : base(interType)
         {
+            GenericParameters = parameters;
+
             string paramsNames = "";
 
             foreach (var p in parameters)
@@ -200,10 +233,13 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             _type = baseType;
             Index = index;
 
-            Name = baseType.Name;
-            ShortName = baseType.ShortName;
+            Name = baseType == Void ? ArgumentName : baseType.Name;
+            ShortName = baseType == Void ? ArgumentName : baseType.ShortName;
             StoredType = baseType;
         }
+
+        public GenericParameterType Instatiate(CodeType[] types)
+            => new GenericParameterType(types[Index], Index);
 
         public override AssignType CanAssignTo(CodeType fieldType)
         {

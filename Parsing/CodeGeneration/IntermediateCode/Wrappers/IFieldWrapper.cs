@@ -39,13 +39,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             _type = type;
 
-            if (field.Type is GenericParameterType)
-            {
-                var par = field.Type as GenericParameterType;
-                _fieldType = new GenericParameterType(_type.GenericParameters[par.Index], par.Index);
-            }
-            else
-                _fieldType = field.Type;
+            _fieldType = InterGenericType.FinalizeInterGenericType(field.Type, _type.GenericParameters);
         }
 
         public override CodeType Type => _fieldType;

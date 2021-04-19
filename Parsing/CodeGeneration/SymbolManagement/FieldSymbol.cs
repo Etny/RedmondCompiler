@@ -96,10 +96,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldfld, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldfld, Type.ArgumentName, $"{ReferenceName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsfld, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsfld, Type.ArgumentName, $"{ReferenceName}::{ID}");
 
         }
 
@@ -108,10 +108,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             if (!Field.IsStatic)
             {
                 builder.PushValue(_owner);
-                builder.EmitOpCode(OpCodes.Ldflda, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldflda, Type.ArgumentName, $"{ReferenceName}::{ID}");
             }
             else
-                builder.EmitOpCode(OpCodes.Ldsflda, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Ldsflda, Type.ArgumentName, $"{ReferenceName}::{ID}");
         }
 
         public override void Store(IlBuilder builder, CodeValue store)
@@ -120,12 +120,12 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             {
                 builder.PushValue(_owner);
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stfld, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stfld, Type.ArgumentName, $"{ReferenceName}::{ID}");
             }
             else
             {
                 builder.PushValue(store);
-                builder.EmitOpCode(OpCodes.Stsfld, Type.Name, $"{ReferenceName}::{ID}");
+                builder.EmitOpCode(OpCodes.Stsfld, Type.ArgumentName, $"{ReferenceName}::{ID}");
             }
         }
 
