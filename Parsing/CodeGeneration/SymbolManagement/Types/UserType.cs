@@ -36,14 +36,28 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             else return new UserType(t);
         }
 
+        protected string ToAssemblyName(Type t)
+        {
+            if (t.DeclaringType != null)
+                return ToAssemblyName(t.DeclaringType) + '/' + t.Name;
+            else {
+                if (t.FullName == null)
+                    return t.Namespace + '.' + t.Name;
+                else
+                    return t.FullName;
+            }
+        }
+
         public UserType(Type type) : this()
         {
             _type = type;
 
             _valuetype = type.IsValueType;
 
-            Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
-            ShortName = $"[{_type.Module.Assembly.GetName().Name}]{_type.FullName}";
+            string name = ToAssemblyName(type);
+
+            Name = $"{(_valuetype ? "valuetype" : "class")} [{_type.Module.Assembly.GetName().Name}]{name}";
+            ShortName = $"[{_type.Module.Assembly.GetName().Name}]{name}";
         }
 
         public Type GetNativeType() => _type;
@@ -86,7 +100,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         }
         public virtual UserType GetBaseType()
         {
-            if (_type == typeof(object)) return null;
+            if (_type == typeof(object) || _type.BaseType == null) return null;
             return NewUserType(_type.BaseType);
         }
 

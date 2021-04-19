@@ -103,24 +103,21 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
         protected MethodInfo _method;
         protected IntermediateBuilder _context;
-        protected CodeType _returnType;
 
         public MethodInfoWrapper(MethodInfo method, IntermediateBuilder context)
         {
             _method = method;
             _context = context;
-
-            _returnType = context.ToCodeType(method.ReturnType).StoredType;
         }
 
         public bool IsVirtual => _method.IsVirtual;
 
         public bool IsInstance => !_method.IsStatic;
 
-        public CodeType ReturnType => _returnType;
+        public virtual CodeType ReturnType => _context.ToCodeType(_method.ReturnType).StoredType;
 
         public virtual string FullSignature
-            => $"{functionPrefixes}{_method.DeclaringType.FullName}::{_method.Name}({string.Join(',', from a in Arguments select a.Name)})";
+            => $"{functionPrefixes}{_method.DeclaringType.FullName}::{_method.Name}({string.Join(',', from a in Arguments select a.ArgumentName)})";
 
         public string Name => _method.Name;
 
@@ -135,7 +132,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 string s = "";
 
                 if (IsInstance) s += "instance ";
-                s += ReturnType.Name + " ";
+                s += ReturnType.ArgumentName + " ";
                 s += $"[{_method.Module.Name[.._method.Module.Name.LastIndexOf(".dll")]}]";
 
                 return s;
@@ -150,33 +147,28 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         private CodeType[] _genericTypes;
         private CodeType[] _args;
         private GenericType _type;
+        private CodeType _returnType;
 
         public GenericMethodInfoWrapper(MethodInfo method, IntermediateBuilder context, GenericType generic) : base(method, context)
         {
             _type = generic;
             _genericTypes = generic.GenericParameters;
 
-            if (method.ReturnType.IsGenericParameter)
-            {
-                int i = method.ReturnType.GenericParameterPosition;
-                _returnType = new GenericParameterType(_genericTypes[i], i);
-            }
+            _returnType = GenericType.FinalizeGenericType(method.ReturnType, _context, _type.GenericParameters);
 
             _args = new CodeType[method.GetParameters().Length];
 
             for(int i = 0; i < _args.Length; i++)
-            {
-                var p = method.GetParameters()[i];
+                _args[i] = GenericType.FinalizeGenericType(method.GetParameters()[i].ParameterType, _context, _type.GenericParameters);
 
-                if (!p.ParameterType.IsGenericParameter)
-                    _args[i] = _context.ToCodeType(p.ParameterType).StoredType;
-                else
-                    _args[i] = new GenericParameterType(_genericTypes[p.ParameterType.GenericParameterPosition], p.ParameterType.GenericParameterPosition);
-            }
+
         }
 
         public override string FullSignature
-          => $"{functionPrefixes}{_type.Name}::{_method.Name}({string.Join(',', from a in Arguments select a.Name)})";
+          => $"{functionPrefixes}{_type.Name}::{_method.Name}({string.Join(',', from a in Arguments select a.ArgumentName)})";
+
+        public override CodeType ReturnType => _returnType;
+
 
         protected override string functionPrefixes
         {
@@ -185,7 +177,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 string s = "";
 
                 if (IsInstance) s += "instance ";
-                s += ReturnType.Name + " ";
+                s += ReturnType.ArgumentName + " ";
 
                 return s;
             }

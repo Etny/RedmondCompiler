@@ -115,14 +115,10 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public override IMethodWrapper SetFunction => new GenericMethodInfoWrapper(_property.GetSetMethod(), _context, _type);
 
         public override CodeType Type {
-            get
-            {
-                if (!_property.PropertyType.IsGenericParameter)
-                    return _context.ToCodeType(_property.PropertyType);
-                else
-                    return new GenericParameterType(_type.GenericParameters[_property.PropertyType.GenericParameterPosition], _property.PropertyType.GenericParameterPosition);
-            }
+            get => GenericType.FinalizeGenericType(_property.PropertyType, _context, _type.GenericParameters);
         }
+
+        
 
 
     }

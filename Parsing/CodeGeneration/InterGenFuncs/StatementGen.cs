@@ -172,6 +172,40 @@ namespace Redmond.Parsing.CodeGeneration
             Tables.Pop();
         }
 
+        [CodeGenFunction("ForEachStatement")]
+        public void CompileForEachStatement(SyntaxTreeNode node)
+        {
+            PushNewTable();
+
+
+            var enumCall = new InterOpValue(new InterCall("GetEnumerator", new CodeValue[0], true, ToIntermediateExpression(node[2])));
+            var enumerator = builder.AddLocal("loc_" + builder.CurrentMethod.Locals.Count, enumCall);
+            builder.AddInstruction(new InterCopy(enumerator, enumCall));
+
+
+            InterBranch initialBranch = new InterBranch();
+            builder.AddInstruction(initialBranch);
+
+            var loc = builder.AddLocal(node[1].ValueString, TypeNameFromNode(node[0]));
+
+            string beginLabel = builder.CurrentMethod.NextLabel;
+            builder.AddInstruction(new InterCopy(loc, new InterOpValue(new InterCall("get_Current", new CodeValue[0], true, enumerator))));
+            CompileNode(node[3]);
+
+            initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
+            InterBranch checkBranch = new InterBranch(new InterOpValue(new InterCall("MoveNext", new CodeValue[0], true, enumerator)), InterBranch.BranchCondition.OnTrue);
+            checkBranch.SetLabel(beginLabel);
+            builder.AddInstruction(checkBranch);
+
+            //TODO: Add Try-Finnaly support for the Dispose call
+            string endLabel = builder.CurrentMethod.NextLabel;
+            //builder.AddInstruction(new InterCall("Dispose", new CodeValue[0], false, enumerator));
+            foreach (var b in builder.GetBreaks())
+                b.SetLabel(endLabel);
+
+            Tables.Pop();
+        }
+
         [CodeGenFunction("SwitchStatement")]
         public void CompileSwitchStatement(SyntaxTreeNode node)
         {

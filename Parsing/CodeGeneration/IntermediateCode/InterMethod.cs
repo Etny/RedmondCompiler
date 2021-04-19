@@ -43,15 +43,17 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 foreach (var arg in args) arg.Index++;
                 ThisPointer = new ArgumentSymbol("this", new InterUserType(owner), 0);
             }
+
+            
         }
 
 
-        public string ArgList => string.Join(',', from a in Arguments select a.Type.Name);
+        public string ArgList => string.Join(',', from a in Arguments select a.Type.ArgumentName);
 
 
         public string Signature => $"{Owner.FullName}.{Name}";
 
-        public string CallSignature => $"{(IsInstance ? "instance " : "")}{ReturnType.Name} {Owner.FullName}::{Name}({ArgList})";
+        public string CallSignature => $"{(IsInstance ? "instance " : "")}{ReturnType.ArgumentName} {Owner.FullName}::{Name}({ArgList})";
         public bool IsInstance => !IsStatic;
         public bool IsVirtual => Flags.Contains("virtual") || Flags.Contains("override") || IsAbstract;
 
@@ -152,7 +154,6 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
 
                 AddFlag("virtual"); //Add to ensure newslot abstract methods are also marked virtual
             }
-
 
             if (!IsStatic) AddFlag("instance");
 

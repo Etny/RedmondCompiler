@@ -216,7 +216,7 @@ namespace Redmond.Parsing.CodeGeneration
             return null;
         }
 
-        public CodeType ToCodeType(Type type)
+        public CodeType ToCodeType(Type type, bool parseGenerics = true)
         {
             if (CodeType.ByName(type.Name.ToLower()) != null) return CodeType.ByName(type.Name.ToLower());
 
@@ -224,11 +224,11 @@ namespace Redmond.Parsing.CodeGeneration
 
             if (type.IsArray)
                 ut = new ArrayType(ToCodeType(type.GetElementType()));
-            else if (type.IsGenericType)
+            else if (type.IsGenericType && parseGenerics)
             {
                 CodeType[] parameters = new CodeType[type.GetGenericArguments().Length];
                 for (int i = 0; i < parameters.Length; i++) 
-                    parameters[i] = ToCodeType(type.GetGenericArguments()[i]);
+                    parameters[i] = new GenericParameterType(ToCodeType(type.GetGenericArguments()[i]), i);
 
                 ut = GenericType.NewGenericType(UserType.NewUserType(type), parameters);
             }
@@ -252,7 +252,7 @@ namespace Redmond.Parsing.CodeGeneration
                 if (f.Name == name && f.ArgumentCount == args.Length)
                     applicableFunctions.Add(f);
 
-            if(applicableFunctions.Count == 0 && !canBeNull && type.GetBaseType() != CodeType.Object)
+            if(applicableFunctions.Count == 0 && !canBeNull && type.GetBaseType() != null)
                 return FindClosestFunction(name, type.GetBaseType(), args, canBeNull);
             
 

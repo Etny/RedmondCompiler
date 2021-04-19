@@ -417,8 +417,8 @@ postfix_expression
 					;
 
 cast_expression
-					:	'(' expression ')' unary_expression	{$$ = makeNode("CastExpression", $2, $4)}
-					|	'(' type ')' unary_expression		{$$ = makeNode("CastExpression", $2, $4)}
+					:	'(' qualified_identifier ')' unary_expression	{$$ = makeNode("CastExpression", $2, $4)}
+					|	'(' type ')' unary_expression					{$$ = makeNode("CastExpression", $2, $4)}
 					;
 
 

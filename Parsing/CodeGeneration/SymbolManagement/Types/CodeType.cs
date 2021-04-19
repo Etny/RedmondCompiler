@@ -21,6 +21,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public static CodeType ByName(string name)
            => _types.GetValueOrDefault(name);
 
+        public virtual string ArgumentName => Name;
+
         protected CodeType(params string[] names)
         {
             Name = names[0];

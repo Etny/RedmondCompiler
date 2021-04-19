@@ -56,7 +56,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             builder.PushValue(_rank);
 
-            builder.EmitOpCode(OpCodes.Newarr, (_typeof as ArrayType).TypeOf.Name);
+            builder.EmitOpCode(OpCodes.Newarr, _typeof.TypeOf.Name);
 
             if (_entries == null) return;
 

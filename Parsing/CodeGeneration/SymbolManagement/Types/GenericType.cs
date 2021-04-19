@@ -11,6 +11,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public int Arity => GenericParameters.Length;
 
 
+        public override string ArgumentName => _argumentName;
+        private string _argumentName;
+
         public static UserType NewGenericType(UserType type, CodeType[] parameters)
         {
             if (type is InterUserType)
@@ -19,25 +22,68 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 return new GenericType(type, parameters);
         }
 
+        public static CodeType FinalizeGenericType(Type t, IntermediateBuilder context, CodeType[] typeParams)
+        {
+            if (!t.IsGenericType)
+            {
+                if (!t.IsArray)
+                {
+                    if (!t.IsGenericParameter)
+                        return context.ToCodeType(t).StoredType;
+                    else
+                        return new GenericParameterType(typeParams[t.GenericParameterPosition], t.GenericParameterPosition);
+                }
+                else
+                    return new ArrayType(FinalizeGenericType(t.GetElementType(), context, typeParams));
+            }
+            else
+            {
+                if (!t.ContainsGenericParameters)
+                    return context.ToCodeType(t).StoredType;
+                else
+                {
+                    var g = t.GetGenericArguments();
+                    CodeType[] _argTypes = new CodeType[g.Length];
+
+                    for (int i = 0; i < _argTypes.Length; i++)
+                        _argTypes[i] = FinalizeGenericType(g[i], context, typeParams);
+
+                    return NewGenericType(ToUserType(context.ToCodeType(t, false)), _argTypes);
+                }
+            }
+        }
+
         protected GenericType(params CodeType[] parameters)
         {
             GenericParameters = parameters;
         }
 
+
         protected GenericType(UserType type, params CodeType[] parameters) : this(parameters)
         {
             _type = type.GetNativeType();
+            _valuetype = type.ValueType;
 
             string paramsNames = "";
+
+            foreach (var p in parameters)
+                paramsNames += p.ArgumentName + ',';
+
+            paramsNames = paramsNames[0..^1];
+            string addition = $"<{paramsNames}>";
+
+            _argumentName = type.Name + addition;
+
+            paramsNames = "";
 
             foreach (var p in parameters)
                 paramsNames += p.Name + ',';
 
             paramsNames = paramsNames[0..^1];
-            string addition = $"<{paramsNames}>";
+            string fullAddition = $"<{paramsNames}>";
 
-            Name = type.Name + addition;
-            ShortName = type.ShortName + addition;
+            Name = type.Name + fullAddition;
+            ShortName = type.ShortName + fullAddition;
             StoredType = this;
         }
 
@@ -84,20 +130,32 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public readonly CodeType[] GenericParameters;
         public int Arity => GenericParameters.Length;
 
+
+        public override string ArgumentName => _argumentName;
+        private string _argumentName;
+
         public InterGenericType(InterType interType, params CodeType[] parameters) : base(interType)
         {
-            _intertype = interType;
-            GenericParameters = parameters;
             string paramsNames = "";
+
+            foreach (var p in parameters)
+                paramsNames += p.ArgumentName + ',';
+
+            paramsNames = paramsNames[0..^1];
+            string addition = $"<{paramsNames}>";
+
+            _argumentName = interType.Name + addition;
+
+            paramsNames = "";
 
             foreach (var p in parameters)
                 paramsNames += p.Name + ',';
 
             paramsNames = paramsNames[0..^1];
-            string addition = $"<{paramsNames}>";
+            string fullAddition = $"<{paramsNames}>";
 
-            Name += addition;
-            ShortName += addition;
+            Name = $"class {interType.FullName}" + fullAddition;
+            ShortName = $"{interType.FullName}" + fullAddition;
             StoredType = this;
         }
 
@@ -135,13 +193,15 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         private CodeType _type;
         public readonly int Index;
 
+        public override string ArgumentName => "!" + Index;
+
         public GenericParameterType(CodeType baseType, int index) : base("")
         {
             _type = baseType;
             Index = index;
 
-            Name = "!" + index;
-            ShortName = "!" + index;
+            Name = baseType.Name;
+            ShortName = baseType.ShortName;
             StoredType = baseType;
         }
 
