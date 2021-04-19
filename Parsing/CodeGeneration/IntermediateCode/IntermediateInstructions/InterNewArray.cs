@@ -13,7 +13,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private TypeName _type = TypeName.Unknown;
         private CodeValue _rank = null;
         private CodeValue[] _entries = null;
-        private CodeType _typeof;
+        private ArrayType _typeof;
 
         public InterNewArray(TypeName type, CodeValue rank)
         {
@@ -47,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
 
 
-            _typeof = _type == TypeName.Unknown ? new ArrayType(_entries[0].Type) : context.ResolveType(_type);
+            _typeof = _type == TypeName.Unknown ? new ArrayType(_entries[0].Type) : (ArrayType)context.ResolveType(_type);
         }
 
         public override void Emit(IlBuilder builder)
@@ -58,13 +58,15 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
 
             builder.EmitOpCode(OpCodes.Newarr, (_typeof as ArrayType).TypeOf.Name);
 
+            if (_entries == null) return;
+
             for(int i = 0; i < _entries.Length; i++)
             {
                 builder.EmitOpCode(OpCodes.Dup);
 
                 builder.PushValue(new CodeValue(BasicType.Int32, i));
                 builder.PushValue(_entries[i]);
-                builder.EmitOpCode(OpCodeUtil.GetOpcode("Stelem_" + _typeof.OpName));
+                builder.EmitOpCode(OpCodeUtil.GetOpcode("Stelem_" + _typeof.TypeOf.OpName));
             }
         }
 

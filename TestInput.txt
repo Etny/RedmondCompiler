@@ -8,11 +8,29 @@ namespace BaseTest
 
         static void Main()
         {
-            var a = GetInt();
-
-            Console.WriteLine(a);
+            PrintBase((Derived) GetBase());
+            new Derived().Print();
         }
 
-        static int GetInt() => 5;
+        static Base GetBase()
+            => new Derived();
+
+        static int Num()
+            => 2;
+
+        static void PrintBase(Derived b)
+            => b.Print();
+    }
+
+    class Base
+    {
+        public virtual void Print()
+            => Console.WriteLine("Base Print");
+    }
+
+    class Derived : Base
+    {
+        public override void Print()
+            => Console.WriteLine("Derived Print");
     }
 }

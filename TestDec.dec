@@ -166,8 +166,8 @@ modifier
 
 function_body		
 					:	compound_statement		{$$ = makeNode("FunctionBody", $1)}
-					|	ARROW statement			{$$ = makeNode("FunctionBody", makeNode("FunctionBodyStatement", $2))}
 					|	ARROW expression ';'	{$$ = makeNode("FunctionBody", makeNode("FunctionBodyStatement", $2))}
+					|	ARROW statement			{$$ = makeNode("FunctionBody", makeNode("FunctionBodyStatement", $2))}
 					;
 
 
@@ -190,6 +190,7 @@ statement
 					|	if_statement
 					|	while_statement
 					|	for_statement
+					|	foreach_statement
 					|	switch_statement
 					|	break_statement	';'	{$$ = $1}
 					;
@@ -253,6 +254,10 @@ for_iterator
 					:	statement_expression_list
 					|	{$$ = makeLeaf("Empty")}
 					;
+			
+foreach_statement
+					:	FOREACH '(' type IDENTIFIER IN expression ')' statement	{$$ = makeNode("ForEachStatement", $3, $4, $6, $8)}
+					;
 
 switch_statement
 					:	SWITCH '(' expression ')' switch_block	{$$ = makeNode("SwitchStatement", $3, $5)}
@@ -303,7 +308,7 @@ parameter_dec
 					;
 
 array_dec_expression
-					:	NEW type '[' expression ']'						{$$ = makeNode("NewArrayExpression", $2, $4)}
+					:	NEW type '[' expression ']'						{$$ = makeNode("NewArrayExpression", makeNode("Array", $2), $4)}
 					|	NEW array_type array_init_expression		{$$ = makeNode("NewArrayExpression", $2, $3)}
 					|	array_init_expression									{$$ = makeNode("NewArrayExpression", $1)}
 					;
@@ -412,7 +417,8 @@ postfix_expression
 					;
 
 cast_expression
-					:	'(' type ')' unary_expression	{$$ = makeNode("CastExpression", $2, $4)}
+					:	'(' expression ')' unary_expression	{$$ = makeNode("CastExpression", $2, $4)}
+					|	'(' type ')' unary_expression		{$$ = makeNode("CastExpression", $2, $4)}
 					;
 
 
@@ -533,8 +539,8 @@ OBJECT STRING
 REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
-READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR SWITCH
-CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE VAR
+READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR FOREACH
+IN SWITCH CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE VAR
 
 PLUSPLUS MINUSMINUS
 
@@ -582,6 +588,8 @@ else		{ELSE}
 while		{WHILE}
 do			{DO}
 for			{FOR}
+foreach		{FOREACH}
+in			{IN}
 switch		{SWITCH}
 case		{CASE}
 break		{BREAK}
@@ -638,7 +646,7 @@ decimal_digit+										{INT_LITERAL; $$.num = parseInt($); $$.type = "int"; $$ 
 [=\*/+\-%]											{Operator}
 [,();:>.\{\}\[\]?!]								{Punctuation}
 [\s]											{Whitespace}
-\/\/[^\n\r]*[\n\r]								{Whitespace
+\/\/[^\n\r]*[\n\r]								{Whitespace}
 'string_char'										{CHAR_LITERAL; $$ = makeValue("char", parseChar($))}
 "string_char*"			{STRING_LITERAL; $$ = makeValue("string", $)}
 

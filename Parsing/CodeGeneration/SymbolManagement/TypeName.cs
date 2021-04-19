@@ -62,7 +62,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override string ToString()
         {
-            string fullName = Name + "[]";
+            string fullName = Name;
             return Name == "" ? "Unknown" : (NamespaceContext.NamespaceHierarchy.Length == 0 ? fullName : NamespaceContext.ToString() + '.' + fullName);
         }
     }

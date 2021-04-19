@@ -1,7 +1,9 @@
 ﻿using Redmond.Parsing.CodeGeneration.IntermediateCode;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
@@ -132,7 +134,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public override void ConvertFrom(CodeValue val, IlBuilder builder)
         {
-            throw new NotImplementedException();
+            Debug.Assert(val.Type is UserType);
+            //Console.WriteLine("WARING: trying to convert from Usertype " + Name + " to " + val.Type.Name);
+
+            builder.PushValue(val);
+            builder.EmitOpCode(OpCodes.Castclass,ShortName);
         }
 
         public virtual ResolutionContext GetNamespaceContext() => new ResolutionContext(_type.Namespace);

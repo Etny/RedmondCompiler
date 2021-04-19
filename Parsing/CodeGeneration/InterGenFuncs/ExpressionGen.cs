@@ -48,6 +48,8 @@ namespace Redmond.Parsing.CodeGeneration
                 case "ThisAccess":
                     return builder.CurrentMethod.ThisPointer;
 
+                case "ExpressionStatement":
+                    return ToIntermediateExpression(node[0]);
 
                 case "ArrayAccessExpression":
                     return new ArrayEntryValue(ToIntermediateExpression(node[0]), ToIntermediateExpression(node[1]));
