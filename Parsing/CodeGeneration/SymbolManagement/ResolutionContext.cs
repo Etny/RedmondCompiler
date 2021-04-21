@@ -15,7 +15,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 
         public ResolutionContext(Stack<string> currentNamespaceStack)
         {
-            NamespaceHierarchy = ImmutableArray<string>.Empty.AddRange(currentNamespaceStack);
+            var arr = currentNamespaceStack.ToArray();
+            Array.Reverse(arr);
+            NamespaceHierarchy = ImmutableArray<string>.Empty.AddRange(arr);
             GenericParameters = new Dictionary<string, GenericParameterType>();
         }
 
@@ -27,6 +29,8 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             GenericParameters = new Dictionary<string, GenericParameterType>();
         }
 
+        public ResolutionContext() : this("") { }
+
         public void AddGenericParameter(string ID)
         {
             GenericParameters.Add(ID, new GenericParameterType(CodeType.Void, GenericParameters.Count));
@@ -36,7 +40,6 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         {
             string[] join;
             string[] hierarchy = NamespaceHierarchy.ToArray();
-            Array.Reverse(hierarchy);
 
             for (int i = 0; i < NamespaceHierarchy.Length; i++)
             {

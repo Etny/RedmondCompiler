@@ -80,7 +80,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override bool Equals(object obj)
         {
             var other = obj as GenericTypeName;
-            if (other == null) return false;
+            if (object.ReferenceEquals(other, null)) return false;
 
             if (other.Name != Name || !other.NamespaceContext.Equals(NamespaceContext))
                 return false;

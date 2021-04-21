@@ -72,7 +72,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             else
                 _returnType = method.ReturnType;
 
-            _returnType = InterGenericType.FinalizeInterGenericType(method.ReturnType, _type.GenericParameters);
+            _returnType = _type.InstantiateGenericType(method.ReturnType);
 
 
             _args = new CodeType[method.Arguments.Length];
@@ -82,7 +82,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
                 var p = method.Arguments[i];
                 p.Bind(context);
 
-                _args[i] = InterGenericType.FinalizeInterGenericType(p.Type, _type.GenericParameters);
+                _args[i] = _type.InstantiateGenericType(p.Type);
             }
         }
         public override string FullSignature
@@ -151,14 +151,12 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
             _type = generic;
             _genericTypes = generic.GenericParameters;
 
-            _returnType = GenericType.FinalizeGenericType(method.ReturnType, _context, _type.GenericParameters);
+            _returnType = _type.InstantiateGenericType(method.ReturnType, _context);
 
             _args = new CodeType[method.GetParameters().Length];
 
             for(int i = 0; i < _args.Length; i++)
-                _args[i] = GenericType.FinalizeGenericType(method.GetParameters()[i].ParameterType, _context, _type.GenericParameters);
-
-
+                _args[i] = _type.InstantiateGenericType(method.GetParameters()[i].ParameterType, _context);
         }
 
         public override string FullSignature

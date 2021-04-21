@@ -39,7 +39,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             _type = type;
 
-            _fieldType = InterGenericType.FinalizeInterGenericType(field.Type, _type.GenericParameters);
+            _fieldType = _type.InstantiateGenericType(field.Type);
         }
 
         public override CodeType Type => _fieldType;
@@ -75,7 +75,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             _type = type;
 
-            _fieldType = GenericType.FinalizeGenericType(field.FieldType, context, _type.GenericParameters);
+            _fieldType = _type.InstantiateGenericType(field.FieldType, context);
         }
 
         public override CodeType Type => _fieldType;

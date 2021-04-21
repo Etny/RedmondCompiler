@@ -177,23 +177,31 @@ namespace Redmond.Parsing.CodeGeneration
         {
             PushNewTable();
 
-
-            var enumCall = new InterOpValue(new InterCall("GetEnumerator", new CodeValue[0], true, ToIntermediateExpression(node[2])));
-            var enumerator = builder.AddLocal("loc_" + builder.CurrentMethod.Locals.Count, enumCall);
-            builder.AddInstruction(new InterCopy(enumerator, enumCall));
+            var locType = TypeNameFromNode(node[0]);
+            var enumCall = new InterCall("GetEnumerator", new CodeValue[0], true, ToIntermediateExpression(node[2]))
+            {
+                ThisPointerTypeOverride = new GenericTypeName(new BasicTypeName("System.Collections.Generic.IEnumerable",  new ResolutionContext()), new ResolutionContext(), new TypeName[] { locType })
+            };
+            var enumVal = new InterOpValue(enumCall);
+            var enumerator = builder.AddLocal("loc_" + builder.CurrentMethod.Locals.Count, enumVal);
+            builder.AddInstruction(new InterCopy(enumerator, enumVal));
 
 
             InterBranch initialBranch = new InterBranch();
             builder.AddInstruction(initialBranch);
 
-            var loc = builder.AddLocal(node[1].ValueString, TypeNameFromNode(node[0]));
+            var loc = builder.AddLocal(node[1].ValueString, locType);
 
             string beginLabel = builder.CurrentMethod.NextLabel;
             builder.AddInstruction(new InterCopy(loc, new InterOpValue(new InterCall("get_Current", new CodeValue[0], true, enumerator))));
             CompileNode(node[3]);
 
             initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
-            InterBranch checkBranch = new InterBranch(new InterOpValue(new InterCall("MoveNext", new CodeValue[0], true, enumerator)), InterBranch.BranchCondition.OnTrue);
+            var moveCall = new InterCall("MoveNext", new CodeValue[0], true, enumerator)
+            {
+                ThisPointerTypeOverride = new BasicTypeName("System.Collections.IEnumerator", new ResolutionContext())
+            };
+            InterBranch checkBranch = new InterBranch(new InterOpValue(moveCall), InterBranch.BranchCondition.OnTrue);
             checkBranch.SetLabel(beginLabel);
             builder.AddInstruction(checkBranch);
 

@@ -58,7 +58,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         {
             _type = type;
 
-            _propertyType = InterGenericType.FinalizeInterGenericType(property.Type, _type.GenericParameters);
+            _propertyType = _type.InstantiateGenericType(property.Type);
 
         }
 
@@ -109,7 +109,7 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode
         public override IMethodWrapper SetFunction => new GenericMethodInfoWrapper(_property.GetSetMethod(), _context, _type);
 
         public override CodeType Type {
-            get => GenericType.FinalizeGenericType(_property.PropertyType, _context, _type.GenericParameters);
+            get => _type.InstantiateGenericType(_property.PropertyType, _context);
         }
 
         

@@ -23,7 +23,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 return new GenericType(type, parameters);
         }
 
-        public static CodeType FinalizeGenericType(Type t, IntermediateBuilder context, CodeType[] typeParams)
+        public CodeType InstantiateGenericType(Type t, IntermediateBuilder context)
         {
             if (!t.IsGenericType)
             {
@@ -32,10 +32,10 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                     if (!t.IsGenericParameter)
                         return context.ToCodeType(t).StoredType;
                     else
-                        return new GenericParameterType(typeParams[t.GenericParameterPosition], t.GenericParameterPosition);
+                        return new GenericParameterType(GenericParameters[t.GenericParameterPosition], t.GenericParameterPosition);
                 }
                 else
-                    return new ArrayType(FinalizeGenericType(t.GetElementType(), context, typeParams));
+                    return new ArrayType(InstantiateGenericType(t.GetElementType(), context));
             }
             else
             {
@@ -47,7 +47,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                     CodeType[] _argTypes = new CodeType[g.Length];
 
                     for (int i = 0; i < _argTypes.Length; i++)
-                        _argTypes[i] = FinalizeGenericType(g[i], context, typeParams);
+                        _argTypes[i] = InstantiateGenericType(g[i], context);
 
                     return NewGenericType(ToUserType(context.ToCodeType(t, false)), _argTypes);
                 }
@@ -135,36 +135,7 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
         public override string ArgumentName => _argumentName;
         private string _argumentName;
 
-        public static CodeType FinalizeInterGenericType(CodeType t, CodeType[] typeParams)
-        {
-            if (t is GenericParameterType)
-                return (t as GenericParameterType).Instatiate(typeParams);
-            else if (t is ArrayType)
-                return new ArrayType(FinalizeInterGenericType((t as ArrayType).TypeOf, typeParams));
-            else if (t is GenericType)
-            {
-                var g = t as GenericType;
-                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
-
-                for (int i = 0; i < _argTypes.Length; i++)
-                    _argTypes[i] = FinalizeInterGenericType(g.GenericParameters[i], typeParams);
-
-                return GenericType.NewGenericType(g.UninstantiatedType, _argTypes);
-            }
-            else if (t is InterGenericType)
-            {
-                var g = t as InterGenericType;
-                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
-
-                for (int i = 0; i < _argTypes.Length; i++)
-                    _argTypes[i] = FinalizeInterGenericType(g.GenericParameters[i], typeParams);
-
-                return GenericType.NewGenericType(new InterUserType(g.GetInterType()), _argTypes);
-            }
-            else
-                return t;
-        }
-
+    
         public InterGenericType(InterType interType, params CodeType[] parameters) : base(interType)
         {
             GenericParameters = parameters;
@@ -190,6 +161,36 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             Name = $"class {interType.FullName}" + fullAddition;
             ShortName = $"{interType.FullName}" + fullAddition;
             StoredType = this;
+        }
+
+        public CodeType InstantiateGenericType(CodeType t)
+        {
+            if (t is GenericParameterType)
+                return (t as GenericParameterType).Instatiate(GenericParameters);
+            else if (t is ArrayType)
+                return new ArrayType(InstantiateGenericType((t as ArrayType).TypeOf));
+            else if (t is GenericType)
+            {
+                var g = t as GenericType;
+                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
+
+                for (int i = 0; i < _argTypes.Length; i++)
+                    _argTypes[i] = InstantiateGenericType(g.GenericParameters[i]);
+
+                return GenericType.NewGenericType(g.UninstantiatedType, _argTypes);
+            }
+            else if (t is InterGenericType)
+            {
+                var g = t as InterGenericType;
+                CodeType[] _argTypes = new CodeType[g.GenericParameters.Length];
+
+                for (int i = 0; i < _argTypes.Length; i++)
+                    _argTypes[i] = InstantiateGenericType(g.GenericParameters[i]);
+
+                return GenericType.NewGenericType(new InterUserType(g.GetInterType()), _argTypes);
+            }
+            else
+                return t;
         }
 
         public override bool IsGeneric => true;

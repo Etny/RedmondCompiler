@@ -203,12 +203,17 @@ namespace Redmond.Parsing.CodeGeneration
 
                 foreach (var a in AssemblyReferences)
                 {
-                    var type = a.ResolveType(ns + "." + name.Name);
-                    if (type == null) type = a.ResolveType(name.Name);
-                    if (type != null)
+
+                    var directResolve = a.ResolveType(name.NamespaceContext.ToString() +'.' + name.Name);
+                    if (directResolve != null) return UserType.NewUserType(directResolve); 
+                    foreach (string hr in name.NamespaceContext.TravelUpHierarchy())
                     {
-                        ReferenceTracker.AddUsedReference(type);
-                        return UserType.NewUserType(type);
+                        var type = a.ResolveType(ns + "." + name.Name);
+                        if (type != null)
+                        {
+                            ReferenceTracker.AddUsedReference(type);
+                            return UserType.NewUserType(type);
+                        }
                     }
                 }
             }
