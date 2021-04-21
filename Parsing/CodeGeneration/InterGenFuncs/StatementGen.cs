@@ -56,6 +56,75 @@ namespace Redmond.Parsing.CodeGeneration
                 builder.AddInstruction(new InterCopy(symbol, value));
         }
 
+        [CodeGenFunction("TryBlock")]
+        public void CompileTryBlock(SyntaxTreeNode node)
+        {
+            List<InterBranch> exits = new List<InterBranch>();
+
+            void StartTryBlock()
+            {
+                builder.AddInstruction(new InterBlock(".try"));
+            }
+            
+            void EndTryBlock()
+            {
+
+                InterBranch b1 = new InterBranch(InterBranch.BranchCondition.Leave);
+                exits.Add(b1);
+                builder.AddInstruction(b1);
+                builder.AddInstruction(new InterBlock());
+            }
+
+            bool hasFinally = node.Children.Length > 2;
+
+            if (hasFinally)
+                StartTryBlock();
+
+            StartTryBlock();
+            CompileNode(node[0]);
+            EndTryBlock();
+
+
+            foreach(var c in node[1].Children)
+            {
+                bool hasException = c.Children.Length > 1;
+                TypeName exceptionType = hasException ? TypeNameFromNode(c[1]) : TypeName.Unknown;
+
+                PushNewTable();
+
+                if (hasException)
+                {
+                    var loc = builder.AddLocal(c[2].ValueString, exceptionType);
+                    builder.AddInstruction(new InterCopy(loc, new InterOpValue(new InterBlock("catch", exceptionType))));
+                }
+                else
+                    builder.AddInstruction(new InterBlock(".catch"));
+
+                CompileNode(c[0]);
+                InterBranch b = new InterBranch(InterBranch.BranchCondition.Leave);
+                exits.Add(b);
+                builder.AddInstruction(b);
+
+                Tables.Pop();
+
+                builder.AddInstruction(new InterBlock());
+            }
+
+            if(hasFinally)
+            {
+                EndTryBlock();
+                builder.AddInstruction(new InterBlock("finally"));
+                CompileNode(node[2][0]);
+                builder.AddInstruction(new InterEndFinally());
+                builder.AddInstruction(new InterBlock());
+            }
+
+            string exitLabel = builder.CurrentMethod.NextLabel;
+            foreach (var b in exits) b.SetLabel(exitLabel);
+
+        }
+
+
         [CodeGenFunction("ReturnStatement")]
         public void CompileReturnStatement(SyntaxTreeNode node)
         {

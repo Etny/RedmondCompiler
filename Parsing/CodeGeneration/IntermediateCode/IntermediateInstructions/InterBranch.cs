@@ -43,12 +43,13 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
             {
                 BranchCondition.Always => OpCodes.Br,
                 BranchCondition.OnFalse => OpCodes.Brfalse,
+                BranchCondition.Leave => OpCodes.Leave,
                 _ => OpCodes.Brtrue
             };
 
             builder.EmitOpCode(op, _label);
         }
 
-        public enum BranchCondition { OnTrue, OnFalse, Always}
+        public enum BranchCondition { OnTrue, OnFalse, Always, Leave}
     }
 }

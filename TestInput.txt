@@ -8,15 +8,11 @@ namespace BaseTest
 
         static void Main()
         {
-            int[] ints = new int[] {1, 22, 333};
+            int i = 0;
 
-            foreach(var i in ints)
-            {
-                if(i == 22)
-                    continue;
-
-                Console.WriteLine("Num: "+i);
-            }
+            try{ i--; }
+            catch(Exception e){ i = 3; Console.WriteLine(e);}
+            finally{ i = 0; }
         }  
     }
 }
