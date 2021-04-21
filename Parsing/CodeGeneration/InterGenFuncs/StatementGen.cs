@@ -268,10 +268,12 @@ namespace Redmond.Parsing.CodeGeneration
 
 
             InterBranch initialBranch = new InterBranch();
-            builder.AddInstruction(initialBranch);
 
             var loc = builder.AddLocal(node[1].ValueString, typeVal);
 
+            builder.AddInstruction(new InterBlock(".try"));
+
+            builder.AddInstruction(initialBranch);
             string beginLabel = builder.CurrentMethod.NextLabel;
             builder.AddInstruction(new InterCopy(loc, new InterOpValue(new InterCall("get_Current", new CodeValue[0], true, enumerator))));
             CompileNode(node[3]);
@@ -286,9 +288,20 @@ namespace Redmond.Parsing.CodeGeneration
             checkBranch.SetLabel(beginLabel);
             builder.AddInstruction(checkBranch);
 
+            InterBranch tryLeave = (InterBranch)builder.AddInstruction(new InterBranch(InterBranch.BranchCondition.Leave));
+            builder.AddInstruction(new InterBlock());
+
+
             //TODO: Add Try-Finnaly support for the Dispose call
+
+            builder.AddInstruction(new InterBlock("finally"));
+            builder.AddInstruction(new InterCall("Dispose", new CodeValue[0], false, enumerator) { ThisPointerTypeNameOverride = new BasicTypeName("System.IDisposable") });
+            builder.AddInstruction(new InterEndFinally());
+            builder.AddInstruction(new InterBlock());
+
             string endLabel = builder.CurrentMethod.NextLabel;
-            //builder.AddInstruction(new InterCall("Dispose", new CodeValue[0], false, enumerator));
+            tryLeave.SetLabel(endLabel);
+
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
 
