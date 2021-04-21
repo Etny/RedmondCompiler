@@ -193,6 +193,7 @@ statement
 					|	foreach_statement
 					|	switch_statement
 					|	break_statement	';'	{$$ = $1}
+					|	continue_statement	';'	{$$ = $1}
 					;
 
 return_statement	
@@ -257,6 +258,7 @@ for_iterator
 			
 foreach_statement
 					:	FOREACH '(' type IDENTIFIER IN expression ')' statement	{$$ = makeNode("ForEachStatement", $3, $4, $6, $8)}
+					|	FOREACH '(' VAR IDENTIFIER IN expression ')' statement	{$$ = makeNode("ForEachStatement", makeLeaf("Var"), $4, $6, $8)}
 					;
 
 switch_statement
@@ -284,6 +286,10 @@ switch_label
 
 break_statement
 					:	BREAK	{$$ = makeNode("BreakStatement")}
+					;
+
+continue_statement
+					:	CONTINUE	{$$ = makeNode("ContinueStatement")}
 					;
 
 call_statement		
@@ -540,7 +546,7 @@ REAL_LITERAL STRING_LITERAL INTER_LITERAL BOOL_LITERAL CHAR_LITERAL NULL
 
 STATIC PUBLIC PRIVATE INTERNAL PROTECTED SEALED VIRTUAL ABSTRACT OVERRIDE
 READONLY CONST CLASS NAMESPACE USING RETURN NEW IF ELSE DO WHILE FOR FOREACH
-IN SWITCH CASE BREAK DEFAULT BASE THIS ARROW GET SET VALUE VAR
+IN SWITCH CASE BREAK CONTINUE DEFAULT BASE THIS ARROW GET SET VALUE VAR
 
 PLUSPLUS MINUSMINUS
 
@@ -593,6 +599,7 @@ in			{IN}
 switch		{SWITCH}
 case		{CASE}
 break		{BREAK}
+continue	{CONTINUE}
 default		{DEFAULT}
 base		{BASE}
 this		{THIS}

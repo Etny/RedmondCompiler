@@ -5,7 +5,14 @@ using System.Text;
 
 namespace Redmond.Parsing.CodeGeneration.SymbolManagement
 {
-    class GenericType : UserType
+    interface IGenericType
+    {
+
+        int GetArity();
+        CodeType[] GetGenericParameters();
+
+    }
+    class GenericType : UserType, IGenericType
     {
         public readonly CodeType[] GenericParameters;
         public int Arity => GenericParameters.Length;
@@ -124,9 +131,11 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
                 yield return new GenericFieldInfoWrapper(f, context, this);
         }
 
+        public int GetArity() => Arity;
+        public CodeType[] GetGenericParameters() => GenericParameters;
     }
 
-    class InterGenericType : InterUserType
+    class InterGenericType : InterUserType, IGenericType
     {
 
         public readonly CodeType[] GenericParameters;
@@ -192,6 +201,9 @@ namespace Redmond.Parsing.CodeGeneration.SymbolManagement
             else
                 return t;
         }
+
+        public int GetArity() => GenericParameters.Length;
+        public CodeType[] GetGenericParameters() => GenericParameters;
 
         public override bool IsGeneric => true;
 

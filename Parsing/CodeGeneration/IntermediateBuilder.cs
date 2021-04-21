@@ -26,17 +26,14 @@ namespace Redmond.Parsing.CodeGeneration
         public ImmutableList<AssemblyReference> AssemblyReferences { get; protected set; } = ImmutableList<AssemblyReference>.Empty;
         public ImmutableList<string> ImportedNamespaces { get; protected set; } = ImmutableList<string>.Empty;
 
-        private List<InterBranch> _breakInstruction = new List<InterBranch>();
+        private List<InterBranch> _breakInstructions = new List<InterBranch>();
+        private List<InterBranch> _continueInstructions = new List<InterBranch>();
 
         private string assemblyName = "Redmond";
 
         public IntermediateBuilder(Stack<SymbolTable> tables)
         {
             AddReference(new CoreAssemblyReference());  
-
-            var t = Assembly.Load("System.Reflection.Primitives");
-            var ts = t.GetType("OpCode");
-            var type = typeof(System.Reflection.Emit.OpCode);
 
             _tables = tables;
         }
@@ -73,8 +70,15 @@ namespace Redmond.Parsing.CodeGeneration
 
         public InterBranch[] GetBreaks()
         {
-            var temp = _breakInstruction.ToArray();
-            _breakInstruction.Clear();
+            var temp = _breakInstructions.ToArray();
+            _breakInstructions.Clear();
+            return temp;
+        }
+
+        public InterBranch[] GetContinues()
+        {
+            var temp = _continueInstructions.ToArray();
+            _continueInstructions.Clear();
             return temp;
         }
 
@@ -82,7 +86,14 @@ namespace Redmond.Parsing.CodeGeneration
         {
             var b = new InterBranch();
             AddInstruction(b);
-            _breakInstruction.Add(b);
+            _breakInstructions.Add(b);
+        }
+
+        public void AddContinueStatement()
+        {
+            var b = new InterBranch();
+            AddInstruction(b);
+            _continueInstructions.Add(b);
         }
 
         public InterMethod AddMethod(string name, TypeName returnType, ArgumentSymbol[] vars, List<string> flags)

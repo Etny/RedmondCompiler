@@ -120,6 +120,9 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
 
+            foreach (var c in builder.GetContinues())
+                c.SetLabel(beginLabel);
+
             Tables.Pop();
         }
 
@@ -141,6 +144,9 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
 
+            foreach (var c in builder.GetContinues())
+                c.SetLabel(beginLabel);
+
             Tables.Pop();
         }
 
@@ -157,7 +163,10 @@ namespace Redmond.Parsing.CodeGeneration
 
             string beginLabel = builder.CurrentMethod.NextLabel;
             if (node[3].Op != "Empty") CompileNode(node[3]);
-            if (node[2].Op != "Empty") CompileStatementExpressionList(node[2]);
+
+            string continueLabel = builder.CurrentMethod.NextLabel;
+            if (node[2].Op != "Empty") CompileStatementExpressionList(node[2]); 
+
             initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
 
             InterBranch checkBranch = new InterBranch(ToIntermediateExpression(node[1]), InterBranch.BranchCondition.OnTrue);
@@ -169,6 +178,9 @@ namespace Redmond.Parsing.CodeGeneration
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
 
+            foreach (var c in builder.GetContinues())
+                c.SetLabel(continueLabel);
+
             Tables.Pop();
         }
 
@@ -177,11 +189,10 @@ namespace Redmond.Parsing.CodeGeneration
         {
             PushNewTable();
 
-            var locType = TypeNameFromNode(node[0]);
-            var enumCall = new InterCall("GetEnumerator", new CodeValue[0], true, ToIntermediateExpression(node[2]))
-            {
-                ThisPointerTypeOverride = new GenericTypeName(new BasicTypeName("System.Collections.Generic.IEnumerable",  new ResolutionContext()), new ResolutionContext(), new TypeName[] { locType })
-            };
+            var enumerable = ToIntermediateExpression(node[2]);
+            var typeVal = new GenericParamValue(enumerable);
+
+            var enumCall = new InterPushEnumerator(enumerable, typeVal);
             var enumVal = new InterOpValue(enumCall);
             var enumerator = builder.AddLocal("loc_" + builder.CurrentMethod.Locals.Count, enumVal);
             builder.AddInstruction(new InterCopy(enumerator, enumVal));
@@ -190,16 +201,17 @@ namespace Redmond.Parsing.CodeGeneration
             InterBranch initialBranch = new InterBranch();
             builder.AddInstruction(initialBranch);
 
-            var loc = builder.AddLocal(node[1].ValueString, locType);
+            var loc = builder.AddLocal(node[1].ValueString, typeVal);
 
             string beginLabel = builder.CurrentMethod.NextLabel;
             builder.AddInstruction(new InterCopy(loc, new InterOpValue(new InterCall("get_Current", new CodeValue[0], true, enumerator))));
             CompileNode(node[3]);
 
-            initialBranch.SetLabel(builder.CurrentMethod.NextLabel);
+            var continueLabel = builder.CurrentMethod.NextLabel;
+            initialBranch.SetLabel(continueLabel);
             var moveCall = new InterCall("MoveNext", new CodeValue[0], true, enumerator)
             {
-                ThisPointerTypeOverride = new BasicTypeName("System.Collections.IEnumerator", new ResolutionContext())
+                ThisPointerTypeNameOverride = new BasicTypeName("System.Collections.IEnumerator", new ResolutionContext())
             };
             InterBranch checkBranch = new InterBranch(new InterOpValue(moveCall), InterBranch.BranchCondition.OnTrue);
             checkBranch.SetLabel(beginLabel);
@@ -210,6 +222,9 @@ namespace Redmond.Parsing.CodeGeneration
             //builder.AddInstruction(new InterCall("Dispose", new CodeValue[0], false, enumerator));
             foreach (var b in builder.GetBreaks())
                 b.SetLabel(endLabel);
+
+            foreach (var c in builder.GetContinues())
+                c.SetLabel(continueLabel);
 
             Tables.Pop();
         }
@@ -275,5 +290,9 @@ namespace Redmond.Parsing.CodeGeneration
         [CodeGenFunction("BreakStatement")]
         public void CompileBreakStatement(SyntaxTreeNode node)
             => builder.AddBreakStatement();
+
+        [CodeGenFunction("ContinueStatement")]
+        public void CompileContinueStatement(SyntaxTreeNode node)
+            => builder.AddContinueStatement();
     }
 }

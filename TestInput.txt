@@ -10,19 +10,13 @@ namespace BaseTest
         {
             int[] ints = new int[] {1, 22, 333};
 
-            foreach(int i in ints)
-                Console.WriteLine(i);
-        }   
+            foreach(var i in ints)
+            {
+                if(i == 22)
+                    continue;
 
-        static void ListMethod()
-        {
-            List<int> ints = new List<int>();
-            ints.Add(1);
-            ints.Add(22);
-            ints.Add(333);
-
-            foreach(int i in ints)
-                Console.WriteLine(i);
-        }
+                Console.WriteLine("Num: "+i);
+            }
+        }  
     }
 }

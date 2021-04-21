@@ -24,7 +24,8 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
         private bool _valueType = false;
         private InterCopy _symbolConversion = null;
 
-        public TypeName ThisPointerTypeOverride = TypeName.Unknown;
+        public TypeName ThisPointerTypeNameOverride = TypeName.Unknown;
+        public CodeType ThisPointerTypeOverride = null;
 
         public InterCall(string name, CodeValue[] parameters, bool isExpression = false, CodeValue thisPtr = null, bool baseAccess = false)
         {
@@ -96,7 +97,14 @@ namespace Redmond.Parsing.CodeGeneration.IntermediateCode.IntermediateInstructio
                     else type = UserType.ToUserType(_thisPtr.Type).GetBaseType();
                 }
 
-                var searchType = ThisPointerTypeOverride == TypeName.Unknown ? type : context.ResolveType(ThisPointerTypeOverride);
+                CodeType searchType;
+
+                if (ThisPointerTypeOverride != null)
+                    searchType = ThisPointerTypeOverride;
+                else if (ThisPointerTypeNameOverride != TypeName.Unknown)
+                    searchType = context.ResolveType(ThisPointerTypeNameOverride);
+                else
+                    searchType = type;
 
                 _method = context.FindClosestFunction(_targetName, searchType, _parameters);
             }
