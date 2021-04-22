@@ -291,9 +291,6 @@ namespace Redmond.Parsing.CodeGeneration
             InterBranch tryLeave = (InterBranch)builder.AddInstruction(new InterBranch(InterBranch.BranchCondition.Leave));
             builder.AddInstruction(new InterBlock());
 
-
-            //TODO: Add Try-Finnaly support for the Dispose call
-
             builder.AddInstruction(new InterBlock("finally"));
             builder.AddInstruction(new InterCall("Dispose", new CodeValue[0], false, enumerator) { ThisPointerTypeNameOverride = new BasicTypeName("System.IDisposable") });
             builder.AddInstruction(new InterEndFinally());
