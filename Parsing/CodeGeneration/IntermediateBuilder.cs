@@ -31,9 +31,12 @@ namespace Redmond.Parsing.CodeGeneration
 
         private string assemblyName = "Redmond";
 
-        public IntermediateBuilder(Stack<SymbolTable> tables)
+        private readonly CompilationOptions _options;
+
+        public IntermediateBuilder(Stack<SymbolTable> tables, CompilationOptions options)
         {
-            AddReference(new CoreAssemblyReference());  
+            AddReference(new CoreAssemblyReference());
+            _options = options;
 
             _tables = tables;
         }
@@ -357,14 +360,14 @@ namespace Redmond.Parsing.CodeGeneration
 
         private void EmitCLRHeader(IlBuilder builder)
         {
-            builder.EmitLine($".assembly {assemblyName} {{}}");
+            builder.EmitLine($".assembly {_options.AssemblyName} {{}}");
 
             builder.EmitLine();
 
             foreach (var reference in ReferenceTracker.UsedReferences)
                 reference.Emit(builder);
 
-            builder.EmitLine(".module TestModule");
+            builder.EmitLine(".module "+_options.ModuleName);
 
             builder.EmitLine();
 

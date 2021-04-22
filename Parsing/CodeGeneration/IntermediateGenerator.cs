@@ -21,9 +21,9 @@ namespace Redmond.Parsing.CodeGeneration
 
         private OutputStream _out;
 
-        public IntermediateGenerator(OutputStream output)
+        public IntermediateGenerator(OutputStream output, CompilationOptions options)
         {
-            builder = new IntermediateBuilder(Tables);
+            builder = new IntermediateBuilder(Tables, options);
             _out = output;
         }
 

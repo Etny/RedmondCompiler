@@ -17,10 +17,6 @@ namespace Redmond
             LexAction.Init();
             IntermediateGenerator.Init();
 
-            var pcre = new PcreRegex("asdf");
-            var m = pcre.Match("as", PcreMatchOptions.PartialSoft);
-            bool b = m.IsPartialMatch;
-
             if (args.Length < 1)
             {
                 do

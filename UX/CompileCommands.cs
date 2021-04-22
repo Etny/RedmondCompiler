@@ -1,5 +1,7 @@
 ﻿using Redmond.Common;
 using Redmond.IO;
+using Redmond.IO.Error;
+using Redmond.IO.Error.Exceptions;
 using Redmond.Lex;
 using Redmond.Parsing;
 using Redmond.Parsing.CodeGeneration;
@@ -17,61 +19,71 @@ namespace Redmond.UX
 
         public static void Compile(ParsedCommandOptions opts)
         {
+            var output = GetSelectedOutputStream(opts);
+            var input = GetAllCSFiles(GetParameterValue(opts, null, "input", "in", "i"));
+            ParseFile parseFile = new ParseFile(GetParameterValue(opts, null, "parse", "p")).Read();
+
             Console.WriteLine("Reading parse file..");
 
-            var output = GetSelectedOutput(opts);
-            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt"}));
-            //var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\CompileTestProject");
-            //var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\Redmond");
-
-            ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse").Read();
-
-            string inputFile = opts.FindOption("input", "i")?.Argument ??
-                @"C:\Users\yveem\source\repos\Redmond\TestInput.txt";
-
-            var context = new CompilationContext(parseFile, input, output);
+            var context = new CompilationContext(parseFile, input, output, new CompilationOptions(opts));
             context.Compile();
+
+            Console.WriteLine("Done!");
         }
 
         public static void CompileDec(ParsedCommandOptions opts)
         {
-            var Dec = new DecFile(@"C:\Users\yveem\source\repos\Redmond\TestDec.dec");
+            var Dec = new DecFile(GetParameterValue(opts, null, "input", "in", "i"));
+            ParseFile parseFile = new ParseFile(GetParameterValue(opts, null, "output", "out", "o"));
+
             CompileSettings.InitSettings(Dec.SettingsLines);
             var gram = new DecGrammar(Dec);
-            Console.WriteLine("Generating parsing table...");
+            Console.WriteLine("Generating parsing table... (This will take a while)");
 
-            ParseFile parseFile = new ParseFile(@"C:\Users\yveem\source\repos\Redmond\TestParse.parse");
             parseFile.SetLexLines(Dec.LexLines);
             parseFile.SetParseTableLines(gram.SerializeParsingTable());
             parseFile.SetTokenIdLines(ProductionEntry.Register.Serialize());
             parseFile.Save();
 
             Console.WriteLine("Done!");
-            Console.Beep();
 
-            var parser = gram.GetParser();
+            //var parser = gram.GetParser();
 
-            var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt" }));
-            //var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\CompileTestProject");
+            //var input = new MultiFileInputStream(new List<string>(new string[] { @"C:\Users\yveem\source\repos\Redmond\TestInput.txt" }));
+            ////var input = GetAllCSFiles(@"C:\Users\yveem\source\repos\CompileTestProject");
 
 
-            TokenStream Input = new TokenStream(input, Dec.LexLines, new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
+            //TokenStream Input = new TokenStream(input, Dec.LexLines, new string(Enumerable.Range('\x1', 127).Select(i => (char)i).ToArray()));
 
-            parser.Parse(Input);
-            var tree = SyntaxTreeNode.CurrentNode;
-            Console.WriteLine(tree.ToTreeString());
-            Console.WriteLine("============\n");
-            new IntermediateGenerator(new ConsoleStream()).Start(tree);
-            Console.WriteLine("============\n");
+            //parser.Parse(Input);
+            //var tree = SyntaxTreeNode.CurrentNode;
+            //Console.WriteLine(tree.ToTreeString());
+            //Console.WriteLine("============\n");
+            //new IntermediateGenerator(new ConsoleStream()).Start(tree);
+            //Console.WriteLine("============\n");
         }
 
-        private static OutputStream GetSelectedOutput(ParsedCommandOptions options)
+        private static OutputStream GetSelectedOutputStream(ParsedCommandOptions options)
         {
-            var o = options.FindOption("output", "out", "o")?.Argument;
+            var o = GetParameterValue(options, "console", "output", "out", "o");
 
-            if (o == null || o.ToLower() == "console") return new ConsoleStream();
+            if (o == "console") return new ConsoleStream();
             else return new FileOutputStream(o);
         }
+
+        private static string GetParameterValue(ParsedCommandOptions options, string defaultValue, params string[] names)
+        { 
+            var o = options.FindOption(names)?.Argument;
+            if (o == null)
+            {
+                if (defaultValue != null)
+                    return defaultValue;
+                else
+                    ErrorManager.ExitWithError(new MissingParameterException(names[0]));
+            }
+            return o;
+        }
+        
 
         private static InputStream GetAllCSFiles(string path)
         {
@@ -79,12 +91,20 @@ namespace Redmond.UX
             {
                 List<string> files = new List<string>();
 
-                foreach(var v in Directory.GetFiles(path))
-                    if (Path.GetExtension(v) == ".cs")
-                        files.Add(v);
+                if (!Directory.Exists(path))
+                {
+                    if (Path.GetExtension(path) == ".cs")
+                        files.Add(path);
+                }
+                else
+                {
+                    foreach (var v in Directory.GetFiles(path))
+                        if (Path.GetExtension(v) == ".cs")
+                            files.Add(v);
 
-                foreach (var d in Directory.GetDirectories(path))
-                    if(Path.GetFileName(d) != "obj") files.AddRange(FindAllInFolder(d));
+                    foreach (var d in Directory.GetDirectories(path))
+                        if (Path.GetFileName(d) != "obj") files.AddRange(FindAllInFolder(d));
+                }
 
                 return files;
             }
